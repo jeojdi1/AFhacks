@@ -1,0 +1,71 @@
+{
+  "source": "Statistics Canada, Open Database of Businesses (ODBus) v1",
+  "source_url": "https://www150.statcan.gc.ca/n1/pub/21-26-0003/2023001/ODBus_2023.zip",
+  "landing_page": "https://www150.statcan.gc.ca/n1/pub/21-26-0003/212600032023001-eng.htm",
+  "licence": "Open Government Licence – Canada",
+  "download_date": "2026-09-26",
+  "input_file": "ODBus_v1.csv",
+  "input_encoding": "utf-8-sig",
+  "input_row_count": 446575,
+  "ontario_row_count": 205122,
+  "target_area_rows_before_filter": {
+    "Kitchener": 1923,
+    "Waterloo": 11,
+    "Cambridge": 31,
+    "Woolwich": 4,
+    "London": 24,
+    "Hamilton": 2857
+  },
+  "keyword_hits_dropped_as_noise": 45,
+  "rows_per_city": {
+    "Kitchener": 103,
+    "Waterloo": 0,
+    "Cambridge": 0,
+    "Woolwich": 0,
+    "London": 0,
+    "Hamilton": 12
+  },
+  "rows_per_match_reason_family": {
+    "naics": 70,
+    "keyword": 45
+  },
+  "rows_per_match_reason": {
+    "naics:332710": 18,
+    "keyword:metal": 17,
+    "naics:332310": 10,
+    "keyword:tool": 9,
+    "keyword:machine": 8,
+    "naics:332999": 6,
+    "keyword:weld": 5,
+    "naics:332810": 5,
+    "keyword:fabricat": 4,
+    "naics:334410": 4,
+    "naics:332118": 4,
+    "naics:335315": 4,
+    "naics:332990": 3,
+    "naics:335920": 3,
+    "naics:332319": 2,
+    "naics:332300": 2,
+    "naics:332329": 2,
+    "naics:336300": 2,
+    "keyword:precision": 1,
+    "naics:332720": 1,
+    "naics:336360": 1,
+    "keyword:fab": 1,
+    "naics:332110": 1,
+    "naics:335300": 1,
+    "naics:336310": 1
+  },
+  "cities_missing": [
+    "Waterloo",
+    "Cambridge",
+    "Woolwich",
+    "London"
+  ],
+  "total": 115,
+  "notes": [
+    "ODBus coverage depends on which municipalities publish business licence/directory open data; Waterloo, Cambridge, Woolwich and London have no municipal feed in ODBus v1, so they appear only via other providers' records (e.g. City of Toronto contractor licences).",
+    "Provider 'City of Kitchener' rows carry city='Cambridge' in ODBus v1; CSDNAME (Kitchener) is used instead.",
+    "Coordinates are as published; some City of Hamilton rows are geocoded outside Hamilton by the source."
+  ]
+}
