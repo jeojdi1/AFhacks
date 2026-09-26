@@ -1,0 +1,30 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Raw downloads
+data/raw/*
+!data/raw/.gitkeep
+
+# Web
+web/node_modules/
+web/.next/
+web/out/
+node_modules/
+
+# Misc
+.DS_Store
+*.log

@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+pydantic>=2
+sqlmodel
+ortools
+python-multipart
+httpx
+anthropic
+pytest
+ruff
