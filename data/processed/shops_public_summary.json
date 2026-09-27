@@ -1,0 +1,97 @@
+{
+  "generated": "2026-09-26",
+  "retrieved": "2026-09-26",
+  "label": "Public data — unverified — not affiliated",
+  "total_shops": 78,
+  "by_city": {
+    "Cambridge": 17,
+    "Kitchener": 15,
+    "London": 13,
+    "Waterloo": 9,
+    "Hamilton": 8,
+    "Stoney Creek": 7,
+    "Elmira": 4,
+    "Ancaster": 1,
+    "Breslau": 1,
+    "Dorchester": 1,
+    "St. Jacobs": 1,
+    "Woodstock": 1
+  },
+  "by_process": {
+    "welding": 39,
+    "cnc_milling": 31,
+    "cnc_turning": 23,
+    "sheet_metal": 23,
+    "painting": 17,
+    "electronics_assembly": 8,
+    "five_axis_milling": 7,
+    "wire_harness": 6,
+    "anodizing": 6,
+    "plating": 5,
+    "heat_treat": 4,
+    "fasteners": 1
+  },
+  "by_cert_declared": {
+    "CGP": 15,
+    "CPCSC_L1": 0,
+    "ISO9001": 30,
+    "AS9100": 6,
+    "NADCAP:HEAT_TREAT": 0,
+    "NADCAP:CHEM_PROCESSING": 1,
+    "NADCAP:COATINGS": 0,
+    "CWB_W47.1": 14
+  },
+  "cert_leads_unknown_with_source": {
+    "CGP": 2,
+    "CPCSC_L1": 0,
+    "ISO9001": 3,
+    "AS9100": 0,
+    "NADCAP:HEAT_TREAT": 0,
+    "NADCAP:CHEM_PROCESSING": 0,
+    "NADCAP:COATINGS": 0,
+    "CWB_W47.1": 11
+  },
+  "sme": {
+    "true": 77,
+    "false": 1
+  },
+  "with_odbus_match": 17,
+  "with_contact_role_email": 38,
+  "location_source": {
+    "nominatim-street": 12,
+    "nominatim-address": 50,
+    "nominatim-city-centre": 1,
+    "odbus": 15
+  },
+  "sources": [
+    "Company websites (home/about/capabilities/quality/contact pages only, ~1 req/s, <=6 pages per company)",
+    "StatCan Open Database of Businesses via data/processed/candidates.csv (rows with odbus_idx)",
+    "Single targeted CWB certified-company directory lookups for 2 shops (ELS, Hamilton Specialized Welding)",
+    "Business directories (YellowPages, CASF, CTI, opengovca, City of Waterloo) where no company site existed; noted per row",
+    "OpenStreetMap Nominatim for geocoding (1 req/s)"
+  ],
+  "licence_notes": {
+    "odbus": "Contains information licensed under the Open Government Licence – Canada (Statistics Canada, Open Database of Businesses).",
+    "company_websites": "Facts only (processes, materials, self-declared certifications) with a source URL per field; no text or images copied.",
+    "geocoding": "Coordinates from OpenStreetMap Nominatim, © OpenStreetMap contributors, ODbL 1.0.",
+    "certifications": "status 'declared' = self-reported on company website or a single CWB directory listing, not verified by Muster; 'unknown' otherwise (leads noted where a hint exists)."
+  },
+  "not_scraped": [
+    "Canada's Business Registries",
+    "CADSI GATEWAY",
+    "IAQG OASIS",
+    "CGP/CWB/Nadcap directories (no bulk queries)"
+  ],
+  "excluded_from_this_file": [
+    {
+      "name": "Bodycote Thermal Processing - Kitchener",
+      "reason": "category 'other' (not an SME shop); kept in outreach list"
+    }
+  ],
+  "dropped": [
+    {
+      "name": "Precise EDM And Machining Inc.",
+      "reason": "Operating status unconfirmed: its only website (precisewireedm.com) fails DNS; only directory listings remain"
+    }
+  ]
+}
