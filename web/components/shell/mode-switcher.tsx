@@ -73,6 +73,9 @@ export function ModeSwitcher() {
             )
           })}
         </div>
+        <p className="truncate border-t border-border pt-2 font-mono text-[11px] text-muted-foreground" title={apiUrl}>
+          API: {apiUrl}
+        </p>
       </PopoverContent>
     </Popover>
   )

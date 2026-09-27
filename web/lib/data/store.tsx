@@ -85,6 +85,72 @@ const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").rep
 const RAW_MODE = (process.env.NEXT_PUBLIC_DEMO_MODE || "auto").toLowerCase()
 const ENV_MODE: "auto" | Mode = RAW_MODE === "live" || RAW_MODE === "fixtures" ? RAW_MODE : "auto"
 const PID = "northgate"
+
+// ---------------------------------------------------------------------------
+// Runtime overrides (?api=<url>, ?mode=live|fixtures|auto), kept in sessionStorage
+// so client navigation and reloads keep them. Without an override nothing changes.
+
+const SESSION_API_KEY = "muster.override.api"
+const SESSION_MODE_KEY = "muster.override.mode"
+/** Resolved on the client at mount; module scope so http() needs no plumbing. */
+let apiBase = API_URL
+let envMode: "auto" | Mode = ENV_MODE
+let modeOverridden = false
+
+function validApi(raw: string | null | undefined): string | null {
+  if (!raw) return null
+  try {
+    const u = new URL(raw.trim())
+    if (u.protocol !== "http:" && u.protocol !== "https:") return null
+    const clean = `${u.origin}${u.pathname}`.replace(/\/+$/, "")
+    if (clean === API_URL) return clean
+    if (u.hostname !== "localhost" && u.hostname !== "127.0.0.1") return null
+    if (u.username || u.password) return null
+    return clean
+  } catch {
+    return null
+  }
+}
+
+function validMode(raw: string | null | undefined): "auto" | Mode | null {
+  const m = (raw || "").trim().toLowerCase()
+  return m === "live" || m === "fixtures" || m === "auto" ? m : null
+}
+
+function sessionGet(k: string): string | null {
+  try {
+    return window.sessionStorage.getItem(k)
+  } catch {
+    return null
+  }
+}
+
+function sessionSet(k: string, v: string) {
+  try {
+    window.sessionStorage.setItem(k, v)
+  } catch {
+    /* storage unavailable: override lasts until the next full reload */
+  }
+}
+
+/** Read URL query then sessionStorage; apply to apiBase/envMode. Client only. */
+function resolveOverrides() {
+  let q: URLSearchParams | null = null
+  try {
+    q = new URLSearchParams(window.location.search)
+  } catch {
+    q = null
+  }
+  const qApi = validApi(q?.get("api"))
+  if (qApi) sessionSet(SESSION_API_KEY, qApi)
+  const qMode = validMode(q?.get("mode"))
+  if (qMode) sessionSet(SESSION_MODE_KEY, qMode)
+  const api = qApi ?? validApi(sessionGet(SESSION_API_KEY))
+  const mode = qMode ?? validMode(sessionGet(SESSION_MODE_KEY))
+  apiBase = api ?? API_URL
+  envMode = mode ?? ENV_MODE
+  modeOverridden = mode !== null
+}
 const STORAGE_KEY = "muster.demo.v1"
 /** Live-mode extras the engine cannot give back after a reload (fund responses, solver). */
 const LIVE_CACHE_KEY = "muster.demo.live.v1"
@@ -189,7 +255,7 @@ async function http<T>(
   const timer = setTimeout(() => ctrl.abort(), opts.timeoutMs ?? 30000)
   let res: Response
   try {
-    res = await fetch(`${API_URL}${path}`, {
+    res = await fetch(`${apiBase}${path}`, {
       method,
       body: opts.body,
       signal: ctrl.signal,
@@ -198,7 +264,7 @@ async function http<T>(
     })
   } catch (e) {
     const aborted = e instanceof DOMException && e.name === "AbortError"
-    throw new ApiError(0, aborted ? "The engine did not respond in time" : `Cannot reach the engine at ${API_URL}`, true)
+    throw new ApiError(0, aborted ? "The engine did not respond in time" : `Cannot reach the engine at ${apiBase}`, true)
   } finally {
     clearTimeout(timer)
   }
@@ -839,19 +905,22 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
     let cancelled = false
     void (async () => {
       await Promise.resolve()
-      const p = readPersisted()
+      resolveOverrides()
+      const saved = readPersisted()
+      // A runtime ?mode= override beats the saved switcher choice.
+      const p = saved && modeOverridden ? { ...saved, modeOverride: null } : saved
       modeOverrideRef.current = p?.modeOverride ?? null
       // A saved "fixtures" choice is honoured as-is. A saved "live" choice still
       // probes the engine, so a reload with the engine down falls back to demo mode.
       let mode: Mode
       if (p?.modeOverride === "fixtures") mode = "fixtures"
-      else if (p?.modeOverride === "live" || ENV_MODE === "auto") {
+      else if (p?.modeOverride === "live" || envMode === "auto") {
         mode = (await probeLive()) ? "live" : "fixtures"
         if (mode === "fixtures" && p?.modeOverride === "live") {
           modeOverrideRef.current = null
           toast.message("Live engine not reachable", { description: "Continuing in demo mode with the same steps." })
         }
-      } else mode = ENV_MODE
+      } else mode = envMode
       if (cancelled) return
 
       const restored = {
@@ -860,23 +929,23 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
       }
       if (mode === "fixtures") {
         const flow = replayFixtures(p)
-        patch({ ...flow, ...restored, mode, ready: true, busy: null, error: null })
+        patch({ ...flow, ...restored, mode, apiUrl: apiBase, ready: true, busy: null, error: null })
         return
       }
       try {
         const flow = await loadLive()
         if (cancelled) return
-        patch({ ...flow, ...restored, mode, ready: true, busy: null, error: null })
+        patch({ ...flow, ...restored, mode, apiUrl: apiBase, ready: true, busy: null, error: null })
       } catch (e) {
         if (cancelled) return
-        if (ENV_MODE === "live") {
-          patch({ ...emptyFlow(fxProgram()), mode, ready: true, busy: null })
+        if (envMode === "live") {
+          patch({ ...emptyFlow(fxProgram()), mode, apiUrl: apiBase, ready: true, busy: null })
           handleError(e, "Could not load the program from the engine")
           return
         }
         // Engine answered the probe but failed to load: keep going on fixtures.
         modeOverrideRef.current = null
-        patch({ ...replayFixtures(p), ...restored, mode: "fixtures", ready: true, busy: null, error: null })
+        patch({ ...replayFixtures(p), ...restored, mode: "fixtures", apiUrl: apiBase, ready: true, busy: null, error: null })
         toast.message("Live engine not responding", { description: "Continuing in demo mode with the same steps." })
       }
     })()
@@ -1099,6 +1168,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
     (m: Mode) => {
       const gen = ++genRef.current
       modeOverrideRef.current = m
+      // Keep an active ?mode= override in step with the switcher so a reload agrees.
+      if (modeOverridden) sessionSet(SESSION_MODE_KEY, m)
       const cur = stateRef.current
       if (m === "fixtures") {
         // Keep the presenter's place: replay the same step (and funded packages) on fixtures.
@@ -1128,7 +1199,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
           const prog = await http<ProgramResponse>("GET", `/programs/${PID}`)
           if (gen !== genRef.current) return
           patch({ program: prog.program, busy: null })
-          toast.success("Connected to the live engine", { description: API_URL })
+          toast.success("Connected to the live engine", { description: apiBase })
         } catch (e) {
           if (gen !== genRef.current) return
           handleError(e, "Could not reach the live engine")

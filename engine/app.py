@@ -1,9 +1,11 @@
 """Muster Engine FastAPI app (H2.8).
 
-Thin HTTP layer over ``engine.pipeline``. Every request loads the program State
-from SQLite under ``STATE_LOCK``, delegates to the pipeline and (for mutating
-requests) saves it back. Response shapes are docs/api.md; errors are
-``{"detail": "<readable message>"}``.
+Thin HTTP layer over ``engine.pipeline``. Every request runs under ``STATE_LOCK``.
+Mutating requests load the program State from SQLite, delegate to the pipeline and save
+it back (a new revision). Read requests are memoized per revision (``engine.cache``):
+the rendered JSON of each view is computed once per State revision and served again
+until the next upload / route / fund / reset. Response shapes are docs/api.md; errors
+are ``{"detail": "<readable message>"}``.
 """
 
 from __future__ import annotations
@@ -13,11 +15,12 @@ from collections.abc import Callable
 from typing import Annotated, Any
 
 from fastapi import FastAPI, File, HTTPException, Query, Request, UploadFile
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
-from engine import pipeline, tagger
+from engine import cache, pipeline, tagger
 from engine.state import (
     DEFAULT_PROGRAM_ID,
     DEMO_PARTS_CSV,
@@ -40,6 +43,8 @@ app = FastAPI(title="Muster Engine", version=VERSION)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    # Any local port, so testers can run the web app (or several) next to the demo one.
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -76,18 +81,34 @@ def _check_program(program_id: str) -> None:
         raise HTTPException(status_code=404, detail=f"Unknown program '{program_id}'")
 
 
-def _read(program_id: str, fn: Callable[[State], Any]) -> Any:
-    """Run a read-only view under the lock (nothing is saved)."""
+def _render(content: Any) -> bytes:
+    """The exact bytes FastAPI would send for ``content`` returned from an endpoint.
+
+    The views return plain JSON types, for which ``jsonable_encoder`` is the identity, so
+    they are dumped directly (it is the slow part on large payloads); anything else goes
+    through ``jsonable_encoder`` as FastAPI would."""
+    try:
+        return JSONResponse(content).body
+    except TypeError:
+        return JSONResponse(jsonable_encoder(content)).body
+
+
+def _read(program_id: str, key: tuple, fn: Callable[[State], Any]) -> Response:
+    """Run a read-only view under the lock (nothing is saved), memoized per State
+    revision under ``key``. HTTPExceptions raised by ``fn`` are not cached."""
     with STATE_LOCK:
-        return fn(load_state(program_id))
+        body = cache.view(program_id, key, lambda state: _render(fn(state)))
+    return Response(content=body, media_type="application/json")
 
 
 def _write(program_id: str, fn: Callable[[State], Any]) -> Any:
-    """Run a mutating operation under the lock and persist the State on success."""
+    """Run a mutating operation under the lock and persist the State on success (a new
+    revision, which invalidates every memoized view of the program)."""
     with STATE_LOCK:
         state = load_state(program_id)
         result = fn(state)
         save_state(state)
+        cache.invalidate(program_id)
         return result
 
 
@@ -112,6 +133,7 @@ def health() -> dict:
 def demo_reset() -> dict:
     with STATE_LOCK:
         state = reset_state(DEFAULT_PROGRAM_ID)
+        cache.invalidate(DEFAULT_PROGRAM_ID)
     return {
         "ok": True,
         "program_id": state.program["id"],
@@ -122,9 +144,9 @@ def demo_reset() -> dict:
 
 
 @app.get("/programs/{program_id}")
-def get_program(program_id: str) -> dict:
+def get_program(program_id: str) -> Response:
     _check_program(program_id)
-    return _read(program_id, pipeline.program_view)
+    return _read(program_id, ("program",), pipeline.program_view)
 
 
 @app.post("/programs/{program_id}/parts")
@@ -189,38 +211,37 @@ def route_program(program_id: str, solver: str = Query("auto")) -> dict:
 
 
 @app.get("/programs/{program_id}/assignments")
-def get_assignments(program_id: str) -> dict:
+def get_assignments(program_id: str) -> Response:
     _check_program(program_id)
-
-    return _read(program_id, pipeline.assignments_view)
+    return _read(program_id, ("assignments",), pipeline.assignments_view)
 
 
 @app.get("/programs/{program_id}/jobs")
-def get_jobs(program_id: str) -> dict:
+def get_jobs(program_id: str) -> Response:
     _check_program(program_id)
-    return _read(program_id, pipeline.jobs_view)
+    return _read(program_id, ("jobs",), pipeline.jobs_view)
 
 
 @app.get("/programs/{program_id}/ledger")
-def get_ledger(program_id: str) -> dict:
+def get_ledger(program_id: str) -> Response:
     _check_program(program_id)
 
     def view(state: State) -> dict:
         _require_routed(state)
         return pipeline.ledger(state)
 
-    return _read(program_id, view)
+    return _read(program_id, ("ledger",), view)
 
 
 @app.get("/programs/{program_id}/gaps")
-def get_gaps(program_id: str) -> dict:
+def get_gaps(program_id: str) -> Response:
     _check_program(program_id)
 
     def view(state: State) -> dict:
         _require_routed(state)
         return pipeline.gaps(state)
 
-    return _read(program_id, view)
+    return _read(program_id, ("gaps",), view)
 
 
 @app.post("/programs/{program_id}/training/{package_id}/fund")
@@ -246,17 +267,17 @@ def fund_training(program_id: str, package_id: str) -> dict:
 
 
 @app.get("/shops")
-def list_shops(source: str | None = Query(None)) -> dict:
+def list_shops(source: str | None = Query(None)) -> Response:
     if source is not None and source not in SHOP_SOURCES:
         raise HTTPException(status_code=400, detail="source must be 'public' or 'synthetic'")
-    return _read(DEFAULT_PROGRAM_ID, lambda s: pipeline.shops_list(s, source))
+    return _read(DEFAULT_PROGRAM_ID, ("shops", source), lambda s: pipeline.shops_list(s, source))
 
 
 @app.get("/shops/{shop_id}")
-def get_shop(shop_id: str) -> dict:
+def get_shop(shop_id: str) -> Response:
     def view(state: State) -> dict:
         if shop_id not in state.shops:
             raise HTTPException(status_code=404, detail=f"Unknown shop '{shop_id}'")
         return pipeline.shop_detail(state, shop_id)
 
-    return _read(DEFAULT_PROGRAM_ID, view)
+    return _read(DEFAULT_PROGRAM_ID, ("shop", shop_id), view)

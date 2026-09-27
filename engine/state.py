@@ -3,6 +3,12 @@
 One ``State`` per program, serialized as JSON into ``data/muster.db`` (table
 ``state``). The API loads it, mutates it under ``STATE_LOCK`` and saves it back, so
 the demo survives an engine restart. ``MUSTER_DB`` overrides the database path.
+
+Every save is a new ``revision`` (monotonically increasing per program row, persisted in
+the JSON and in the ``revision`` column; a reset continues the count). Together with the
+row's random ``epoch`` (fixed when the row is first written) it identifies one immutable
+State, which is what ``engine.cache`` keys its memoized views on: ``state_key`` reads just
+those two columns, so a cached read never parses the JSON again.
 """
 
 from __future__ import annotations
@@ -11,7 +17,8 @@ import json
 import os
 import sqlite3
 import threading
-from dataclasses import asdict, dataclass, field, fields
+import uuid
+from dataclasses import dataclass, field, fields
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -50,6 +57,7 @@ class State:
     elapsed_ms: int = 0
     tagger_counts: dict = field(default_factory=dict)
     config: dict = field(default_factory=dict)
+    revision: int = 0
 
 
 def db_path() -> Path:
@@ -83,7 +91,9 @@ def load_seed() -> State:
 
 
 def to_json(state: State) -> str:
-    return json.dumps(asdict(state), ensure_ascii=False, separators=(",", ":"))
+    # Same JSON as json.dumps(asdict(state)), without asdict's recursive deep copy.
+    data = {f.name: getattr(state, f.name) for f in fields(State)}
+    return json.dumps(data, ensure_ascii=False, separators=(",", ":"))
 
 
 def from_json(text: str) -> State:
@@ -98,9 +108,33 @@ def connect(path: Path | None = None) -> sqlite3.Connection:
     conn = sqlite3.connect(p)
     conn.execute(
         "CREATE TABLE IF NOT EXISTS state ("
-        "program_id TEXT PRIMARY KEY, json TEXT NOT NULL, updated_at TEXT)"
+        "program_id TEXT PRIMARY KEY, json TEXT NOT NULL, updated_at TEXT, "
+        "revision INTEGER, epoch TEXT)"
     )
+    cols = {row[1] for row in conn.execute("PRAGMA table_info(state)")}
+    for col, kind in (("revision", "INTEGER"), ("epoch", "TEXT")):
+        if col not in cols:  # a database written before revisions existed
+            conn.execute(f"ALTER TABLE state ADD COLUMN {col} {kind}")
+            conn.commit()
     return conn
+
+
+def state_key(program_id: str = DEFAULT_PROGRAM_ID) -> tuple[str, str, int] | None:
+    """``(db path, epoch, revision)`` of the stored State, or None if there is none (or it
+    predates revisions). Cheap: two small columns, no JSON."""
+    path = db_path()
+    if not path.exists():
+        return None
+    conn = connect(path)
+    try:
+        row = conn.execute(
+            "SELECT epoch, revision FROM state WHERE program_id = ?", (program_id,)
+        ).fetchone()
+    finally:
+        conn.close()
+    if row is None or row[0] is None or row[1] is None:
+        return None
+    return (str(path), row[0], int(row[1]))
 
 
 def load_state(program_id: str = DEFAULT_PROGRAM_ID) -> State:
@@ -118,17 +152,50 @@ def load_state(program_id: str = DEFAULT_PROGRAM_ID) -> State:
         return load_seed()
 
 
+def load_state_keyed(program_id: str = DEFAULT_PROGRAM_ID) -> tuple[State, tuple | None]:
+    """``(State, state_key)`` read in ONE query, so the key describes exactly that State.
+    The key is None when nothing is stored (a fresh seed comes back) or the row predates
+    revisions."""
+    path = db_path()
+    conn = connect(path)
+    try:
+        row = conn.execute(
+            "SELECT json, epoch, revision FROM state WHERE program_id = ?", (program_id,)
+        ).fetchone()
+    finally:
+        conn.close()
+    if row is None:
+        return load_seed(), None
+    try:
+        state = from_json(row[0])
+    except (ValueError, TypeError):
+        return load_seed(), None
+    if row[1] is None or row[2] is None:
+        return state, None
+    return state, (str(path), row[1], int(row[2]))
+
+
 def save_state(state: State) -> None:
+    """Persist ``state`` as a new revision: ``state.revision`` becomes one more than both
+    its own value and the stored row's (so it only ever grows, resets included)."""
     program_id = state.program.get("id") or DEFAULT_PROGRAM_ID
     now = datetime.now(UTC).isoformat(timespec="seconds")
     conn = connect()
     try:
         with conn:
+            row = conn.execute(
+                "SELECT revision, epoch FROM state WHERE program_id = ?", (program_id,)
+            ).fetchone()
+            stored = int(row[0]) if row and row[0] is not None else 0
+            epoch = row[1] if row and row[1] else uuid.uuid4().hex
+            state.revision = max(int(state.revision or 0), stored) + 1
             conn.execute(
-                "INSERT INTO state(program_id, json, updated_at) VALUES (?, ?, ?) "
+                "INSERT INTO state(program_id, json, updated_at, revision, epoch) "
+                "VALUES (?, ?, ?, ?, ?) "
                 "ON CONFLICT(program_id) DO UPDATE SET json = excluded.json, "
-                "updated_at = excluded.updated_at",
-                (program_id, to_json(state), now),
+                "updated_at = excluded.updated_at, revision = excluded.revision, "
+                "epoch = excluded.epoch",
+                (program_id, to_json(state), now, state.revision, epoch),
             )
     finally:
         conn.close()

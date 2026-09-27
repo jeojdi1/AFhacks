@@ -19,6 +19,7 @@ from typing import Any
 
 from engine import assign as assign_mod
 from engine import gaps as gaps_mod
+from engine import graph as graph_mod
 from engine import ledger as ledger_mod
 from engine import rules as rules_mod
 from engine import scoring as scoring_mod
@@ -119,13 +120,24 @@ def _public_shop(shop: dict) -> dict:
 class Context:
     """Routing context: effective shops, distances, used hours, filters and scores."""
 
-    def __init__(self, state: Any, assignments: dict[str, dict] | None = None):
+    def __init__(
+        self,
+        state: Any,
+        assignments: dict[str, dict] | None = None,
+        shop_ids: Any = None,
+    ):
+        """``shop_ids`` limits the context to those shops (seed order kept): a read-only
+        view about one shop (shop_detail) or none (the gaps summary) then skips building
+        every other effective shop. Routing always uses the full network."""
         self.state = state
         self.cfg = config(state)
         self.counting = rules_mod.counting_statuses(self.cfg.get("filters"))
         self.program = state.program
         self.program_id = state.program.get("id", "northgate")
-        self.shops: dict[str, dict] = {sid: effective_shop(state, sid) for sid in state.shops}
+        only = None if shop_ids is None else set(shop_ids)
+        self.shops: dict[str, dict] = {
+            sid: effective_shop(state, sid) for sid in state.shops if only is None or sid in only
+        }
         self.jobs: dict[str, dict] = {j["id"]: j for j in state.jobs}
         self.job_order: list[str] = [j["id"] for j in state.jobs]
         self.dist = {sid: scoring_mod.distance_km(self.program, s) for sid, s in self.shops.items()}
@@ -146,21 +158,33 @@ class Context:
         rem = self.capacity(sid) - self.used[sid]
         return int(rem) if float(rem).is_integer() else rem
 
+    @property
+    def graph(self) -> graph_mod.CapabilityGraph:
+        """Capability graph over the effective shops, built on first use (engine/graph.py).
+        The shops never change within a Context, so it stays valid for its lifetime."""
+        g = self.__dict__.get("_graph")
+        if g is None:
+            g = self._graph = graph_mod.CapabilityGraph(self.shops, self.counting)
+        return g
+
     def evaluate(self, sid: str, job: dict, with_capacity: bool = True) -> dict:
+        """Full rules.evaluate result, readable reasons included."""
         rem = self.remaining(sid) if with_capacity else None
         return rules_mod.evaluate(job, self.shops[sid], rem, counting=self.counting)
 
     def failing(self, sid: str, job: dict, with_capacity: bool = True) -> list[str]:
-        return self.evaluate(sid, job, with_capacity)["failing"]
+        """Failing filter codes (== evaluate()["failing"], without building reason text)."""
+        return self.graph.failing(sid, job, self.remaining(sid) if with_capacity else None)
 
     def missing_certs(self, sid: str, job: dict) -> list[str]:
-        return rules_mod.missing_certs(job, self.shops[sid], self.counting)
+        return self.graph.missing_certs(sid, job)
 
     def counts(self, sid: str, ctype: str) -> bool:
-        return rules_mod.cert_counts(self.shops[sid], ctype, self.counting)
+        return self.graph.counts(sid, ctype)
 
     def eligible_ignoring_capacity(self, job: dict) -> list[str]:
-        return [sid for sid in self.shops if not self.failing(sid, job, with_capacity=False)]
+        """Shops passing every filter but capacity, in seed order (graph index lookup)."""
+        return list(self.graph.candidates(job))
 
     def score(self, sid: str, job: dict) -> tuple[float, dict]:
         return scoring_mod.score(job, self.shops[sid], self.dist[sid], self.cfg.get("weights"))
@@ -360,7 +384,7 @@ def snapshot(state: Any) -> dict:
 
 def gaps(state: Any) -> dict:
     """GapsResponse."""
-    ctx = Context(state)
+    ctx = Context(state, shop_ids=())  # the summary only reads jobs + config
     blocked_ids = [b["job_id"] for b in state.blocked]
     return {
         "program_id": ctx.program_id,
@@ -396,7 +420,7 @@ def shop_detail(state: Any, shop_id: str) -> dict:
     """ShopDetailResponse. KeyError if the shop is unknown."""
     if shop_id not in state.shops:
         raise KeyError(shop_id)
-    ctx = Context(state)
+    ctx = Context(state, shop_ids=(shop_id,))  # readiness only looks at this shop
     shop = ctx.shops[shop_id]
     offers = []
     for jid in ctx.job_order:

@@ -185,17 +185,25 @@ def blocked_job(ctx, job_id: str, packages: list[dict]) -> dict:
     no longer an action to take (funding it again would be a 409).
     """
     job = ctx.jobs[job_id]
-    ff = {f: 0 for f in FILTERS}
-    eligible = 0
-    process_shops: list[tuple[str, list[str]]] = []
-    for sid in ctx.shops:
-        fails = ctx.failing(sid, job)
-        for f in fails:
-            ff[f] += 1
-        if not [f for f in fails if f != "capacity"]:
-            eligible += 1
-        if "process" not in fails:
-            process_shops.append((sid, fails))
+    g = getattr(ctx, "graph", None)
+    if g is not None:
+        # Capability graph: per-filter counts from index sizes, and only the shops that
+        # offer the process are evaluated one by one (identical results to the scan below).
+        ff = g.filter_counts(job, ctx.remaining)
+        eligible = len(g.candidates(job))
+        process_shops = [(sid, ctx.failing(sid, job)) for sid in g.ordered(g.process_pass(job))]
+    else:
+        ff = {f: 0 for f in FILTERS}
+        eligible = 0
+        process_shops = []
+        for sid in ctx.shops:
+            fails = ctx.failing(sid, job)
+            for f in fails:
+                ff[f] += 1
+            if not [f for f in fails if f != "capacity"]:
+                eligible += 1
+            if "process" not in fails:
+                process_shops.append((sid, fails))
     c = Counter(f for _, fails in process_shops for f in fails)
     reason_code = _top_code(c) if c else "process"
 
@@ -294,17 +302,7 @@ def _candidates(
     cohort = _num(tc.get("cert_package_trainees"), 4)
     trainable = tc.get("trainable_certs") or DEFAULT_TRAINING_COSTS["trainable_certs"]
     cands = []
-    for sid in ctx.shops:
-        groups: dict[tuple, list[str]] = {}
-        for jid in uncovered:
-            job = ctx.jobs[jid]
-            fails = ctx.failing(sid, job)
-            if fails == ["certs"]:
-                miss = ctx.missing_certs(sid, job)
-                if len(miss) == 1 and miss[0] in trainable:
-                    groups.setdefault(("cert", miss[0]), []).append(jid)
-            elif fails == ["capacity"]:
-                groups.setdefault(("capacity", job["process_tags"][0]), []).append(jid)
+    for sid, groups in _near_miss_groups(ctx, uncovered, trainable):
         for (kind, req), jids in groups.items():
             rem = ctx.remaining(sid)
             if kind == "cert":
@@ -321,6 +319,41 @@ def _candidates(
             if chosen and not funded_jobs.get((sid, kind, req), set()) & set(chosen):
                 cands.append((kind, req, sid, trainees, unlock, chosen))
     return cands
+
+
+def _near_miss_groups(ctx, uncovered: list[str], trainable) -> list[tuple[str, dict]]:
+    """``[(shop_id, {(kind, requirement): [job ids]})]`` in shop seed order, jobs in
+    ``uncovered`` order: the jobs each shop fails ONLY on one trainable cert ("cert") or
+    ONLY on capacity ("capacity", keyed by the job's first process)."""
+    g = getattr(ctx, "graph", None)
+    if g is None:
+        out = []
+        for sid in ctx.shops:
+            groups: dict[tuple, list[str]] = {}
+            for jid in uncovered:
+                job = ctx.jobs[jid]
+                fails = ctx.failing(sid, job)
+                if fails == ["certs"]:
+                    miss = ctx.missing_certs(sid, job)
+                    if len(miss) == 1 and miss[0] in trainable:
+                        groups.setdefault(("cert", miss[0]), []).append(jid)
+                elif fails == ["capacity"]:
+                    groups.setdefault(("capacity", job["process_tags"][0]), []).append(jid)
+            out.append((sid, groups))
+        return out
+    # Capability graph: near misses are set differences of the indexes (a shop is in at
+    # most one of the two sets for a job), so only those shops are looked at.
+    per_shop: dict[str, dict[tuple, list[str]]] = {}
+    for jid in uncovered:
+        job = ctx.jobs[jid]
+        for sid in g.near_miss_cert(job, ctx.remaining):
+            miss = ctx.missing_certs(sid, job)
+            if len(miss) == 1 and miss[0] in trainable:
+                per_shop.setdefault(sid, {}).setdefault(("cert", miss[0]), []).append(jid)
+        for sid in g.near_miss_capacity(job, ctx.remaining):
+            key = ("capacity", job["process_tags"][0])
+            per_shop.setdefault(sid, {}).setdefault(key, []).append(jid)
+    return [(sid, per_shop[sid]) for sid in g.ordered(per_shop)]
 
 
 def make_package(ctx, pkg_id: str, kind: str, req: str, sid: str, trainees: int,
@@ -491,6 +524,9 @@ def top_reason(ctx, blocked_ids: list[str], blocked: list[dict]) -> str:
 
 def requirements(ctx, sid: str, job: dict) -> tuple[set[tuple[str, str]], bool]:
     """Failing requirements for readiness: {(kind, requirement)} plus an envelope flag."""
+    g = getattr(ctx, "graph", None)
+    if g is not None:
+        return g.requirements(sid, job, ctx.remaining(sid))
     shop = ctx.shops[sid]
     reqs: set[tuple[str, str]] = set()
     for p in job.get("process_tags") or ():

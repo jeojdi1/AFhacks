@@ -38,3 +38,19 @@ fixtures:
 
 reset-demo:
 	curl -fsS -X POST $(API_URL)/demo/reset && echo
+
+.PHONY: web-build demo
+
+web-build:
+	cd web && npm run build
+
+demo: web-build
+	@trap 'kill 0' INT TERM EXIT; \
+	$(PY) -m uvicorn engine.app:app --port 8000 & \
+	(cd web && npx next start -p 3000) & \
+	sleep 3; \
+	echo ""; \
+	echo "Muster demo: http://localhost:3000/program  (engine: http://localhost:8000)"; \
+	echo "Recording tip: click Reset demo first"; \
+	echo ""; \
+	wait
