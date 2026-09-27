@@ -1,0 +1,38 @@
+{
+  "label": "Simplified ITB rules for demo",
+  "counting_cert_statuses": [
+    "verified",
+    "declared",
+    "pending_training"
+  ],
+  "counting_note": "A certification counts if its status is verified, declared or pending_training. pending_training is only created by funding a training package.",
+  "filters": [
+    {
+      "code": "process",
+      "description": "The shop offers every one of the job's process_tags."
+    },
+    {
+      "code": "envelope",
+      "description": "The job fits the shop's work envelope: the job's sorted dimensions are each <= the shop's sorted max_envelope_mm."
+    },
+    {
+      "code": "certs",
+      "description": "Every certification in the job's required_certs (other than CPCSC_L1, which the cpcsc filter checks) has a counting status at the shop."
+    },
+    {
+      "code": "controlled_cgp",
+      "description": "A controlled job (controlled: true; technical data is a controlled good) may only go to a shop whose CGP registration counts. Muster never stores drawings."
+    },
+    {
+      "code": "cpcsc",
+      "description": "If CPCSC_L1 is in the job's required_certs, the shop's CPCSC_L1 must count (self-assessed, shop-declared)."
+    },
+    {
+      "code": "capacity",
+      "description": "The shop's remaining weekly capacity (capacity_hours_week minus hours_week of jobs already assigned to it) is >= the job's hours_week."
+    }
+  ],
+  "capacity_rule": "remaining_hours_week >= job.hours_week",
+  "eligible_definition": "A shop is eligible for a job when it passes all six filters.",
+  "near_miss_definition": "A near-miss shop fails only the certs filter (on one trainable cert) or only the capacity filter; training packages are built for near misses."
+}

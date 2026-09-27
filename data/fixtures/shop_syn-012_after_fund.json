@@ -1,0 +1,268 @@
+{
+  "shop": {
+    "id": "syn-012",
+    "name": "Tallowfield Fabricating Ltd.",
+    "source": "synthetic",
+    "label": "Synthetic",
+    "city": "Woolwich",
+    "lat": 43.599,
+    "lon": -80.557,
+    "naics": "332319",
+    "employee_band": "20-49",
+    "is_sme": true,
+    "processes": [
+      "welding",
+      "sheet_metal",
+      "painting"
+    ],
+    "machines": [
+      "MIG/GMAW cells (6)",
+      "Press brake 175t",
+      "Plasma table 3 m",
+      "Paint booth 4 m"
+    ],
+    "materials": [
+      "steel",
+      "armour_steel",
+      "aluminum"
+    ],
+    "max_envelope_mm": [
+      3000,
+      1600,
+      1200
+    ],
+    "tolerance_class": "standard",
+    "capacity_hours_week": 280,
+    "lead_time_days": 14,
+    "website": null,
+    "contact_role_email": "sales@tallowfield-fab.example",
+    "provenance": [
+      {
+        "field": "*",
+        "source_url": null,
+        "confidence": "synthetic"
+      }
+    ],
+    "cert_summary": [
+      {
+        "type": "CGP",
+        "status": "unknown"
+      },
+      {
+        "type": "CPCSC_L1",
+        "status": "declared"
+      },
+      {
+        "type": "ISO9001",
+        "status": "unknown"
+      },
+      {
+        "type": "AS9100",
+        "status": "unknown"
+      },
+      {
+        "type": "NADCAP:HEAT_TREAT",
+        "status": "unknown"
+      },
+      {
+        "type": "NADCAP:CHEM_PROCESSING",
+        "status": "unknown"
+      },
+      {
+        "type": "NADCAP:COATINGS",
+        "status": "unknown"
+      },
+      {
+        "type": "CWB_W47.1",
+        "status": "pending_training"
+      }
+    ]
+  },
+  "certifications": [
+    {
+      "shop_id": "syn-012",
+      "type": "CGP",
+      "status": "unknown",
+      "source_url": null,
+      "verified_at": null,
+      "expires_at": null,
+      "note": "Synthetic shop: not declared (illustrative)"
+    },
+    {
+      "shop_id": "syn-012",
+      "type": "CPCSC_L1",
+      "status": "declared",
+      "source_url": null,
+      "verified_at": "2026-09-06",
+      "expires_at": "2027-09-06",
+      "note": "Synthetic shop: self-declared (illustrative)"
+    },
+    {
+      "shop_id": "syn-012",
+      "type": "ISO9001",
+      "status": "unknown",
+      "source_url": null,
+      "verified_at": null,
+      "expires_at": null,
+      "note": "Synthetic shop: not declared (illustrative)"
+    },
+    {
+      "shop_id": "syn-012",
+      "type": "AS9100",
+      "status": "unknown",
+      "source_url": null,
+      "verified_at": null,
+      "expires_at": null,
+      "note": "Synthetic shop: not declared (illustrative)"
+    },
+    {
+      "shop_id": "syn-012",
+      "type": "NADCAP:HEAT_TREAT",
+      "status": "unknown",
+      "source_url": null,
+      "verified_at": null,
+      "expires_at": null,
+      "note": "Synthetic shop: not declared (illustrative)"
+    },
+    {
+      "shop_id": "syn-012",
+      "type": "NADCAP:CHEM_PROCESSING",
+      "status": "unknown",
+      "source_url": null,
+      "verified_at": null,
+      "expires_at": null,
+      "note": "Synthetic shop: not declared (illustrative)"
+    },
+    {
+      "shop_id": "syn-012",
+      "type": "NADCAP:COATINGS",
+      "status": "unknown",
+      "source_url": null,
+      "verified_at": null,
+      "expires_at": null,
+      "note": "Synthetic shop: not declared (illustrative)"
+    },
+    {
+      "shop_id": "syn-012",
+      "type": "CWB_W47.1",
+      "status": "pending_training",
+      "source_url": null,
+      "verified_at": null,
+      "expires_at": null,
+      "note": "Pending training: TP-01 funded (4 trainees; demo simulation)"
+    }
+  ],
+  "offers": [
+    {
+      "job_id": "NG-021",
+      "part_no": "NG-STW-2210",
+      "description": "Crew stowage rack, mild steel sheet metal, formed and MIG welded, primed and painted (non-structural)",
+      "program_id": "northgate",
+      "prime_name": "Northgate Land Systems",
+      "value_cad": 921600.0,
+      "hours_week": 22,
+      "multiplier": 2,
+      "credit_cad": 1677312.0,
+      "reasons": [
+        "Sheet metal + welding",
+        "88 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-022",
+      "part_no": "NG-STW-2224",
+      "description": "Tool and equipment box, steel, MIG welded and painted (non-structural)",
+      "program_id": "northgate",
+      "prime_name": "Northgate Land Systems",
+      "value_cad": 777600.0,
+      "hours_week": 24,
+      "multiplier": 2,
+      "credit_cad": 1415232.0,
+      "reasons": [
+        "Welding + painting",
+        "88 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-031",
+      "part_no": "NG-HUL-4410",
+      "description": "Hull side stowage bin weldment, armour steel plate, press-brake formed sheet metal, structural welding to CWB W47.1",
+      "program_id": "northgate",
+      "prime_name": "Northgate Land Systems",
+      "value_cad": 1656000.0,
+      "hours_week": 40,
+      "multiplier": 2,
+      "credit_cad": 2980800.0,
+      "reasons": [
+        "Welding + sheet metal + CWB W47.1",
+        "88 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-032",
+      "part_no": "NG-HUL-4422",
+      "description": "Engine deck access hatch frame weldment, armour steel, structural welding to CWB W47.1",
+      "program_id": "northgate",
+      "prime_name": "Northgate Land Systems",
+      "value_cad": 1702000.0,
+      "hours_week": 44,
+      "multiplier": 2,
+      "credit_cad": 3063600.0,
+      "reasons": [
+        "Welding + CWB W47.1",
+        "88 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-033",
+      "part_no": "NG-HUL-4431",
+      "description": "Rear ramp door frame weldment, armour steel, structural welding to CWB W47.1, primed and painted",
+      "program_id": "northgate",
+      "prime_name": "Northgate Land Systems",
+      "value_cad": 1710000.0,
+      "hours_week": 48,
+      "multiplier": 2,
+      "credit_cad": 3078000.0,
+      "reasons": [
+        "Welding + painting + CWB W47.1",
+        "88 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    }
+  ],
+  "readiness": [
+    {
+      "kind": "cert",
+      "requirement": "ISO9001",
+      "jobs_unlocked": [
+        "NG-029",
+        "NG-030"
+      ],
+      "value_cad": 1192600.0,
+      "message": "Get ISO 9001 → qualify for 2 more jobs worth $1.2M"
+    }
+  ],
+  "training": [
+    {
+      "package_id": "TP-01",
+      "status": "funded",
+      "category": "personal_certification",
+      "trainees": 4,
+      "recipient_example": "Conestoga College (example, not affiliated)",
+      "cert_unlock": "CWB_W47.1",
+      "capacity_unlock": {
+        "welding": 80
+      },
+      "message": "4 welders in training for CWB W47.1"
+    }
+  ]
+}

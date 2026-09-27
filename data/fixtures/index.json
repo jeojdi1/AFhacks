@@ -1,0 +1,28 @@
+{
+  "program_id": "northgate",
+  "demo_shop_id": "syn-012",
+  "demo_package_id": "TP-01",
+  "endpoints": {
+    "GET /health": "health.json",
+    "POST /demo/reset": "demo_reset.json",
+    "GET /programs/northgate": "program.json",
+    "POST /programs/northgate/parts": "parts_upload.json",
+    "POST /programs/northgate/route": "route.json",
+    "GET /programs/northgate/assignments": "assignments.json",
+    "GET /programs/northgate/jobs": "jobs.json",
+    "GET /programs/northgate/ledger": "ledger.json",
+    "GET /programs/northgate/gaps": "gaps.json",
+    "POST /programs/northgate/training/TP-01/fund": "fund_TP-01.json",
+    "POST /programs/northgate/training/TP-02/fund": "fund_TP-02.json",
+    "GET /shops": "shops.json",
+    "GET /shops/syn-012": "shop_syn-012.json"
+  },
+  "after_fund": {
+    "GET /programs/northgate": "program_after_fund.json",
+    "GET /programs/northgate/assignments": "assignments_after_fund.json",
+    "GET /programs/northgate/jobs": "jobs_after_fund.json",
+    "GET /programs/northgate/ledger": "ledger_after_fund.json",
+    "GET /programs/northgate/gaps": "gaps_after_fund.json",
+    "GET /shops/syn-012": "shop_syn-012_after_fund.json"
+  }
+}

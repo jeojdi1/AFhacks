@@ -1,0 +1,118 @@
+{
+  "program_id": "northgate",
+  "summary": {
+    "blocked_jobs": 1,
+    "blocked_value_cad": 1501000.0,
+    "top_reason": "CWB W47.1 welder shortage (certification + capacity)"
+  },
+  "blocked": [
+    {
+      "job_id": "NG-034",
+      "part_no": "NG-HUL-4450",
+      "description": "Hull belly plate weldment, 3200 mm long, armour steel, structural welding to CWB W47.1",
+      "process_tags": [
+        "welding"
+      ],
+      "required_certs": [
+        "CWB_W47.1"
+      ],
+      "value_cad": 1501000.0,
+      "hours_week": 40,
+      "reason_code": "capacity",
+      "reason": "2 of 3 CWB W47.1 welding shops are at capacity; 3 other welding shops lack CWB W47.1 (certified-welder shortage)",
+      "eligible_shop_count": 1,
+      "failing_filters": {
+        "process": 24,
+        "envelope": 27,
+        "certs": 27,
+        "controlled_cgp": 0,
+        "cpcsc": 0,
+        "capacity": 10
+      },
+      "suggestion_ids": [
+        "TP-02"
+      ]
+    }
+  ],
+  "suggestions": [
+    {
+      "id": "TP-01",
+      "program_id": "northgate",
+      "title": "Certify 4 welders to CWB W47.1 at Tallowfield Fabricating Ltd. (Woolwich)",
+      "blocked_job_ids": [
+        "NG-031",
+        "NG-032",
+        "NG-033"
+      ],
+      "shop_id": "syn-012",
+      "shop_name": "Tallowfield Fabricating Ltd.",
+      "shop_city": "Woolwich",
+      "shop_source": "synthetic",
+      "gap": {
+        "kind": "cert",
+        "requirement": "CWB_W47.1",
+        "detail": "Has welding cells and 154 h/week free capacity, but no CWB W47.1 certification"
+      },
+      "category": "personal_certification",
+      "categories": [
+        "personal_certification",
+        "apprentice_sponsorship"
+      ],
+      "recipient_type": "college",
+      "recipient_example": "Conestoga College (example, not affiliated)",
+      "trainees": 4,
+      "est_cost_cad": 96000.0,
+      "cost_basis": "data/rules/training_costs.json (assumption)",
+      "multiplier": 5,
+      "est_credit_cad": 480000.0,
+      "cert_unlock": "CWB_W47.1",
+      "capacity_unlock": {
+        "welding": 80
+      },
+      "unblocks_value_cad": 5068000.0,
+      "eligibility_note": "Personal certification counts only for Canadian citizens or permanent residents (ITB model terms §7.5.1).",
+      "flags": [
+        "assumption"
+      ],
+      "status": "funded"
+    },
+    {
+      "id": "TP-02",
+      "program_id": "northgate",
+      "title": "Sponsor 2 welding apprentices at Keelbar Heavy Fabrication Ltd. (Hamilton) through an Indigenous-governed training institute",
+      "blocked_job_ids": [
+        "NG-034"
+      ],
+      "shop_id": "syn-026",
+      "shop_name": "Keelbar Heavy Fabrication Ltd.",
+      "shop_city": "Hamilton",
+      "shop_source": "synthetic",
+      "gap": {
+        "kind": "capacity",
+        "requirement": "welding",
+        "detail": "CWB W47.1 certified with a large enough envelope, but only 16 h/week free for a 40 h/week job"
+      },
+      "category": "apprentice_sponsorship",
+      "categories": [
+        "apprentice_sponsorship"
+      ],
+      "recipient_type": "indigenous_institution",
+      "recipient_example": "Indigenous-governed training institute (example, not affiliated)",
+      "trainees": 2,
+      "est_cost_cad": 40000.0,
+      "cost_basis": "data/rules/training_costs.json (assumption)",
+      "multiplier": 10,
+      "est_credit_cad": 400000.0,
+      "cert_unlock": null,
+      "capacity_unlock": {
+        "welding": 40
+      },
+      "unblocks_value_cad": 1501000.0,
+      "eligibility_note": "The 10x Indigenous workforce development multiplier applies per the ITB overview; eligibility of this apprenticeship sponsorship would need to be confirmed with the Defence Investment Agency (assumption).",
+      "flags": [
+        "assumption"
+      ],
+      "status": "suggested"
+    }
+  ]
+}

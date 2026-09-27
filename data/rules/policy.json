@@ -1,0 +1,120 @@
+{
+  "label": "Simplified ITB rules for demo",
+  "rules_version": "demo-2026-09-26",
+  "note": "Values from CLAUDE.md §4, each with its source (CLAUDE.md §11). Never invent a policy number; anything else is labelled assumption.",
+  "obligation": {
+    "value": 1.0,
+    "unit": "fraction of contract value",
+    "description": "A prime must do business activity in Canada equal to 100% of the contract value.",
+    "source": "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb"
+  },
+  "thresholds": {
+    "automatic_above_cad": 100000000,
+    "review_range_cad": [
+      25000000,
+      100000000
+    ],
+    "description": "The policy applies automatically above $100M; contracts of $25M-$100M are reviewed.",
+    "source": "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb"
+  },
+  "credit_measure": {
+    "value": "CCV",
+    "description": "Credit is measured in Canadian Content Value (CCV).",
+    "source": "https://ised-isde.canada.ca/site/industrial-technological-benefits/en/itb-policy"
+  },
+  "smb_requirement_example": {
+    "value": 0.15,
+    "unit": "fraction of contract price",
+    "description": "A contract may carry a mandatory SMB requirement, e.g. 15% of the contract price.",
+    "source": "https://ised-isde.canada.ca/site/industrial-technological-benefits/en/itb-policy"
+  },
+  "direct_indirect": {
+    "direct": "Work on the contract itself.",
+    "indirect": "Any other eligible activity.",
+    "excess": "Excess credit can be applied elsewhere.",
+    "source": "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb/itb-toolkit/itb-model-terms-and-conditions"
+  },
+  "value_proposition": {
+    "min_bid_weight": 0.1,
+    "unit": "fraction of bid score",
+    "description": "The Value Proposition is generally weighted at least 10% of the bid score.",
+    "source": "https://gowlingwlg.com/en/insights-resources/articles/2026/industrial-and-technological-benefits-policy"
+  },
+  "banking": {
+    "max_years": 10,
+    "description": "Credits can be banked for up to 10 years.",
+    "source": "https://gowlingwlg.com/en/insights-resources/articles/2026/industrial-and-technological-benefits-policy"
+  },
+  "multipliers": {
+    "regular": 1,
+    "sme_direct": 2,
+    "training": 5,
+    "indigenous_training": 10,
+    "description": "Regular work 1x, SME direct work 2x, eligible skills and training 5x, Indigenous workforce development 10x.",
+    "source": "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb"
+  },
+  "training_categories": {
+    "values": [
+      {
+        "id": "apprentice_sponsorship",
+        "description": "Sponsorship costs for apprentices in a recognized apprenticeship program"
+      },
+      {
+        "id": "personal_certification",
+        "description": "Certification for a Canadian citizen or permanent resident by a recognized trade body"
+      },
+      {
+        "id": "skills_program_contribution",
+        "description": "Contribution to a skills program through a registered charity or nonprofit"
+      },
+      {
+        "id": "education_costs",
+        "description": "Tuition, course fees and travel incurred in Canada"
+      }
+    ],
+    "reference": "ITB model terms §7.5.1",
+    "source": "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb/itb-toolkit/itb-model-terms-and-conditions"
+  },
+  "authority": {
+    "agency": "Defence Investment Agency",
+    "effective_date": "2026-07-16",
+    "contact": "ITB-RIT@dia-aid.gc.ca",
+    "description": "ITB authority moved to the Defence Investment Agency on July 16, 2026.",
+    "source": "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb"
+  },
+  "compliance_gates": {
+    "controlled_goods": {
+      "description": "Technical data counts as a controlled good. Muster never stores drawings. A controlled job may only go to a CGP-registered shop.",
+      "source": "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/find-individuals-organizations-registered-program.html"
+    },
+    "cpcsc_level_1": {
+      "description": "13 controls, self-assessed, no public registry. Always a shop-declared field.",
+      "source": "https://www.canada.ca/en/public-services-procurement/news/2026/04/canadian-program-for-cyber-security-certification-level-1.html"
+    },
+    "quality_and_process_certs": {
+      "description": "ISO, AS9100, Nadcap, CWB: record source, verified_at and status.",
+      "sources": {
+        "ISO9001/AS9100": "https://www.iafcertsearch.org",
+        "Nadcap": "https://www.eauditnet.com",
+        "CWB": "https://www.cwbgroup.org/directory/certified-companies"
+      }
+    }
+  },
+  "assumptions": [
+    {
+      "id": "smb_progress_basis",
+      "description": "SMB progress counts the CCV of SME work before multipliers.",
+      "flag": "assumption"
+    },
+    {
+      "id": "credit_formula",
+      "description": "credit = value_cad x ccv_pct x multiplier; funded training has ccv_pct 1.0.",
+      "flag": "assumption"
+    },
+    {
+      "id": "sme_definition",
+      "description": "SME = fewer than 500 employees (demo simplification).",
+      "flag": "assumption"
+    }
+  ]
+}

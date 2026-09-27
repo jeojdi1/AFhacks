@@ -1,0 +1,1314 @@
+{
+  "program_id": "northgate",
+  "solver": "greedy",
+  "elapsed_ms": 42,
+  "stats": {
+    "jobs": 40,
+    "assigned": 36,
+    "blocked": 4,
+    "assigned_value_cad": 36099480.0,
+    "sme_share_pct": 0.900552584136946
+  },
+  "assignments": [
+    {
+      "job_id": "NG-001",
+      "part_no": "NG-BRK-1010",
+      "description": "Antenna mount bracket, 6061-T6 aluminum, 3-axis CNC milled, ISO 9001 quality system",
+      "shop_id": "syn-021",
+      "shop_name": "Northfield Axis Machining Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "London",
+      "shop_lat": 42.998,
+      "shop_lon": -81.203,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 10,
+      "value_cad": 281200.0,
+      "ccv_pct": 0.88,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 494912.0,
+      "distance_km": 3.7,
+      "score": 0.9428,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.981,
+        "lead_time": 0.65,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "CNC milling + ISO 9001",
+        "4 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-002",
+      "part_no": "NG-BRK-1022",
+      "description": "Periscope guard bracket, mild steel, laser cut and press-brake formed sheet metal, commercial quality",
+      "shop_id": "syn-006",
+      "shop_name": "Lanternfield Sheet Metal Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "London",
+      "shop_lat": 42.9285,
+      "shop_lon": -81.2215,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 8,
+      "value_cad": 212800.0,
+      "ccv_pct": 0.9,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 383040.0,
+      "distance_km": 6.6,
+      "score": 0.9543,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.967,
+        "lead_time": 0.75,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Sheet metal",
+        "7 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-003",
+      "part_no": "NG-HSG-2105",
+      "description": "Hydraulic valve block housing, 6061-T6 aluminum, 3-axis CNC milled, precision bores, ISO 9001",
+      "shop_id": "syn-004",
+      "shop_name": "Forkline Weld & Machine Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "London",
+      "shop_lat": 42.948,
+      "shop_lon": -81.202,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 18,
+      "value_cad": 999000.0,
+      "ccv_pct": 0.89,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 1778220.0,
+      "distance_km": 5.4,
+      "score": 0.8502,
+      "score_breakdown": {
+        "fit": 0.72,
+        "distance": 0.973,
+        "lead_time": 0.7,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "CNC milling + ISO 9001",
+        "5 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-004",
+      "part_no": "NG-TUR-1120",
+      "description": "Turret ring bearing housing, 4340 steel forging, 5-axis milled, AS9100, controlled technical data (CGP)",
+      "shop_id": "syn-001",
+      "shop_name": "Tessellate Precision Machining Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "Kitchener",
+      "shop_lat": 43.4186,
+      "shop_lon": -80.445,
+      "is_sme": true,
+      "controlled": true,
+      "hours_week": 30,
+      "value_cad": 2812000.0,
+      "ccv_pct": 0.9,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 5061600.0,
+      "distance_km": 80.8,
+      "score": 0.786,
+      "score_breakdown": {
+        "fit": 0.927,
+        "distance": 0.596,
+        "lead_time": 0.417,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "5-axis milling + AS9100",
+        "CGP-registered (controlled job)",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-005",
+      "part_no": "NG-FCS-3301",
+      "description": "Fire-control sensor mounting bracket, 7075 aluminum, 5-axis milled, AS9100, controlled technical data (CGP)",
+      "shop_id": "syn-002",
+      "shop_name": "Kestrel Axis Manufacturing Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "Waterloo",
+      "shop_lat": 43.488,
+      "shop_lon": -80.539,
+      "is_sme": true,
+      "controlled": true,
+      "hours_week": 16,
+      "value_cad": 873200.0,
+      "ccv_pct": 0.88,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 1536832.0,
+      "distance_km": 80.0,
+      "score": 0.83,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.6,
+        "lead_time": 0.533,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "5-axis milling + AS9100",
+        "CGP-registered (controlled job)",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-006",
+      "part_no": "NG-WPN-3350",
+      "description": "Remote weapon station mount adapter, 4140 steel, CNC turned and milled, ISO 9001, controlled technical data (CGP)",
+      "shop_id": "syn-021",
+      "shop_name": "Northfield Axis Machining Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "London",
+      "shop_lat": 42.998,
+      "shop_lon": -81.203,
+      "is_sme": true,
+      "controlled": true,
+      "hours_week": 20,
+      "value_cad": 1482000.0,
+      "ccv_pct": 0.9,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 2667600.0,
+      "distance_km": 3.7,
+      "score": 0.9288,
+      "score_breakdown": {
+        "fit": 0.96,
+        "distance": 0.981,
+        "lead_time": 0.65,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "CNC milling + CNC turning + ISO 9001",
+        "CGP-registered (controlled job)",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-007",
+      "part_no": "NG-DRV-4102",
+      "description": "Final drive output shaft, 4340 steel, CNC turned and ground, ISO 9001",
+      "shop_id": "syn-005",
+      "shop_name": "Brassgate Turning & Weld Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "Kitchener",
+      "shop_lat": 43.433,
+      "shop_lon": -80.463,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 22,
+      "value_cad": 1596000.0,
+      "ccv_pct": 0.87,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 2777040.0,
+      "distance_km": 80.6,
+      "score": 0.8408,
+      "score_breakdown": {
+        "fit": 0.976,
+        "distance": 0.597,
+        "lead_time": 0.667,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "CNC turning + ISO 9001",
+        "81 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-008",
+      "part_no": "NG-DRV-4118",
+      "description": "Driveline yoke flange, 4140 steel, CNC turned and milled, ISO 9001",
+      "shop_id": "syn-021",
+      "shop_name": "Northfield Axis Machining Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "London",
+      "shop_lat": 42.998,
+      "shop_lon": -81.203,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 18,
+      "value_cad": 934400.0,
+      "ccv_pct": 0.88,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 1644544.0,
+      "distance_km": 3.7,
+      "score": 0.9428,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.981,
+        "lead_time": 0.65,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "CNC turning + CNC milling + ISO 9001",
+        "4 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-009",
+      "part_no": "NG-TUR-1135",
+      "description": "Turret traverse gearbox housing, A356 cast aluminum, 5-axis machined, AS9100",
+      "shop_id": "syn-001",
+      "shop_name": "Tessellate Precision Machining Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "Kitchener",
+      "shop_lat": 43.4186,
+      "shop_lon": -80.445,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 26,
+      "value_cad": 1976000.0,
+      "ccv_pct": 0.89,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 3517280.0,
+      "distance_km": 80.8,
+      "score": 0.7905,
+      "score_breakdown": {
+        "fit": 0.94,
+        "distance": 0.596,
+        "lead_time": 0.417,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "5-axis milling + AS9100",
+        "81 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-010",
+      "part_no": "NG-SUS-5010",
+      "description": "Suspension arm bushing sleeve, 1045 steel, CNC turned, ISO 9001",
+      "shop_id": "syn-029",
+      "shop_name": "Boltcraft Turning Supply Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "London",
+      "shop_lat": 42.96,
+      "shop_lon": -81.19,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 12,
+      "value_cad": 355680.0,
+      "ccv_pct": 0.91,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 647337.6,
+      "distance_km": 5.3,
+      "score": 0.9304,
+      "score_breakdown": {
+        "fit": 0.92,
+        "distance": 0.974,
+        "lead_time": 0.767,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "CNC turning + ISO 9001",
+        "5 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-011",
+      "part_no": "NG-HT-6001",
+      "description": "Heat treat service: through-harden and temper 4340 drive shafts, Nadcap heat treating accredited",
+      "shop_id": "syn-009",
+      "shop_name": "Emberforge Thermal Processing Corp.",
+      "shop_source": "synthetic",
+      "shop_city": "Hamilton",
+      "shop_lat": 43.245,
+      "shop_lon": -79.778,
+      "is_sme": false,
+      "controlled": false,
+      "hours_week": 10,
+      "value_cad": 319200.0,
+      "ccv_pct": 0.93,
+      "category": "regular",
+      "multiplier": 1,
+      "credit_cad": 296856.0,
+      "distance_km": 122.6,
+      "score": 0.6868,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.387,
+        "lead_time": 0.767,
+        "itb_value": 0.5
+      },
+      "reasons": [
+        "Heat treating + Nadcap heat treating",
+        "123 km from Northgate's London site",
+        "Only qualified shop in range (1x credit)"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-012",
+      "part_no": "NG-HT-6014",
+      "description": "Heat treat service: carburize and case-harden final drive gears, ISO 9001",
+      "shop_id": "syn-010",
+      "shop_name": "Coldframe Heat Treating Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "Kitchener",
+      "shop_lat": 43.4501,
+      "shop_lon": -80.431,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 12,
+      "value_cad": 384000.0,
+      "ccv_pct": 0.93,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 714240.0,
+      "distance_km": 83.8,
+      "score": 0.8702,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.581,
+        "lead_time": 0.833,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Heat treating + ISO 9001",
+        "84 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-013",
+      "part_no": "NG-ANO-6102",
+      "description": "Type III hard anodize service, aluminum turret housings, Nadcap chemical processing",
+      "shop_id": "syn-011",
+      "shop_name": "Galvanta Surface Finishing Corp.",
+      "shop_source": "synthetic",
+      "shop_city": "Cambridge",
+      "shop_lat": 43.37,
+      "shop_lon": -80.351,
+      "is_sme": false,
+      "controlled": false,
+      "hours_week": 8,
+      "value_cad": 288800.0,
+      "ccv_pct": 0.94,
+      "category": "regular",
+      "multiplier": 1,
+      "credit_cad": 271472.0,
+      "distance_km": 84.2,
+      "score": 0.7187,
+      "score_breakdown": {
+        "fit": 0.94,
+        "distance": 0.579,
+        "lead_time": 0.8,
+        "itb_value": 0.5
+      },
+      "reasons": [
+        "Anodizing + Nadcap chemical processing",
+        "84 km from Northgate's London site",
+        "Only qualified shop in range (1x credit)"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-014",
+      "part_no": "NG-ANO-6110",
+      "description": "Type II anodize service, aluminum brackets and covers, ISO 9001",
+      "shop_id": "syn-030",
+      "shop_name": "Stackyard Anodizing & Plating Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "Hamilton",
+      "shop_lat": 43.238,
+      "shop_lon": -79.842,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 6,
+      "value_cad": 277400.0,
+      "ccv_pct": 0.94,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 521512.0,
+      "distance_km": 117.3,
+      "score": 0.8283,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.413,
+        "lead_time": 0.833,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Anodizing + ISO 9001",
+        "117 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-015",
+      "part_no": "NG-PLT-6201",
+      "description": "Zinc-nickel plating service, steel fasteners and brackets, Nadcap chemical processing",
+      "shop_id": "syn-011",
+      "shop_name": "Galvanta Surface Finishing Corp.",
+      "shop_source": "synthetic",
+      "shop_city": "Cambridge",
+      "shop_lat": 43.37,
+      "shop_lon": -80.351,
+      "is_sme": false,
+      "controlled": false,
+      "hours_week": 10,
+      "value_cad": 342000.0,
+      "ccv_pct": 0.94,
+      "category": "regular",
+      "multiplier": 1,
+      "credit_cad": 321480.0,
+      "distance_km": 84.2,
+      "score": 0.7187,
+      "score_breakdown": {
+        "fit": 0.94,
+        "distance": 0.579,
+        "lead_time": 0.8,
+        "itb_value": 0.5
+      },
+      "reasons": [
+        "Plating + Nadcap chemical processing",
+        "84 km from Northgate's London site",
+        "Only qualified shop in range (1x credit)"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-016",
+      "part_no": "NG-PLT-6215",
+      "description": "Electroless nickel plating service, hydraulic manifold components, ISO 9001",
+      "shop_id": "syn-030",
+      "shop_name": "Stackyard Anodizing & Plating Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "Hamilton",
+      "shop_lat": 43.238,
+      "shop_lon": -79.842,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 10,
+      "value_cad": 423400.0,
+      "ccv_pct": 0.93,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 787524.0,
+      "distance_km": 117.3,
+      "score": 0.8283,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.413,
+        "lead_time": 0.833,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Plating + ISO 9001",
+        "117 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-017",
+      "part_no": "NG-PNT-6301",
+      "description": "CARC paint system service, armour steel hull subassemblies up to 3.4 m, Nadcap coatings",
+      "shop_id": "syn-014",
+      "shop_name": "Carapace Coatings Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "London",
+      "shop_lat": 42.975,
+      "shop_lon": -81.165,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 24,
+      "value_cad": 1267200.0,
+      "ccv_pct": 0.92,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 2331648.0,
+      "distance_km": 6.6,
+      "score": 0.9438,
+      "score_breakdown": {
+        "fit": 0.949,
+        "distance": 0.967,
+        "lead_time": 0.8,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Painting + Nadcap coatings",
+        "7 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-018",
+      "part_no": "NG-PNT-6318",
+      "description": "Powder coat service, steel interior stowage brackets and covers, commercial finish",
+      "shop_id": "syn-014",
+      "shop_name": "Carapace Coatings Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "London",
+      "shop_lat": 42.975,
+      "shop_lon": -81.165,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 10,
+      "value_cad": 352000.0,
+      "ccv_pct": 0.93,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 654720.0,
+      "distance_km": 6.6,
+      "score": 0.9617,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.967,
+        "lead_time": 0.8,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Painting",
+        "7 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-019",
+      "part_no": "NG-HAR-7001",
+      "description": "Chassis power distribution wire harness, copper, IPC/WHMA-A-620 Class 3, ISO 9001",
+      "shop_id": "syn-015",
+      "shop_name": "Loomline Harness Systems Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "Waterloo",
+      "shop_lat": 43.476,
+      "shop_lon": -80.513,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 26,
+      "value_cad": 2035000.0,
+      "ccv_pct": 0.78,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 3174600.0,
+      "distance_km": 80.6,
+      "score": 0.8422,
+      "score_breakdown": {
+        "fit": 0.98,
+        "distance": 0.597,
+        "lead_time": 0.667,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Wire harness + ISO 9001",
+        "81 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-020",
+      "part_no": "NG-VET-7010",
+      "description": "Vetronics data bus wire harness, shielded copper, IPC/WHMA-A-620 Class 3, CPCSC Level 1, ISO 9001, controlled technical data (CGP)",
+      "shop_id": "syn-016",
+      "shop_name": "Trunkline Interconnect Corp.",
+      "shop_source": "synthetic",
+      "shop_city": "London",
+      "shop_lat": 42.9365,
+      "shop_lon": -81.278,
+      "is_sme": false,
+      "controlled": true,
+      "hours_week": 30,
+      "value_cad": 2640000.0,
+      "ccv_pct": 0.76,
+      "category": "regular",
+      "multiplier": 1,
+      "credit_cad": 2006400.0,
+      "distance_km": 6.0,
+      "score": 0.7375,
+      "score_breakdown": {
+        "fit": 0.95,
+        "distance": 0.97,
+        "lead_time": 0.25,
+        "itb_value": 0.5
+      },
+      "reasons": [
+        "Wire harness + CPCSC Level 1",
+        "CGP-registered (controlled job)",
+        "Only qualified shop in range (1x credit)"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-021",
+      "part_no": "NG-STW-2210",
+      "description": "Crew stowage rack, mild steel sheet metal, formed and MIG welded, primed and painted (non-structural)",
+      "shop_id": "syn-012",
+      "shop_name": "Tallowfield Fabricating Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "Woolwich",
+      "shop_lat": 43.599,
+      "shop_lon": -80.557,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 22,
+      "value_cad": 921600.0,
+      "ccv_pct": 0.91,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 1677312.0,
+      "distance_km": 88.1,
+      "score": 0.8548,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.559,
+        "lead_time": 0.767,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Sheet metal + welding",
+        "88 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-022",
+      "part_no": "NG-STW-2224",
+      "description": "Tool and equipment box, steel, MIG welded and painted (non-structural)",
+      "shop_id": "syn-012",
+      "shop_name": "Tallowfield Fabricating Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "Woolwich",
+      "shop_lat": 43.599,
+      "shop_lon": -80.557,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 24,
+      "value_cad": 777600.0,
+      "ccv_pct": 0.91,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 1415232.0,
+      "distance_km": 88.1,
+      "score": 0.8548,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.559,
+        "lead_time": 0.767,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Welding + painting",
+        "88 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-023",
+      "part_no": "NG-ELC-7105",
+      "description": "Power converter electronics assembly, IPC-A-610 Class 3, conformal coat, aluminum enclosure, ISO 9001",
+      "shop_id": "syn-018",
+      "shop_name": "Circuitry Row Assembly Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "Kitchener",
+      "shop_lat": 43.4225,
+      "shop_lon": -80.4857,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 20,
+      "value_cad": 1824000.0,
+      "ccv_pct": 0.72,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 2626560.0,
+      "distance_km": 78.5,
+      "score": 0.8394,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.608,
+        "lead_time": 0.583,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Electronics assembly + ISO 9001",
+        "78 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-024",
+      "part_no": "NG-MCC-7120",
+      "description": "Mission computer chassis, CNC milled aluminum enclosure with electronics assembly, CPCSC Level 1, ISO 9001, controlled technical data (CGP)",
+      "shop_id": "syn-017",
+      "shop_name": "Bitmesh Electronics Assembly Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "Waterloo",
+      "shop_lat": 43.4905,
+      "shop_lon": -80.527,
+      "is_sme": true,
+      "controlled": true,
+      "hours_week": 28,
+      "value_cad": 3724000.0,
+      "ccv_pct": 0.75,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 5586000.0,
+      "distance_km": 80.9,
+      "score": 0.8029,
+      "score_breakdown": {
+        "fit": 0.94,
+        "distance": 0.595,
+        "lead_time": 0.5,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Electronics assembly + CNC milling + CPCSC Level 1",
+        "CGP-registered (controlled job)",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-025",
+      "part_no": "NG-ELC-7133",
+      "description": "Driver display enclosure, sheet aluminum enclosure with electronics assembly, ISO 9001",
+      "shop_id": "syn-018",
+      "shop_name": "Circuitry Row Assembly Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "Kitchener",
+      "shop_lat": 43.4225,
+      "shop_lon": -80.4857,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 16,
+      "value_cad": 1406000.0,
+      "ccv_pct": 0.74,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 2080880.0,
+      "distance_km": 78.5,
+      "score": 0.8371,
+      "score_breakdown": {
+        "fit": 0.993,
+        "distance": 0.608,
+        "lead_time": 0.583,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Electronics assembly + sheet metal + ISO 9001",
+        "78 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-026",
+      "part_no": "NG-ELC-7140",
+      "description": "Intercom control box electronics assembly, IPC-A-610, aluminum housing, ISO 9001",
+      "shop_id": "syn-018",
+      "shop_name": "Circuitry Row Assembly Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "Kitchener",
+      "shop_lat": 43.4225,
+      "shop_lon": -80.4857,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 16,
+      "value_cad": 1230000.0,
+      "ccv_pct": 0.73,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 1795800.0,
+      "distance_km": 78.5,
+      "score": 0.8184,
+      "score_breakdown": {
+        "fit": 0.94,
+        "distance": 0.608,
+        "lead_time": 0.583,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Electronics assembly + ISO 9001",
+        "78 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-027",
+      "part_no": "NG-FST-8001",
+      "description": "Armour bolt kits, grade 8 steel fasteners, zinc-nickel finish, ISO 9001",
+      "shop_id": "syn-029",
+      "shop_name": "Boltcraft Turning Supply Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "London",
+      "shop_lat": 42.96,
+      "shop_lon": -81.19,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 8,
+      "value_cad": 313200.0,
+      "ccv_pct": 0.8,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 501120.0,
+      "distance_km": 5.3,
+      "score": 0.9514,
+      "score_breakdown": {
+        "fit": 0.98,
+        "distance": 0.974,
+        "lead_time": 0.767,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Fasteners + ISO 9001",
+        "5 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-028",
+      "part_no": "NG-FST-8014",
+      "description": "Titanium quick-release panel fasteners, precision CNC turned, AS9100",
+      "shop_id": "syn-007",
+      "shop_name": "Pinwheel Precision Turning Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "Waterloo",
+      "shop_lat": 43.4972,
+      "shop_lon": -80.5502,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 8,
+      "value_cad": 374400.0,
+      "ccv_pct": 0.82,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 614016.0,
+      "distance_km": 80.1,
+      "score": 0.8374,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.6,
+        "lead_time": 0.583,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Fasteners + CNC turning + AS9100",
+        "80 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-029",
+      "part_no": "NG-TOW-4401",
+      "description": "Tow bracket weldment, armour steel, structural welding to CWB W47.1, ISO 9001",
+      "shop_id": "syn-008",
+      "shop_name": "Anvilbrook Structural Welding Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "Cambridge",
+      "shop_lat": 43.344,
+      "shop_lon": -80.308,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 18,
+      "value_cad": 623200.0,
+      "ccv_pct": 0.9,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 1121760.0,
+      "distance_km": 85.9,
+      "score": 0.8402,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.571,
+        "lead_time": 0.65,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Welding + CWB W47.1",
+        "86 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-030",
+      "part_no": "NG-STP-4405",
+      "description": "Boarding step weldment, steel, structural welding to CWB W47.1, painted, ISO 9001",
+      "shop_id": "syn-026",
+      "shop_name": "Keelbar Heavy Fabrication Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "Hamilton",
+      "shop_lat": 43.253,
+      "shop_lon": -79.795,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 20,
+      "value_cad": 569400.0,
+      "ccv_pct": 0.9,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 1024920.0,
+      "distance_km": 121.4,
+      "score": 0.7782,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.393,
+        "lead_time": 0.533,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Welding + painting + CWB W47.1",
+        "121 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-035",
+      "part_no": "NG-BRK-1040",
+      "description": "Fuel tank mounting bracket, mild steel, laser cut and press-brake formed sheet metal",
+      "shop_id": "syn-006",
+      "shop_name": "Lanternfield Sheet Metal Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "London",
+      "shop_lat": 42.9285,
+      "shop_lon": -81.2215,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 8,
+      "value_cad": 197600.0,
+      "ccv_pct": 0.9,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 355680.0,
+      "distance_km": 6.6,
+      "score": 0.9543,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.967,
+        "lead_time": 0.75,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Sheet metal",
+        "7 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-036",
+      "part_no": "NG-HSG-2130",
+      "description": "Transmission oil cooler housing, 6061 aluminum, 3-axis CNC milled, ISO 9001",
+      "shop_id": "syn-003",
+      "shop_name": "Quillon Mill & Turn Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "Cambridge",
+      "shop_lat": 43.3855,
+      "shop_lon": -80.328,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 14,
+      "value_cad": 798000.0,
+      "ccv_pct": 0.89,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 1420440.0,
+      "distance_km": 86.7,
+      "score": 0.8377,
+      "score_breakdown": {
+        "fit": 0.996,
+        "distance": 0.567,
+        "lead_time": 0.65,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "CNC milling + ISO 9001",
+        "87 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-037",
+      "part_no": "NG-TUR-1150",
+      "description": "Turret hatch hinge, 4140 steel, CNC milled and turned, ISO 9001",
+      "shop_id": "syn-021",
+      "shop_name": "Northfield Axis Machining Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "London",
+      "shop_lat": 42.998,
+      "shop_lon": -81.203,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 12,
+      "value_cad": 524400.0,
+      "ccv_pct": 0.89,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 933432.0,
+      "distance_km": 3.7,
+      "score": 0.9428,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.981,
+        "lead_time": 0.65,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "CNC milling + CNC turning + ISO 9001",
+        "4 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-038",
+      "part_no": "NG-OPT-1160",
+      "description": "Periscope housing, 7075 aluminum, 5-axis milled, AS9100",
+      "shop_id": "syn-002",
+      "shop_name": "Kestrel Axis Manufacturing Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "Waterloo",
+      "shop_lat": 43.488,
+      "shop_lon": -80.539,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 18,
+      "value_cad": 1430000.0,
+      "ccv_pct": 0.88,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 2516800.0,
+      "distance_km": 80.0,
+      "score": 0.83,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.6,
+        "lead_time": 0.533,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "5-axis milling + AS9100",
+        "80 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-039",
+      "part_no": "NG-ELC-7155",
+      "description": "Sensor interface circuit board assembly, IPC-A-610 Class 3, ISO 9001",
+      "shop_id": "syn-019",
+      "shop_name": "Solderpoint Contract Manufacturing Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "Cambridge",
+      "shop_lat": 43.418,
+      "shop_lon": -80.315,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 12,
+      "value_cad": 930000.0,
+      "ccv_pct": 0.72,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 1339200.0,
+      "distance_km": 89.5,
+      "score": 0.8382,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.553,
+        "lead_time": 0.667,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Electronics assembly + ISO 9001",
+        "89 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-040",
+      "part_no": "NG-HAR-7022",
+      "description": "Exterior lighting wire harness, copper, IPC/WHMA-A-620, ISO 9001",
+      "shop_id": "syn-015",
+      "shop_name": "Loomline Harness Systems Inc.",
+      "shop_source": "synthetic",
+      "shop_city": "Waterloo",
+      "shop_lat": 43.476,
+      "shop_lon": -80.513,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 12,
+      "value_cad": 604800.0,
+      "ccv_pct": 0.78,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 943488.0,
+      "distance_km": 80.6,
+      "score": 0.8282,
+      "score_breakdown": {
+        "fit": 0.94,
+        "distance": 0.597,
+        "lead_time": 0.667,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Wire harness + ISO 9001",
+        "81 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    }
+  ],
+  "blocked": [
+    {
+      "job_id": "NG-031",
+      "part_no": "NG-HUL-4410",
+      "description": "Hull side stowage bin weldment, armour steel plate, press-brake formed sheet metal, structural welding to CWB W47.1",
+      "process_tags": [
+        "welding",
+        "sheet_metal"
+      ],
+      "required_certs": [
+        "CWB_W47.1"
+      ],
+      "value_cad": 1656000.0,
+      "hours_week": 40,
+      "reason_code": "capacity",
+      "reason": "Both CWB W47.1 welding shops are at capacity (18 and 16 h/week free vs 40 needed); 2 other welding shops lack CWB W47.1 (certified-welder shortage)",
+      "eligible_shop_count": 2,
+      "failing_filters": {
+        "process": 26,
+        "envelope": 9,
+        "certs": 28,
+        "controlled_cgp": 0,
+        "cpcsc": 0,
+        "capacity": 10
+      },
+      "suggestion_ids": [
+        "TP-01"
+      ]
+    },
+    {
+      "job_id": "NG-032",
+      "part_no": "NG-HUL-4422",
+      "description": "Engine deck access hatch frame weldment, armour steel, structural welding to CWB W47.1",
+      "process_tags": [
+        "welding"
+      ],
+      "required_certs": [
+        "CWB_W47.1"
+      ],
+      "value_cad": 1702000.0,
+      "hours_week": 44,
+      "reason_code": "capacity",
+      "reason": "Both CWB W47.1 welding shops are at capacity (18 and 16 h/week free vs 44 needed); 4 other welding shops lack CWB W47.1 (certified-welder shortage)",
+      "eligible_shop_count": 2,
+      "failing_filters": {
+        "process": 24,
+        "envelope": 19,
+        "certs": 28,
+        "controlled_cgp": 0,
+        "cpcsc": 0,
+        "capacity": 12
+      },
+      "suggestion_ids": [
+        "TP-01"
+      ]
+    },
+    {
+      "job_id": "NG-033",
+      "part_no": "NG-HUL-4431",
+      "description": "Rear ramp door frame weldment, armour steel, structural welding to CWB W47.1, primed and painted",
+      "process_tags": [
+        "welding",
+        "painting"
+      ],
+      "required_certs": [
+        "CWB_W47.1"
+      ],
+      "value_cad": 1710000.0,
+      "hours_week": 48,
+      "reason_code": "capacity",
+      "reason": "Both CWB W47.1 welding shops are at capacity (18 and 16 h/week free vs 48 needed); 1 other welding shop lacks CWB W47.1 (certified-welder shortage)",
+      "eligible_shop_count": 2,
+      "failing_filters": {
+        "process": 27,
+        "envelope": 23,
+        "certs": 28,
+        "controlled_cgp": 0,
+        "cpcsc": 0,
+        "capacity": 13
+      },
+      "suggestion_ids": [
+        "TP-01"
+      ]
+    },
+    {
+      "job_id": "NG-034",
+      "part_no": "NG-HUL-4450",
+      "description": "Hull belly plate weldment, 3200 mm long, armour steel, structural welding to CWB W47.1",
+      "process_tags": [
+        "welding"
+      ],
+      "required_certs": [
+        "CWB_W47.1"
+      ],
+      "value_cad": 1501000.0,
+      "hours_week": 40,
+      "reason_code": "capacity",
+      "reason": "Both CWB W47.1 welding shops are at capacity (18 and 16 h/week free vs 40 needed); 4 other welding shops lack CWB W47.1 (certified-welder shortage)",
+      "eligible_shop_count": 1,
+      "failing_filters": {
+        "process": 24,
+        "envelope": 27,
+        "certs": 28,
+        "controlled_cgp": 0,
+        "cpcsc": 0,
+        "capacity": 10
+      },
+      "suggestion_ids": [
+        "TP-02"
+      ]
+    }
+  ]
+}

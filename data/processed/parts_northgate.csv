@@ -1,0 +1,41 @@
+part_no,description,qty,unit_price_cad,ccv_pct,hours_week
+NG-BRK-1010,"Antenna mount bracket, 6061-T6 aluminum, 3-axis CNC milled, ISO 9001 quality system",1520,185.00,0.88,10
+NG-BRK-1022,"Periscope guard bracket, mild steel, laser cut and press-brake formed sheet metal, commercial quality",1520,140.00,0.90,8
+NG-HSG-2105,"Hydraulic valve block housing, 6061-T6 aluminum, 3-axis CNC milled, precision bores, ISO 9001",740,1350.00,0.89,18
+NG-TUR-1120,"Turret ring bearing housing, 4340 steel forging, 5-axis milled, AS9100, controlled technical data (CGP)",380,7400.00,0.90,30
+NG-FCS-3301,"Fire-control sensor mounting bracket, 7075 aluminum, 5-axis milled, AS9100, controlled technical data (CGP)",740,1180.00,0.88,16
+NG-WPN-3350,"Remote weapon station mount adapter, 4140 steel, CNC turned and milled, ISO 9001, controlled technical data (CGP)",380,3900.00,0.90,20
+NG-DRV-4102,"Final drive output shaft, 4340 steel, CNC turned and ground, ISO 9001",760,2100.00,0.87,22
+NG-DRV-4118,"Driveline yoke flange, 4140 steel, CNC turned and milled, ISO 9001",1460,640.00,0.88,18
+NG-TUR-1135,"Turret traverse gearbox housing, A356 cast aluminum, 5-axis machined, AS9100",380,5200.00,0.89,26
+NG-SUS-5010,"Suspension arm bushing sleeve, 1045 steel, CNC turned, ISO 9001",4560,78.00,0.91,12
+NG-HT-6001,"Heat treat service: through-harden and temper 4340 drive shafts, Nadcap heat treating accredited",1520,210.00,0.93,10
+NG-HT-6014,"Heat treat service: carburize and case-harden final drive gears, ISO 9001",6000,64.00,0.93,12
+NG-ANO-6102,"Type III hard anodize service, aluminum turret housings, Nadcap chemical processing",3040,95.00,0.94,8
+NG-ANO-6110,"Type II anodize service, aluminum brackets and covers, ISO 9001",7300,38.00,0.94,6
+NG-PLT-6201,"Zinc-nickel plating service, steel fasteners and brackets, Nadcap chemical processing",36000,9.50,0.94,10
+NG-PLT-6215,"Electroless nickel plating service, hydraulic manifold components, ISO 9001",7300,58.00,0.93,10
+NG-PNT-6301,"CARC paint system service, armour steel hull subassemblies up to 3.4 m, Nadcap coatings",1440,880.00,0.92,24
+NG-PNT-6318,"Powder coat service, steel interior stowage brackets and covers, commercial finish",11000,32.00,0.93,10
+NG-HAR-7001,"Chassis power distribution wire harness, copper, IPC/WHMA-A-620 Class 3, ISO 9001",1100,1850.00,0.78,26
+NG-VET-7010,"Vetronics data bus wire harness, shielded copper, IPC/WHMA-A-620 Class 3, CPCSC Level 1, ISO 9001, controlled technical data (CGP)",1100,2400.00,0.76,30
+NG-STW-2210,"Crew stowage rack, mild steel sheet metal, formed and MIG welded, primed and painted (non-structural)",1440,640.00,0.91,22
+NG-STW-2224,"Tool and equipment box, steel, MIG welded and painted (non-structural)",1080,720.00,0.91,24
+NG-ELC-7105,"Power converter electronics assembly, IPC-A-610 Class 3, conformal coat, aluminum enclosure, ISO 9001",380,4800.00,0.72,20
+NG-MCC-7120,"Mission computer chassis, CNC milled aluminum enclosure with electronics assembly, CPCSC Level 1, ISO 9001, controlled technical data (CGP)",380,9800.00,0.75,28
+NG-ELC-7133,"Driver display enclosure, sheet aluminum enclosure with electronics assembly, ISO 9001",380,3700.00,0.74,16
+NG-ELC-7140,"Intercom control box electronics assembly, IPC-A-610, aluminum housing, ISO 9001",1500,820.00,0.73,16
+NG-FST-8001,"Armour bolt kits, grade 8 steel fasteners, zinc-nickel finish, ISO 9001",2160,145.00,0.80,8
+NG-FST-8014,"Titanium quick-release panel fasteners, precision CNC turned, AS9100",14400,26.00,0.82,8
+NG-TOW-4401,"Tow bracket weldment, armour steel, structural welding to CWB W47.1, ISO 9001",760,820.00,0.90,18
+NG-STP-4405,"Boarding step weldment, steel, structural welding to CWB W47.1, painted, ISO 9001",1460,390.00,0.90,20
+NG-HUL-4410,"Hull side stowage bin weldment, armour steel plate, press-brake formed sheet metal, structural welding to CWB W47.1",1440,1150.00,0.90,40
+NG-HUL-4422,"Engine deck access hatch frame weldment, armour steel, structural welding to CWB W47.1",740,2300.00,0.90,44
+NG-HUL-4431,"Rear ramp door frame weldment, armour steel, structural welding to CWB W47.1, primed and painted",380,4500.00,0.90,48
+NG-HUL-4450,"Hull belly plate weldment, 3200 mm long, armour steel, structural welding to CWB W47.1",380,3950.00,0.90,40
+NG-BRK-1040,"Fuel tank mounting bracket, mild steel, laser cut and press-brake formed sheet metal",760,260.00,0.90,8
+NG-HSG-2130,"Transmission oil cooler housing, 6061 aluminum, 3-axis CNC milled, ISO 9001",380,2100.00,0.89,14
+NG-TUR-1150,"Turret hatch hinge, 4140 steel, CNC milled and turned, ISO 9001",760,690.00,0.89,12
+NG-OPT-1160,"Periscope housing, 7075 aluminum, 5-axis milled, AS9100",1100,1300.00,0.88,18
+NG-ELC-7155,"Sensor interface circuit board assembly, IPC-A-610 Class 3, ISO 9001",1500,620.00,0.72,12
+NG-HAR-7022,"Exterior lighting wire harness, copper, IPC/WHMA-A-620, ISO 9001",1440,420.00,0.78,12

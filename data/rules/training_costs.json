@@ -1,0 +1,59 @@
+{
+  "label": "Simplified ITB rules for demo",
+  "note": "Illustrative costs for the demo. Every number here is an assumption, not a quote or a policy value; confirm eligibility and costs with the Defence Investment Agency.",
+  "costs": {
+    "personal_certification": {
+      "cwb_w47_1_welder_cad": 24000,
+      "unit": "per trainee",
+      "includes": "Welder certification to CWB W47.1 / CSA W59 tests, course fees, shop time",
+      "flag": "assumption",
+      "note": "Illustrative per-welder cost; not a quote."
+    },
+    "apprentice_sponsorship": {
+      "welding_apprentice_cad": 20000,
+      "unit": "per apprentice (first-year sponsorship)",
+      "includes": "Sponsorship costs for a registered welding apprentice",
+      "flag": "assumption",
+      "note": "Illustrative per-apprentice cost; not a quote."
+    }
+  },
+  "capacity_per_trainee_hours_week": {
+    "value": 20,
+    "flag": "assumption",
+    "note": "Production hours per week a newly certified welder or apprentice adds to a shop."
+  },
+  "cert_package_trainees": {
+    "value": 4,
+    "flag": "assumption",
+    "note": "Default cohort size for a certification package (one college course section)."
+  },
+  "recipient_by_gap": {
+    "cert": {
+      "category": "personal_certification",
+      "categories": [
+        "personal_certification",
+        "apprentice_sponsorship"
+      ],
+      "recipient_type": "college",
+      "recipient_example": "Conestoga College (example, not affiliated)",
+      "credit_category": "training",
+      "multiplier": 5,
+      "flag": "assumption"
+    },
+    "capacity": {
+      "category": "apprentice_sponsorship",
+      "categories": [
+        "apprentice_sponsorship"
+      ],
+      "recipient_type": "indigenous_institution",
+      "recipient_example": "Indigenous-governed training institute (example, not affiliated)",
+      "credit_category": "indigenous_training",
+      "multiplier": 10,
+      "flag": "assumption",
+      "note": "Demo assumption: capacity gaps are filled by sponsoring apprentices through an Indigenous-governed training institution (10x per the ITB overview)."
+    }
+  },
+  "trainable_certs": [
+    "CWB_W47.1"
+  ]
+}

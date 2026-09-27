@@ -1,0 +1,121 @@
+{
+  "program_id": "northgate",
+  "package_id": "TP-02",
+  "package": {
+    "id": "TP-02",
+    "program_id": "northgate",
+    "title": "Sponsor 2 welding apprentices at Keelbar Heavy Fabrication Ltd. (Hamilton) through an Indigenous-governed training institute",
+    "blocked_job_ids": [
+      "NG-034"
+    ],
+    "shop_id": "syn-026",
+    "shop_name": "Keelbar Heavy Fabrication Ltd.",
+    "shop_city": "Hamilton",
+    "shop_source": "synthetic",
+    "gap": {
+      "kind": "capacity",
+      "requirement": "welding",
+      "detail": "CWB W47.1 certified with a large enough envelope, but only 16 h/week free for a 40 h/week job"
+    },
+    "category": "apprentice_sponsorship",
+    "categories": [
+      "apprentice_sponsorship"
+    ],
+    "recipient_type": "indigenous_institution",
+    "recipient_example": "Indigenous-governed training institute (example, not affiliated)",
+    "trainees": 2,
+    "est_cost_cad": 40000.0,
+    "cost_basis": "data/rules/training_costs.json (assumption)",
+    "multiplier": 10,
+    "est_credit_cad": 400000.0,
+    "cert_unlock": null,
+    "capacity_unlock": {
+      "welding": 40
+    },
+    "unblocks_value_cad": 1501000.0,
+    "eligibility_note": "The 10x Indigenous workforce development multiplier applies per the ITB overview; eligibility of this apprenticeship sponsorship would need to be confirmed with the Defence Investment Agency (assumption).",
+    "flags": [
+      "assumption"
+    ],
+    "status": "funded"
+  },
+  "before": {
+    "assigned": 39,
+    "blocked": 1,
+    "credit_total_cad": 67143897.6,
+    "obligation_met_pct": 0.13428779519999998,
+    "direct_credit_cad": 66663897.6,
+    "indirect_credit_cad": 480000.0,
+    "smb_achieved_cad": 31883844.8,
+    "smb_progress_pct": 0.4251179306666667
+  },
+  "after": {
+    "assigned": 40,
+    "blocked": 0,
+    "credit_total_cad": 70245697.6,
+    "obligation_met_pct": 0.14049139519999998,
+    "direct_credit_cad": 69365697.6,
+    "indirect_credit_cad": 880000.0,
+    "smb_achieved_cad": 33234744.8,
+    "smb_progress_pct": 0.44312993066666667
+  },
+  "unblocked_jobs": [
+    {
+      "job_id": "NG-034",
+      "part_no": "NG-HUL-4450",
+      "description": "Hull belly plate weldment, 3200 mm long, armour steel, structural welding to CWB W47.1",
+      "shop_id": "syn-026",
+      "shop_name": "Keelbar Heavy Fabrication Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "Hamilton",
+      "shop_lat": 43.253,
+      "shop_lon": -79.795,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 40,
+      "value_cad": 1501000.0,
+      "ccv_pct": 0.9,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 2701800.0,
+      "distance_km": 121.4,
+      "score": 0.7572,
+      "score_breakdown": {
+        "fit": 0.94,
+        "distance": 0.393,
+        "lead_time": 0.533,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Welding + CWB W47.1",
+        "121 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    }
+  ],
+  "still_blocked": [],
+  "training_txn": {
+    "id": "TX-0041",
+    "program_id": "northgate",
+    "origin": "training",
+    "ref_id": "TP-02",
+    "shop_id": "syn-026",
+    "type": "indirect",
+    "category": "indigenous_training",
+    "value_cad": 40000.0,
+    "ccv_pct": 1.0,
+    "multiplier": 10,
+    "credit_cad": 400000.0,
+    "flags": [
+      "assumption",
+      "simplified-demo"
+    ]
+  },
+  "credit_added": 3101800.0,
+  "credit_added_breakdown": {
+    "training_cad": 400000.0,
+    "jobs_cad": 2701800.0
+  },
+  "headline": "$40K training → $400K credit (10x) + 1 job unblocked (+$2.7M credit)"
+}

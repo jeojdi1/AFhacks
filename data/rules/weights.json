@@ -1,0 +1,45 @@
+{
+  "label": "Simplified ITB rules for demo",
+  "description": "Match score = w_fit*fit + w_distance*(1 - d/d_max) + w_lead_time*(1 - lead/lead_max) + w_itb_value*itb_norm (CLAUDE.md §3.3). Each term is clamped to [0, 1].",
+  "weights": {
+    "fit": 0.35,
+    "distance": 0.25,
+    "lead_time": 0.15,
+    "itb_value": 0.25
+  },
+  "d_max_km": 200,
+  "lead_max_days": 60,
+  "itb_norm": {
+    "sme": 1.0,
+    "non_sme": 0.5,
+    "note": "SMEs earn 2x direct credit (ITB overview), so they score higher."
+  },
+  "distance_from": "program site (Program.site)",
+  "fit": {
+    "description": "fit = 0.40*tolerance + 0.35*material + 0.25*envelope, in [0, 1].",
+    "components": {
+      "tolerance": 0.4,
+      "material": 0.35,
+      "envelope": 0.25
+    },
+    "tolerance": {
+      "shop_equals_job": 1.0,
+      "shop_better_than_job": 0.85,
+      "shop_worse_than_job": 0.3,
+      "note": "Tolerance is a score term, not a hard filter (docs/api.md §1)."
+    },
+    "material": {
+      "in_shop_materials": 1.0,
+      "not_listed": 0.4
+    },
+    "envelope": {
+      "formula": "0.6 + 0.4*min(1, margin/0.5)",
+      "margin": "min over sorted dims of (shop_dim - job_dim) / shop_dim"
+    }
+  },
+  "tie_break": "higher score first, then lower shop id",
+  "assignment": "Greedy fallback: hardest job first (fewest shops passing every filter except capacity; ties by higher est_value_cad, then job id); each job goes to the best-scoring shop that passes every filter including remaining capacity. After funding, only still-blocked jobs are re-routed; existing assignments stay.",
+  "flags": [
+    "assumption"
+  ]
+}

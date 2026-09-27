@@ -1,0 +1,650 @@
+{
+  "_key": "sha256(part_no + '|' + description), hex, UTF-8",
+  "_source": "hand-authored demo tags written by scripts/build_fixtures.py (stands in for LLM output)",
+  "eb61406ff747084b12b01ca75b5540155fe9ecbb97d15d2c062f9c9a7e02307d": {
+    "process_tags": [
+      "cnc_milling"
+    ],
+    "material": "aluminum",
+    "envelope_mm": [
+      220,
+      140,
+      60
+    ],
+    "tolerance_class": "precision",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "456694d4acad33a7c94f36c0967e685ca552e777ea41deb232ffc2c6f173f693": {
+    "process_tags": [
+      "sheet_metal"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      480,
+      260,
+      120
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [],
+    "controlled": false
+  },
+  "63ee17e2fb321e2af7a952cd941d31854a935982704ccf5901ffbcce39c30e24": {
+    "process_tags": [
+      "cnc_milling"
+    ],
+    "material": "aluminum",
+    "envelope_mm": [
+      260,
+      180,
+      140
+    ],
+    "tolerance_class": "precision",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "715ceca1dca37f03f8378ace70131553f3342e175a1d66f4e91565e372b6ae61": {
+    "process_tags": [
+      "five_axis_milling"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      1900,
+      1900,
+      220
+    ],
+    "tolerance_class": "ultra",
+    "required_certs": [
+      "AS9100"
+    ],
+    "controlled": true
+  },
+  "ad016bc3eedbca2dccf81daa7302acd95567694b7de7ccafed627344bd43a5bf": {
+    "process_tags": [
+      "five_axis_milling"
+    ],
+    "material": "aluminum",
+    "envelope_mm": [
+      320,
+      210,
+      140
+    ],
+    "tolerance_class": "ultra",
+    "required_certs": [
+      "AS9100"
+    ],
+    "controlled": true
+  },
+  "f7ce58084c8b7ed6531bffca51c07614fbf3d4cb5815c980f310f0d61dff93ed": {
+    "process_tags": [
+      "cnc_milling",
+      "cnc_turning"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      420,
+      420,
+      260
+    ],
+    "tolerance_class": "precision",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": true
+  },
+  "823947d18b4be73ab95038b5e9ecd02fd77baf45c27bc80514e6a555ac363be8": {
+    "process_tags": [
+      "cnc_turning"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      620,
+      110,
+      110
+    ],
+    "tolerance_class": "precision",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "31c0aa0700c9d74603fb1fad74ed3ad3d0ea813c6ddf4d183fefef96cd9bbefb": {
+    "process_tags": [
+      "cnc_turning",
+      "cnc_milling"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      240,
+      240,
+      120
+    ],
+    "tolerance_class": "precision",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "20582d740fff78276551ff86595fe9048ad7a389f01785cd6cb00f7686e66186": {
+    "process_tags": [
+      "five_axis_milling"
+    ],
+    "material": "aluminum",
+    "envelope_mm": [
+      700,
+      520,
+      380
+    ],
+    "tolerance_class": "precision",
+    "required_certs": [
+      "AS9100"
+    ],
+    "controlled": false
+  },
+  "8fd9c97113247ead6c927bcfcf46c04752dcd2a0be06071d471ad6ffef4c4f4b": {
+    "process_tags": [
+      "cnc_turning"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      140,
+      90,
+      90
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "7ec3bf168be7d3a79618fc580a0b587db71f43b2eb802fec57165628a3892257": {
+    "process_tags": [
+      "heat_treat"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      700,
+      150,
+      150
+    ],
+    "tolerance_class": "precision",
+    "required_certs": [
+      "NADCAP:HEAT_TREAT"
+    ],
+    "controlled": false
+  },
+  "afe82510f8ddafcca1bc1b1ec4436d3067cdb9d568797926104c30ed166436e0": {
+    "process_tags": [
+      "heat_treat"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      400,
+      400,
+      120
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "e8de5bc1f7623475ea718b9b2fec83e703f4d924648bbbbb95eb1775c925bc16": {
+    "process_tags": [
+      "anodizing"
+    ],
+    "material": "aluminum",
+    "envelope_mm": [
+      700,
+      520,
+      380
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [
+      "NADCAP:CHEM_PROCESSING"
+    ],
+    "controlled": false
+  },
+  "bbe2934e5412bdcb09e20e3139fb7614365dc011715ddc0cb738aaef6cd273c9": {
+    "process_tags": [
+      "anodizing"
+    ],
+    "material": "aluminum",
+    "envelope_mm": [
+      480,
+      300,
+      120
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "96e9e310fdcfb64f0bca28e8ef16d7e16c1cd23ce86606a1b31e6b97fe816b60": {
+    "process_tags": [
+      "plating"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      300,
+      200,
+      100
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [
+      "NADCAP:CHEM_PROCESSING"
+    ],
+    "controlled": false
+  },
+  "272140a8d1f2a96f6e32b7cfea3689d3a567230b015c89bf9848054c6a54a8ad": {
+    "process_tags": [
+      "plating"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      300,
+      200,
+      150
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "f32bcdfd09682f21b44330945ba4e0256c342656f7172a2b6232d3a8cf3eb4f3": {
+    "process_tags": [
+      "painting"
+    ],
+    "material": "armour_steel",
+    "envelope_mm": [
+      3400,
+      1800,
+      1400
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [
+      "NADCAP:COATINGS"
+    ],
+    "controlled": false
+  },
+  "feaa2f0b31314f867ff9b54dae281d8c4f16ee3b25e13d88164847c5593fdc59": {
+    "process_tags": [
+      "painting"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      800,
+      500,
+      300
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [],
+    "controlled": false
+  },
+  "343e5778cb4fe09225600b441d729d31be26110a1365370fe488e425f6213ee5": {
+    "process_tags": [
+      "wire_harness"
+    ],
+    "material": "copper",
+    "envelope_mm": [
+      2400,
+      300,
+      150
+    ],
+    "tolerance_class": "precision",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "ecfad3ab798d25aafe2c044b9e4f23e165d3de030f85126cc0c09afae883e2b0": {
+    "process_tags": [
+      "wire_harness"
+    ],
+    "material": "copper",
+    "envelope_mm": [
+      3000,
+      300,
+      150
+    ],
+    "tolerance_class": "precision",
+    "required_certs": [
+      "CPCSC_L1",
+      "ISO9001"
+    ],
+    "controlled": true
+  },
+  "c0cb83f69fbcd27375d3b9bc05ab4770880810d773b2ad321def9eac32a57557": {
+    "process_tags": [
+      "sheet_metal",
+      "welding",
+      "painting"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      1200,
+      600,
+      400
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [],
+    "controlled": false
+  },
+  "e8b6541a9b13566076f6de3a5fd8be3cd00c44272bb99f9bd9446347b106af75": {
+    "process_tags": [
+      "welding",
+      "painting"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      1100,
+      500,
+      450
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [],
+    "controlled": false
+  },
+  "b2b930752d0eac6c9ee6d4b32b81f0ad913d1403e35327fe77f467aff12089a0": {
+    "process_tags": [
+      "electronics_assembly"
+    ],
+    "material": "aluminum",
+    "envelope_mm": [
+      400,
+      300,
+      150
+    ],
+    "tolerance_class": "precision",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "25c863ef28471e665ae08f21eb8185da4bd403dca543767de42149be3da27cb1": {
+    "process_tags": [
+      "electronics_assembly",
+      "cnc_milling"
+    ],
+    "material": "aluminum",
+    "envelope_mm": [
+      480,
+      350,
+      220
+    ],
+    "tolerance_class": "precision",
+    "required_certs": [
+      "CPCSC_L1",
+      "ISO9001"
+    ],
+    "controlled": true
+  },
+  "bda5fafe87adbbc0ea91b6fa207cd6f1fa4b75f7920316b9fc9c487ba932b1a5": {
+    "process_tags": [
+      "electronics_assembly",
+      "sheet_metal"
+    ],
+    "material": "aluminum",
+    "envelope_mm": [
+      420,
+      320,
+      120
+    ],
+    "tolerance_class": "precision",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "9cda9ba3e926fa641acf26f4f6432e3e20ac1f0683967b53c396821e8b5b4c8e": {
+    "process_tags": [
+      "electronics_assembly"
+    ],
+    "material": "aluminum",
+    "envelope_mm": [
+      220,
+      160,
+      90
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "bc9636158c2b995ca4006fb50172c2e7d7035427dd14c3329cdfc98117b76c83": {
+    "process_tags": [
+      "fasteners"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      150,
+      60,
+      60
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "5e66cbd73a5001b8be4c977f3a42e79cc24efe0bd6ff76662576b24be5fd31ef": {
+    "process_tags": [
+      "fasteners",
+      "cnc_turning"
+    ],
+    "material": "titanium",
+    "envelope_mm": [
+      60,
+      20,
+      20
+    ],
+    "tolerance_class": "precision",
+    "required_certs": [
+      "AS9100"
+    ],
+    "controlled": false
+  },
+  "93b71842c3e40fd2d9f1d1e87ecd8be9e52b4740dfb376449d4e49e26f9c355a": {
+    "process_tags": [
+      "welding"
+    ],
+    "material": "armour_steel",
+    "envelope_mm": [
+      700,
+      400,
+      300
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [
+      "CWB_W47.1",
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "e749670add68bf4942131a52b114148a8712e3732f51759baa13a3fe8b86dcec": {
+    "process_tags": [
+      "welding",
+      "painting"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      600,
+      500,
+      250
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [
+      "CWB_W47.1",
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "7af911da6c2db10d5f1774713f41e37867d34f419b5ab5271459dbffe49b5216": {
+    "process_tags": [
+      "welding",
+      "sheet_metal"
+    ],
+    "material": "armour_steel",
+    "envelope_mm": [
+      900,
+      600,
+      450
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [
+      "CWB_W47.1"
+    ],
+    "controlled": false
+  },
+  "bd792cb5e51a64291d20fb2fd2d1d641efb2a314ba98c48079a9a3088a4cf592": {
+    "process_tags": [
+      "welding"
+    ],
+    "material": "armour_steel",
+    "envelope_mm": [
+      1400,
+      1100,
+      200
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [
+      "CWB_W47.1"
+    ],
+    "controlled": false
+  },
+  "02ce2521a7a4db1c1dce3f961cdbff8f86643507ca5ba11062f8409399dbd53e": {
+    "process_tags": [
+      "welding",
+      "painting"
+    ],
+    "material": "armour_steel",
+    "envelope_mm": [
+      2400,
+      1500,
+      300
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [
+      "CWB_W47.1"
+    ],
+    "controlled": false
+  },
+  "79f6dd3b24d14cd33fd672713fd073c27979d2cb71e3a8e1ff6404a086f88c66": {
+    "process_tags": [
+      "welding"
+    ],
+    "material": "armour_steel",
+    "envelope_mm": [
+      3200,
+      1400,
+      500
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [
+      "CWB_W47.1"
+    ],
+    "controlled": false
+  },
+  "c41bf6d89cae26a59bf5b68fa3e21db52005fda7fbbf0899a9d62cc8d90411ef": {
+    "process_tags": [
+      "sheet_metal"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      520,
+      300,
+      180
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [],
+    "controlled": false
+  },
+  "e77a4cd10efe71d620e3be59ef0abe29a2fad33e8c9ef001a5649b172f9c076a": {
+    "process_tags": [
+      "cnc_milling"
+    ],
+    "material": "aluminum",
+    "envelope_mm": [
+      520,
+      380,
+      160
+    ],
+    "tolerance_class": "precision",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "642d21c0315d69f6726cb0a8e19a6138423ce0d8cc42550974d470ef1a980f00": {
+    "process_tags": [
+      "cnc_milling",
+      "cnc_turning"
+    ],
+    "material": "steel",
+    "envelope_mm": [
+      320,
+      160,
+      120
+    ],
+    "tolerance_class": "precision",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "c146189d7d77f05d92a2f3d6945ceee1660ac3e6b3db8afaf9ca17340a48e489": {
+    "process_tags": [
+      "five_axis_milling"
+    ],
+    "material": "aluminum",
+    "envelope_mm": [
+      360,
+      240,
+      200
+    ],
+    "tolerance_class": "ultra",
+    "required_certs": [
+      "AS9100"
+    ],
+    "controlled": false
+  },
+  "c5b5f7b89e8486b164776fe7fbbf3a5ed5ba7eb203f089fb7f8b1475a08a1c14": {
+    "process_tags": [
+      "electronics_assembly"
+    ],
+    "material": "copper",
+    "envelope_mm": [
+      200,
+      150,
+      40
+    ],
+    "tolerance_class": "precision",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  },
+  "7397ff408f557774756394bf30cbb0a640d3b16c815e772a5e33686169a46a84": {
+    "process_tags": [
+      "wire_harness"
+    ],
+    "material": "copper",
+    "envelope_mm": [
+      1800,
+      200,
+      100
+    ],
+    "tolerance_class": "standard",
+    "required_certs": [
+      "ISO9001"
+    ],
+    "controlled": false
+  }
+}

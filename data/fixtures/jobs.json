@@ -1,0 +1,1091 @@
+{
+  "program_id": "northgate",
+  "jobs": [
+    {
+      "id": "NG-001",
+      "program_id": "northgate",
+      "part_no": "NG-BRK-1010",
+      "description": "Antenna mount bracket, 6061-T6 aluminum, 3-axis CNC milled, ISO 9001 quality system",
+      "qty": 1520,
+      "unit_price_cad": 185.0,
+      "est_value_cad": 281200.0,
+      "ccv_pct": 0.88,
+      "hours_week": 10,
+      "material": "aluminum",
+      "process_tags": [
+        "cnc_milling"
+      ],
+      "envelope_mm": [
+        220,
+        140,
+        60
+      ],
+      "tolerance_class": "precision",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-002",
+      "program_id": "northgate",
+      "part_no": "NG-BRK-1022",
+      "description": "Periscope guard bracket, mild steel, laser cut and press-brake formed sheet metal, commercial quality",
+      "qty": 1520,
+      "unit_price_cad": 140.0,
+      "est_value_cad": 212800.0,
+      "ccv_pct": 0.9,
+      "hours_week": 8,
+      "material": "steel",
+      "process_tags": [
+        "sheet_metal"
+      ],
+      "envelope_mm": [
+        480,
+        260,
+        120
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-003",
+      "program_id": "northgate",
+      "part_no": "NG-HSG-2105",
+      "description": "Hydraulic valve block housing, 6061-T6 aluminum, 3-axis CNC milled, precision bores, ISO 9001",
+      "qty": 740,
+      "unit_price_cad": 1350.0,
+      "est_value_cad": 999000.0,
+      "ccv_pct": 0.89,
+      "hours_week": 18,
+      "material": "aluminum",
+      "process_tags": [
+        "cnc_milling"
+      ],
+      "envelope_mm": [
+        260,
+        180,
+        140
+      ],
+      "tolerance_class": "precision",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-004",
+      "program_id": "northgate",
+      "part_no": "NG-TUR-1120",
+      "description": "Turret ring bearing housing, 4340 steel forging, 5-axis milled, AS9100, controlled technical data (CGP)",
+      "qty": 380,
+      "unit_price_cad": 7400.0,
+      "est_value_cad": 2812000.0,
+      "ccv_pct": 0.9,
+      "hours_week": 30,
+      "material": "steel",
+      "process_tags": [
+        "five_axis_milling"
+      ],
+      "envelope_mm": [
+        1900,
+        1900,
+        220
+      ],
+      "tolerance_class": "ultra",
+      "required_certs": [
+        "AS9100"
+      ],
+      "controlled": true,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-005",
+      "program_id": "northgate",
+      "part_no": "NG-FCS-3301",
+      "description": "Fire-control sensor mounting bracket, 7075 aluminum, 5-axis milled, AS9100, controlled technical data (CGP)",
+      "qty": 740,
+      "unit_price_cad": 1180.0,
+      "est_value_cad": 873200.0,
+      "ccv_pct": 0.88,
+      "hours_week": 16,
+      "material": "aluminum",
+      "process_tags": [
+        "five_axis_milling"
+      ],
+      "envelope_mm": [
+        320,
+        210,
+        140
+      ],
+      "tolerance_class": "ultra",
+      "required_certs": [
+        "AS9100"
+      ],
+      "controlled": true,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-006",
+      "program_id": "northgate",
+      "part_no": "NG-WPN-3350",
+      "description": "Remote weapon station mount adapter, 4140 steel, CNC turned and milled, ISO 9001, controlled technical data (CGP)",
+      "qty": 380,
+      "unit_price_cad": 3900.0,
+      "est_value_cad": 1482000.0,
+      "ccv_pct": 0.9,
+      "hours_week": 20,
+      "material": "steel",
+      "process_tags": [
+        "cnc_milling",
+        "cnc_turning"
+      ],
+      "envelope_mm": [
+        420,
+        420,
+        260
+      ],
+      "tolerance_class": "precision",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": true,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-007",
+      "program_id": "northgate",
+      "part_no": "NG-DRV-4102",
+      "description": "Final drive output shaft, 4340 steel, CNC turned and ground, ISO 9001",
+      "qty": 760,
+      "unit_price_cad": 2100.0,
+      "est_value_cad": 1596000.0,
+      "ccv_pct": 0.87,
+      "hours_week": 22,
+      "material": "steel",
+      "process_tags": [
+        "cnc_turning"
+      ],
+      "envelope_mm": [
+        620,
+        110,
+        110
+      ],
+      "tolerance_class": "precision",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-008",
+      "program_id": "northgate",
+      "part_no": "NG-DRV-4118",
+      "description": "Driveline yoke flange, 4140 steel, CNC turned and milled, ISO 9001",
+      "qty": 1460,
+      "unit_price_cad": 640.0,
+      "est_value_cad": 934400.0,
+      "ccv_pct": 0.88,
+      "hours_week": 18,
+      "material": "steel",
+      "process_tags": [
+        "cnc_turning",
+        "cnc_milling"
+      ],
+      "envelope_mm": [
+        240,
+        240,
+        120
+      ],
+      "tolerance_class": "precision",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-009",
+      "program_id": "northgate",
+      "part_no": "NG-TUR-1135",
+      "description": "Turret traverse gearbox housing, A356 cast aluminum, 5-axis machined, AS9100",
+      "qty": 380,
+      "unit_price_cad": 5200.0,
+      "est_value_cad": 1976000.0,
+      "ccv_pct": 0.89,
+      "hours_week": 26,
+      "material": "aluminum",
+      "process_tags": [
+        "five_axis_milling"
+      ],
+      "envelope_mm": [
+        700,
+        520,
+        380
+      ],
+      "tolerance_class": "precision",
+      "required_certs": [
+        "AS9100"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-010",
+      "program_id": "northgate",
+      "part_no": "NG-SUS-5010",
+      "description": "Suspension arm bushing sleeve, 1045 steel, CNC turned, ISO 9001",
+      "qty": 4560,
+      "unit_price_cad": 78.0,
+      "est_value_cad": 355680.0,
+      "ccv_pct": 0.91,
+      "hours_week": 12,
+      "material": "steel",
+      "process_tags": [
+        "cnc_turning"
+      ],
+      "envelope_mm": [
+        140,
+        90,
+        90
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-011",
+      "program_id": "northgate",
+      "part_no": "NG-HT-6001",
+      "description": "Heat treat service: through-harden and temper 4340 drive shafts, Nadcap heat treating accredited",
+      "qty": 1520,
+      "unit_price_cad": 210.0,
+      "est_value_cad": 319200.0,
+      "ccv_pct": 0.93,
+      "hours_week": 10,
+      "material": "steel",
+      "process_tags": [
+        "heat_treat"
+      ],
+      "envelope_mm": [
+        700,
+        150,
+        150
+      ],
+      "tolerance_class": "precision",
+      "required_certs": [
+        "NADCAP:HEAT_TREAT"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-012",
+      "program_id": "northgate",
+      "part_no": "NG-HT-6014",
+      "description": "Heat treat service: carburize and case-harden final drive gears, ISO 9001",
+      "qty": 6000,
+      "unit_price_cad": 64.0,
+      "est_value_cad": 384000.0,
+      "ccv_pct": 0.93,
+      "hours_week": 12,
+      "material": "steel",
+      "process_tags": [
+        "heat_treat"
+      ],
+      "envelope_mm": [
+        400,
+        400,
+        120
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-013",
+      "program_id": "northgate",
+      "part_no": "NG-ANO-6102",
+      "description": "Type III hard anodize service, aluminum turret housings, Nadcap chemical processing",
+      "qty": 3040,
+      "unit_price_cad": 95.0,
+      "est_value_cad": 288800.0,
+      "ccv_pct": 0.94,
+      "hours_week": 8,
+      "material": "aluminum",
+      "process_tags": [
+        "anodizing"
+      ],
+      "envelope_mm": [
+        700,
+        520,
+        380
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [
+        "NADCAP:CHEM_PROCESSING"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-014",
+      "program_id": "northgate",
+      "part_no": "NG-ANO-6110",
+      "description": "Type II anodize service, aluminum brackets and covers, ISO 9001",
+      "qty": 7300,
+      "unit_price_cad": 38.0,
+      "est_value_cad": 277400.0,
+      "ccv_pct": 0.94,
+      "hours_week": 6,
+      "material": "aluminum",
+      "process_tags": [
+        "anodizing"
+      ],
+      "envelope_mm": [
+        480,
+        300,
+        120
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-015",
+      "program_id": "northgate",
+      "part_no": "NG-PLT-6201",
+      "description": "Zinc-nickel plating service, steel fasteners and brackets, Nadcap chemical processing",
+      "qty": 36000,
+      "unit_price_cad": 9.5,
+      "est_value_cad": 342000.0,
+      "ccv_pct": 0.94,
+      "hours_week": 10,
+      "material": "steel",
+      "process_tags": [
+        "plating"
+      ],
+      "envelope_mm": [
+        300,
+        200,
+        100
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [
+        "NADCAP:CHEM_PROCESSING"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-016",
+      "program_id": "northgate",
+      "part_no": "NG-PLT-6215",
+      "description": "Electroless nickel plating service, hydraulic manifold components, ISO 9001",
+      "qty": 7300,
+      "unit_price_cad": 58.0,
+      "est_value_cad": 423400.0,
+      "ccv_pct": 0.93,
+      "hours_week": 10,
+      "material": "steel",
+      "process_tags": [
+        "plating"
+      ],
+      "envelope_mm": [
+        300,
+        200,
+        150
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-017",
+      "program_id": "northgate",
+      "part_no": "NG-PNT-6301",
+      "description": "CARC paint system service, armour steel hull subassemblies up to 3.4 m, Nadcap coatings",
+      "qty": 1440,
+      "unit_price_cad": 880.0,
+      "est_value_cad": 1267200.0,
+      "ccv_pct": 0.92,
+      "hours_week": 24,
+      "material": "armour_steel",
+      "process_tags": [
+        "painting"
+      ],
+      "envelope_mm": [
+        3400,
+        1800,
+        1400
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [
+        "NADCAP:COATINGS"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-018",
+      "program_id": "northgate",
+      "part_no": "NG-PNT-6318",
+      "description": "Powder coat service, steel interior stowage brackets and covers, commercial finish",
+      "qty": 11000,
+      "unit_price_cad": 32.0,
+      "est_value_cad": 352000.0,
+      "ccv_pct": 0.93,
+      "hours_week": 10,
+      "material": "steel",
+      "process_tags": [
+        "painting"
+      ],
+      "envelope_mm": [
+        800,
+        500,
+        300
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-019",
+      "program_id": "northgate",
+      "part_no": "NG-HAR-7001",
+      "description": "Chassis power distribution wire harness, copper, IPC/WHMA-A-620 Class 3, ISO 9001",
+      "qty": 1100,
+      "unit_price_cad": 1850.0,
+      "est_value_cad": 2035000.0,
+      "ccv_pct": 0.78,
+      "hours_week": 26,
+      "material": "copper",
+      "process_tags": [
+        "wire_harness"
+      ],
+      "envelope_mm": [
+        2400,
+        300,
+        150
+      ],
+      "tolerance_class": "precision",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-020",
+      "program_id": "northgate",
+      "part_no": "NG-VET-7010",
+      "description": "Vetronics data bus wire harness, shielded copper, IPC/WHMA-A-620 Class 3, CPCSC Level 1, ISO 9001, controlled technical data (CGP)",
+      "qty": 1100,
+      "unit_price_cad": 2400.0,
+      "est_value_cad": 2640000.0,
+      "ccv_pct": 0.76,
+      "hours_week": 30,
+      "material": "copper",
+      "process_tags": [
+        "wire_harness"
+      ],
+      "envelope_mm": [
+        3000,
+        300,
+        150
+      ],
+      "tolerance_class": "precision",
+      "required_certs": [
+        "CPCSC_L1",
+        "ISO9001"
+      ],
+      "controlled": true,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-021",
+      "program_id": "northgate",
+      "part_no": "NG-STW-2210",
+      "description": "Crew stowage rack, mild steel sheet metal, formed and MIG welded, primed and painted (non-structural)",
+      "qty": 1440,
+      "unit_price_cad": 640.0,
+      "est_value_cad": 921600.0,
+      "ccv_pct": 0.91,
+      "hours_week": 22,
+      "material": "steel",
+      "process_tags": [
+        "sheet_metal",
+        "welding",
+        "painting"
+      ],
+      "envelope_mm": [
+        1200,
+        600,
+        400
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-022",
+      "program_id": "northgate",
+      "part_no": "NG-STW-2224",
+      "description": "Tool and equipment box, steel, MIG welded and painted (non-structural)",
+      "qty": 1080,
+      "unit_price_cad": 720.0,
+      "est_value_cad": 777600.0,
+      "ccv_pct": 0.91,
+      "hours_week": 24,
+      "material": "steel",
+      "process_tags": [
+        "welding",
+        "painting"
+      ],
+      "envelope_mm": [
+        1100,
+        500,
+        450
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-023",
+      "program_id": "northgate",
+      "part_no": "NG-ELC-7105",
+      "description": "Power converter electronics assembly, IPC-A-610 Class 3, conformal coat, aluminum enclosure, ISO 9001",
+      "qty": 380,
+      "unit_price_cad": 4800.0,
+      "est_value_cad": 1824000.0,
+      "ccv_pct": 0.72,
+      "hours_week": 20,
+      "material": "aluminum",
+      "process_tags": [
+        "electronics_assembly"
+      ],
+      "envelope_mm": [
+        400,
+        300,
+        150
+      ],
+      "tolerance_class": "precision",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-024",
+      "program_id": "northgate",
+      "part_no": "NG-MCC-7120",
+      "description": "Mission computer chassis, CNC milled aluminum enclosure with electronics assembly, CPCSC Level 1, ISO 9001, controlled technical data (CGP)",
+      "qty": 380,
+      "unit_price_cad": 9800.0,
+      "est_value_cad": 3724000.0,
+      "ccv_pct": 0.75,
+      "hours_week": 28,
+      "material": "aluminum",
+      "process_tags": [
+        "electronics_assembly",
+        "cnc_milling"
+      ],
+      "envelope_mm": [
+        480,
+        350,
+        220
+      ],
+      "tolerance_class": "precision",
+      "required_certs": [
+        "CPCSC_L1",
+        "ISO9001"
+      ],
+      "controlled": true,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-025",
+      "program_id": "northgate",
+      "part_no": "NG-ELC-7133",
+      "description": "Driver display enclosure, sheet aluminum enclosure with electronics assembly, ISO 9001",
+      "qty": 380,
+      "unit_price_cad": 3700.0,
+      "est_value_cad": 1406000.0,
+      "ccv_pct": 0.74,
+      "hours_week": 16,
+      "material": "aluminum",
+      "process_tags": [
+        "electronics_assembly",
+        "sheet_metal"
+      ],
+      "envelope_mm": [
+        420,
+        320,
+        120
+      ],
+      "tolerance_class": "precision",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-026",
+      "program_id": "northgate",
+      "part_no": "NG-ELC-7140",
+      "description": "Intercom control box electronics assembly, IPC-A-610, aluminum housing, ISO 9001",
+      "qty": 1500,
+      "unit_price_cad": 820.0,
+      "est_value_cad": 1230000.0,
+      "ccv_pct": 0.73,
+      "hours_week": 16,
+      "material": "aluminum",
+      "process_tags": [
+        "electronics_assembly"
+      ],
+      "envelope_mm": [
+        220,
+        160,
+        90
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-027",
+      "program_id": "northgate",
+      "part_no": "NG-FST-8001",
+      "description": "Armour bolt kits, grade 8 steel fasteners, zinc-nickel finish, ISO 9001",
+      "qty": 2160,
+      "unit_price_cad": 145.0,
+      "est_value_cad": 313200.0,
+      "ccv_pct": 0.8,
+      "hours_week": 8,
+      "material": "steel",
+      "process_tags": [
+        "fasteners"
+      ],
+      "envelope_mm": [
+        150,
+        60,
+        60
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-028",
+      "program_id": "northgate",
+      "part_no": "NG-FST-8014",
+      "description": "Titanium quick-release panel fasteners, precision CNC turned, AS9100",
+      "qty": 14400,
+      "unit_price_cad": 26.0,
+      "est_value_cad": 374400.0,
+      "ccv_pct": 0.82,
+      "hours_week": 8,
+      "material": "titanium",
+      "process_tags": [
+        "fasteners",
+        "cnc_turning"
+      ],
+      "envelope_mm": [
+        60,
+        20,
+        20
+      ],
+      "tolerance_class": "precision",
+      "required_certs": [
+        "AS9100"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-029",
+      "program_id": "northgate",
+      "part_no": "NG-TOW-4401",
+      "description": "Tow bracket weldment, armour steel, structural welding to CWB W47.1, ISO 9001",
+      "qty": 760,
+      "unit_price_cad": 820.0,
+      "est_value_cad": 623200.0,
+      "ccv_pct": 0.9,
+      "hours_week": 18,
+      "material": "armour_steel",
+      "process_tags": [
+        "welding"
+      ],
+      "envelope_mm": [
+        700,
+        400,
+        300
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [
+        "CWB_W47.1",
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-030",
+      "program_id": "northgate",
+      "part_no": "NG-STP-4405",
+      "description": "Boarding step weldment, steel, structural welding to CWB W47.1, painted, ISO 9001",
+      "qty": 1460,
+      "unit_price_cad": 390.0,
+      "est_value_cad": 569400.0,
+      "ccv_pct": 0.9,
+      "hours_week": 20,
+      "material": "steel",
+      "process_tags": [
+        "welding",
+        "painting"
+      ],
+      "envelope_mm": [
+        600,
+        500,
+        250
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [
+        "CWB_W47.1",
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-031",
+      "program_id": "northgate",
+      "part_no": "NG-HUL-4410",
+      "description": "Hull side stowage bin weldment, armour steel plate, press-brake formed sheet metal, structural welding to CWB W47.1",
+      "qty": 1440,
+      "unit_price_cad": 1150.0,
+      "est_value_cad": 1656000.0,
+      "ccv_pct": 0.9,
+      "hours_week": 40,
+      "material": "armour_steel",
+      "process_tags": [
+        "welding",
+        "sheet_metal"
+      ],
+      "envelope_mm": [
+        900,
+        600,
+        450
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [
+        "CWB_W47.1"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "blocked"
+    },
+    {
+      "id": "NG-032",
+      "program_id": "northgate",
+      "part_no": "NG-HUL-4422",
+      "description": "Engine deck access hatch frame weldment, armour steel, structural welding to CWB W47.1",
+      "qty": 740,
+      "unit_price_cad": 2300.0,
+      "est_value_cad": 1702000.0,
+      "ccv_pct": 0.9,
+      "hours_week": 44,
+      "material": "armour_steel",
+      "process_tags": [
+        "welding"
+      ],
+      "envelope_mm": [
+        1400,
+        1100,
+        200
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [
+        "CWB_W47.1"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "blocked"
+    },
+    {
+      "id": "NG-033",
+      "program_id": "northgate",
+      "part_no": "NG-HUL-4431",
+      "description": "Rear ramp door frame weldment, armour steel, structural welding to CWB W47.1, primed and painted",
+      "qty": 380,
+      "unit_price_cad": 4500.0,
+      "est_value_cad": 1710000.0,
+      "ccv_pct": 0.9,
+      "hours_week": 48,
+      "material": "armour_steel",
+      "process_tags": [
+        "welding",
+        "painting"
+      ],
+      "envelope_mm": [
+        2400,
+        1500,
+        300
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [
+        "CWB_W47.1"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "blocked"
+    },
+    {
+      "id": "NG-034",
+      "program_id": "northgate",
+      "part_no": "NG-HUL-4450",
+      "description": "Hull belly plate weldment, 3200 mm long, armour steel, structural welding to CWB W47.1",
+      "qty": 380,
+      "unit_price_cad": 3950.0,
+      "est_value_cad": 1501000.0,
+      "ccv_pct": 0.9,
+      "hours_week": 40,
+      "material": "armour_steel",
+      "process_tags": [
+        "welding"
+      ],
+      "envelope_mm": [
+        3200,
+        1400,
+        500
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [
+        "CWB_W47.1"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "blocked"
+    },
+    {
+      "id": "NG-035",
+      "program_id": "northgate",
+      "part_no": "NG-BRK-1040",
+      "description": "Fuel tank mounting bracket, mild steel, laser cut and press-brake formed sheet metal",
+      "qty": 760,
+      "unit_price_cad": 260.0,
+      "est_value_cad": 197600.0,
+      "ccv_pct": 0.9,
+      "hours_week": 8,
+      "material": "steel",
+      "process_tags": [
+        "sheet_metal"
+      ],
+      "envelope_mm": [
+        520,
+        300,
+        180
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-036",
+      "program_id": "northgate",
+      "part_no": "NG-HSG-2130",
+      "description": "Transmission oil cooler housing, 6061 aluminum, 3-axis CNC milled, ISO 9001",
+      "qty": 380,
+      "unit_price_cad": 2100.0,
+      "est_value_cad": 798000.0,
+      "ccv_pct": 0.89,
+      "hours_week": 14,
+      "material": "aluminum",
+      "process_tags": [
+        "cnc_milling"
+      ],
+      "envelope_mm": [
+        520,
+        380,
+        160
+      ],
+      "tolerance_class": "precision",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-037",
+      "program_id": "northgate",
+      "part_no": "NG-TUR-1150",
+      "description": "Turret hatch hinge, 4140 steel, CNC milled and turned, ISO 9001",
+      "qty": 760,
+      "unit_price_cad": 690.0,
+      "est_value_cad": 524400.0,
+      "ccv_pct": 0.89,
+      "hours_week": 12,
+      "material": "steel",
+      "process_tags": [
+        "cnc_milling",
+        "cnc_turning"
+      ],
+      "envelope_mm": [
+        320,
+        160,
+        120
+      ],
+      "tolerance_class": "precision",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-038",
+      "program_id": "northgate",
+      "part_no": "NG-OPT-1160",
+      "description": "Periscope housing, 7075 aluminum, 5-axis milled, AS9100",
+      "qty": 1100,
+      "unit_price_cad": 1300.0,
+      "est_value_cad": 1430000.0,
+      "ccv_pct": 0.88,
+      "hours_week": 18,
+      "material": "aluminum",
+      "process_tags": [
+        "five_axis_milling"
+      ],
+      "envelope_mm": [
+        360,
+        240,
+        200
+      ],
+      "tolerance_class": "ultra",
+      "required_certs": [
+        "AS9100"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-039",
+      "program_id": "northgate",
+      "part_no": "NG-ELC-7155",
+      "description": "Sensor interface circuit board assembly, IPC-A-610 Class 3, ISO 9001",
+      "qty": 1500,
+      "unit_price_cad": 620.0,
+      "est_value_cad": 930000.0,
+      "ccv_pct": 0.72,
+      "hours_week": 12,
+      "material": "copper",
+      "process_tags": [
+        "electronics_assembly"
+      ],
+      "envelope_mm": [
+        200,
+        150,
+        40
+      ],
+      "tolerance_class": "precision",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    },
+    {
+      "id": "NG-040",
+      "program_id": "northgate",
+      "part_no": "NG-HAR-7022",
+      "description": "Exterior lighting wire harness, copper, IPC/WHMA-A-620, ISO 9001",
+      "qty": 1440,
+      "unit_price_cad": 420.0,
+      "est_value_cad": 604800.0,
+      "ccv_pct": 0.78,
+      "hours_week": 12,
+      "material": "copper",
+      "process_tags": [
+        "wire_harness"
+      ],
+      "envelope_mm": [
+        1800,
+        200,
+        100
+      ],
+      "tolerance_class": "standard",
+      "required_certs": [
+        "ISO9001"
+      ],
+      "controlled": false,
+      "tag_source": "cache",
+      "status": "assigned"
+    }
+  ]
+}

@@ -1,0 +1,698 @@
+{
+  "program_id": "northgate",
+  "rules_version": "demo-2026-09-26",
+  "rules_label": "Simplified ITB rules for demo",
+  "obligation_cad": 500000000.0,
+  "credit_total_cad": 67143897.6,
+  "obligation_met_pct": 0.13428779519999998,
+  "direct_credit_cad": 66663897.6,
+  "indirect_credit_cad": 480000.0,
+  "smb": {
+    "target_pct": 0.15,
+    "target_cad": 75000000.0,
+    "achieved_cad": 31883844.8,
+    "progress_pct": 0.4251179306666667,
+    "basis": "CCV of SME work before multipliers (assumption)"
+  },
+  "multiplier_breakdown": [
+    {
+      "category": "regular",
+      "label": "Regular work",
+      "multiplier": 1,
+      "count": 4,
+      "value_cad": 3590000.0,
+      "credit_cad": 2896208.0
+    },
+    {
+      "category": "sme_direct",
+      "label": "SME direct work",
+      "multiplier": 2,
+      "count": 35,
+      "value_cad": 37577480.0,
+      "credit_cad": 63767689.6
+    },
+    {
+      "category": "training",
+      "label": "Skills and training",
+      "multiplier": 5,
+      "count": 1,
+      "value_cad": 96000.0,
+      "credit_cad": 480000.0
+    },
+    {
+      "category": "indigenous_training",
+      "label": "Indigenous workforce development",
+      "multiplier": 10,
+      "count": 0,
+      "value_cad": 0.0,
+      "credit_cad": 0.0
+    }
+  ],
+  "transactions": [
+    {
+      "id": "TX-0001",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-001",
+      "shop_id": "syn-021",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 281200.0,
+      "ccv_pct": 0.88,
+      "multiplier": 2,
+      "credit_cad": 494912.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0002",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-002",
+      "shop_id": "syn-006",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 212800.0,
+      "ccv_pct": 0.9,
+      "multiplier": 2,
+      "credit_cad": 383040.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0003",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-003",
+      "shop_id": "syn-004",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 999000.0,
+      "ccv_pct": 0.89,
+      "multiplier": 2,
+      "credit_cad": 1778220.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0004",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-004",
+      "shop_id": "syn-001",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 2812000.0,
+      "ccv_pct": 0.9,
+      "multiplier": 2,
+      "credit_cad": 5061600.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0005",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-005",
+      "shop_id": "syn-002",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 873200.0,
+      "ccv_pct": 0.88,
+      "multiplier": 2,
+      "credit_cad": 1536832.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0006",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-006",
+      "shop_id": "syn-021",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 1482000.0,
+      "ccv_pct": 0.9,
+      "multiplier": 2,
+      "credit_cad": 2667600.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0007",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-007",
+      "shop_id": "syn-005",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 1596000.0,
+      "ccv_pct": 0.87,
+      "multiplier": 2,
+      "credit_cad": 2777040.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0008",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-008",
+      "shop_id": "syn-021",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 934400.0,
+      "ccv_pct": 0.88,
+      "multiplier": 2,
+      "credit_cad": 1644544.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0009",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-009",
+      "shop_id": "syn-001",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 1976000.0,
+      "ccv_pct": 0.89,
+      "multiplier": 2,
+      "credit_cad": 3517280.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0010",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-010",
+      "shop_id": "syn-029",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 355680.0,
+      "ccv_pct": 0.91,
+      "multiplier": 2,
+      "credit_cad": 647337.6,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0011",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-011",
+      "shop_id": "syn-009",
+      "type": "direct",
+      "category": "regular",
+      "value_cad": 319200.0,
+      "ccv_pct": 0.93,
+      "multiplier": 1,
+      "credit_cad": 296856.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0012",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-012",
+      "shop_id": "syn-010",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 384000.0,
+      "ccv_pct": 0.93,
+      "multiplier": 2,
+      "credit_cad": 714240.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0013",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-013",
+      "shop_id": "syn-011",
+      "type": "direct",
+      "category": "regular",
+      "value_cad": 288800.0,
+      "ccv_pct": 0.94,
+      "multiplier": 1,
+      "credit_cad": 271472.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0014",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-014",
+      "shop_id": "syn-030",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 277400.0,
+      "ccv_pct": 0.94,
+      "multiplier": 2,
+      "credit_cad": 521512.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0015",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-015",
+      "shop_id": "syn-011",
+      "type": "direct",
+      "category": "regular",
+      "value_cad": 342000.0,
+      "ccv_pct": 0.94,
+      "multiplier": 1,
+      "credit_cad": 321480.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0016",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-016",
+      "shop_id": "syn-030",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 423400.0,
+      "ccv_pct": 0.93,
+      "multiplier": 2,
+      "credit_cad": 787524.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0017",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-017",
+      "shop_id": "syn-014",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 1267200.0,
+      "ccv_pct": 0.92,
+      "multiplier": 2,
+      "credit_cad": 2331648.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0018",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-018",
+      "shop_id": "syn-014",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 352000.0,
+      "ccv_pct": 0.93,
+      "multiplier": 2,
+      "credit_cad": 654720.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0019",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-019",
+      "shop_id": "syn-015",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 2035000.0,
+      "ccv_pct": 0.78,
+      "multiplier": 2,
+      "credit_cad": 3174600.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0020",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-020",
+      "shop_id": "syn-016",
+      "type": "direct",
+      "category": "regular",
+      "value_cad": 2640000.0,
+      "ccv_pct": 0.76,
+      "multiplier": 1,
+      "credit_cad": 2006400.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0021",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-021",
+      "shop_id": "syn-012",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 921600.0,
+      "ccv_pct": 0.91,
+      "multiplier": 2,
+      "credit_cad": 1677312.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0022",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-022",
+      "shop_id": "syn-012",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 777600.0,
+      "ccv_pct": 0.91,
+      "multiplier": 2,
+      "credit_cad": 1415232.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0023",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-023",
+      "shop_id": "syn-018",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 1824000.0,
+      "ccv_pct": 0.72,
+      "multiplier": 2,
+      "credit_cad": 2626560.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0024",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-024",
+      "shop_id": "syn-017",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 3724000.0,
+      "ccv_pct": 0.75,
+      "multiplier": 2,
+      "credit_cad": 5586000.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0025",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-025",
+      "shop_id": "syn-018",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 1406000.0,
+      "ccv_pct": 0.74,
+      "multiplier": 2,
+      "credit_cad": 2080880.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0026",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-026",
+      "shop_id": "syn-018",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 1230000.0,
+      "ccv_pct": 0.73,
+      "multiplier": 2,
+      "credit_cad": 1795800.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0027",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-027",
+      "shop_id": "syn-029",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 313200.0,
+      "ccv_pct": 0.8,
+      "multiplier": 2,
+      "credit_cad": 501120.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0028",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-028",
+      "shop_id": "syn-007",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 374400.0,
+      "ccv_pct": 0.82,
+      "multiplier": 2,
+      "credit_cad": 614016.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0029",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-029",
+      "shop_id": "syn-008",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 623200.0,
+      "ccv_pct": 0.9,
+      "multiplier": 2,
+      "credit_cad": 1121760.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0030",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-030",
+      "shop_id": "syn-026",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 569400.0,
+      "ccv_pct": 0.9,
+      "multiplier": 2,
+      "credit_cad": 1024920.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0031",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-035",
+      "shop_id": "syn-006",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 197600.0,
+      "ccv_pct": 0.9,
+      "multiplier": 2,
+      "credit_cad": 355680.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0032",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-036",
+      "shop_id": "syn-003",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 798000.0,
+      "ccv_pct": 0.89,
+      "multiplier": 2,
+      "credit_cad": 1420440.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0033",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-037",
+      "shop_id": "syn-021",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 524400.0,
+      "ccv_pct": 0.89,
+      "multiplier": 2,
+      "credit_cad": 933432.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0034",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-038",
+      "shop_id": "syn-002",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 1430000.0,
+      "ccv_pct": 0.88,
+      "multiplier": 2,
+      "credit_cad": 2516800.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0035",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-039",
+      "shop_id": "syn-019",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 930000.0,
+      "ccv_pct": 0.72,
+      "multiplier": 2,
+      "credit_cad": 1339200.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0036",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-040",
+      "shop_id": "syn-015",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 604800.0,
+      "ccv_pct": 0.78,
+      "multiplier": 2,
+      "credit_cad": 943488.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0037",
+      "program_id": "northgate",
+      "origin": "training",
+      "ref_id": "TP-01",
+      "shop_id": "syn-012",
+      "type": "indirect",
+      "category": "training",
+      "value_cad": 96000.0,
+      "ccv_pct": 1.0,
+      "multiplier": 5,
+      "credit_cad": 480000.0,
+      "flags": [
+        "assumption",
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0038",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-031",
+      "shop_id": "syn-012",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 1656000.0,
+      "ccv_pct": 0.9,
+      "multiplier": 2,
+      "credit_cad": 2980800.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0039",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-032",
+      "shop_id": "syn-012",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 1702000.0,
+      "ccv_pct": 0.9,
+      "multiplier": 2,
+      "credit_cad": 3063600.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    },
+    {
+      "id": "TX-0040",
+      "program_id": "northgate",
+      "origin": "assignment",
+      "ref_id": "NG-033",
+      "shop_id": "syn-012",
+      "type": "direct",
+      "category": "sme_direct",
+      "value_cad": 1710000.0,
+      "ccv_pct": 0.9,
+      "multiplier": 2,
+      "credit_cad": 3078000.0,
+      "flags": [
+        "simplified-demo"
+      ]
+    }
+  ],
+  "flags": [
+    "simplified-demo",
+    "assumption"
+  ]
+}

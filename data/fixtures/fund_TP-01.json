@@ -1,0 +1,192 @@
+{
+  "program_id": "northgate",
+  "package_id": "TP-01",
+  "package": {
+    "id": "TP-01",
+    "program_id": "northgate",
+    "title": "Certify 4 welders to CWB W47.1 at Tallowfield Fabricating Ltd. (Woolwich)",
+    "blocked_job_ids": [
+      "NG-031",
+      "NG-032",
+      "NG-033"
+    ],
+    "shop_id": "syn-012",
+    "shop_name": "Tallowfield Fabricating Ltd.",
+    "shop_city": "Woolwich",
+    "shop_source": "synthetic",
+    "gap": {
+      "kind": "cert",
+      "requirement": "CWB_W47.1",
+      "detail": "Has welding cells and 154 h/week free capacity, but no CWB W47.1 certification"
+    },
+    "category": "personal_certification",
+    "categories": [
+      "personal_certification",
+      "apprentice_sponsorship"
+    ],
+    "recipient_type": "college",
+    "recipient_example": "Conestoga College (example, not affiliated)",
+    "trainees": 4,
+    "est_cost_cad": 96000.0,
+    "cost_basis": "data/rules/training_costs.json (assumption)",
+    "multiplier": 5,
+    "est_credit_cad": 480000.0,
+    "cert_unlock": "CWB_W47.1",
+    "capacity_unlock": {
+      "welding": 80
+    },
+    "unblocks_value_cad": 5068000.0,
+    "eligibility_note": "Personal certification counts only for Canadian citizens or permanent residents (ITB model terms §7.5.1).",
+    "flags": [
+      "assumption"
+    ],
+    "status": "funded"
+  },
+  "before": {
+    "assigned": 36,
+    "blocked": 4,
+    "credit_total_cad": 57541497.6,
+    "obligation_met_pct": 0.1150829952,
+    "direct_credit_cad": 57541497.6,
+    "indirect_credit_cad": 0.0,
+    "smb_achieved_cad": 27322644.8,
+    "smb_progress_pct": 0.36430193066666666
+  },
+  "after": {
+    "assigned": 39,
+    "blocked": 1,
+    "credit_total_cad": 67143897.6,
+    "obligation_met_pct": 0.13428779519999998,
+    "direct_credit_cad": 66663897.6,
+    "indirect_credit_cad": 480000.0,
+    "smb_achieved_cad": 31883844.8,
+    "smb_progress_pct": 0.4251179306666667
+  },
+  "unblocked_jobs": [
+    {
+      "job_id": "NG-031",
+      "part_no": "NG-HUL-4410",
+      "description": "Hull side stowage bin weldment, armour steel plate, press-brake formed sheet metal, structural welding to CWB W47.1",
+      "shop_id": "syn-012",
+      "shop_name": "Tallowfield Fabricating Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "Woolwich",
+      "shop_lat": 43.599,
+      "shop_lon": -80.557,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 40,
+      "value_cad": 1656000.0,
+      "ccv_pct": 0.9,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 2980800.0,
+      "distance_km": 88.1,
+      "score": 0.8548,
+      "score_breakdown": {
+        "fit": 1.0,
+        "distance": 0.559,
+        "lead_time": 0.767,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Welding + sheet metal + CWB W47.1",
+        "88 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-032",
+      "part_no": "NG-HUL-4422",
+      "description": "Engine deck access hatch frame weldment, armour steel, structural welding to CWB W47.1",
+      "shop_id": "syn-012",
+      "shop_name": "Tallowfield Fabricating Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "Woolwich",
+      "shop_lat": 43.599,
+      "shop_lon": -80.557,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 44,
+      "value_cad": 1702000.0,
+      "ccv_pct": 0.9,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 3063600.0,
+      "distance_km": 88.1,
+      "score": 0.8417,
+      "score_breakdown": {
+        "fit": 0.963,
+        "distance": 0.559,
+        "lead_time": 0.767,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Welding + CWB W47.1",
+        "88 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    },
+    {
+      "job_id": "NG-033",
+      "part_no": "NG-HUL-4431",
+      "description": "Rear ramp door frame weldment, armour steel, structural welding to CWB W47.1, primed and painted",
+      "shop_id": "syn-012",
+      "shop_name": "Tallowfield Fabricating Ltd.",
+      "shop_source": "synthetic",
+      "shop_city": "Woolwich",
+      "shop_lat": 43.599,
+      "shop_lon": -80.557,
+      "is_sme": true,
+      "controlled": false,
+      "hours_week": 48,
+      "value_cad": 1710000.0,
+      "ccv_pct": 0.9,
+      "category": "sme_direct",
+      "multiplier": 2,
+      "credit_cad": 3078000.0,
+      "distance_km": 88.1,
+      "score": 0.8242,
+      "score_breakdown": {
+        "fit": 0.912,
+        "distance": 0.559,
+        "lead_time": 0.767,
+        "itb_value": 1.0
+      },
+      "reasons": [
+        "Welding + painting + CWB W47.1",
+        "88 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered"
+    }
+  ],
+  "still_blocked": [
+    "NG-034"
+  ],
+  "training_txn": {
+    "id": "TX-0037",
+    "program_id": "northgate",
+    "origin": "training",
+    "ref_id": "TP-01",
+    "shop_id": "syn-012",
+    "type": "indirect",
+    "category": "training",
+    "value_cad": 96000.0,
+    "ccv_pct": 1.0,
+    "multiplier": 5,
+    "credit_cad": 480000.0,
+    "flags": [
+      "assumption",
+      "simplified-demo"
+    ]
+  },
+  "credit_added": 9602400.0,
+  "credit_added_breakdown": {
+    "training_cad": 480000.0,
+    "jobs_cad": 9122400.0
+  },
+  "headline": "$96K training → $480K credit (5x) + 3 jobs unblocked (+$9.1M credit)"
+}

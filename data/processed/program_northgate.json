@@ -1,0 +1,15 @@
+{
+  "id": "northgate",
+  "prime_name": "Northgate Land Systems",
+  "prime_label": "Fictional prime",
+  "site": {
+    "city": "London",
+    "lat": 42.9849,
+    "lon": -81.2453
+  },
+  "contract_value_cad": 500000000.0,
+  "obligation_cad": 500000000.0,
+  "smb_target_pct": 0.15,
+  "rules_version": "demo-2026-09-26",
+  "rules_label": "Simplified ITB rules for demo"
+}
