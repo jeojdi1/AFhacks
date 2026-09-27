@@ -19,7 +19,7 @@ import { OfferListCard } from "./offer-list-card"
 import { DeclineSheet } from "./decline-sheet"
 import { needsReply, offerState, replyByFrom, routedAtFrom, useNewOfferIds, type OfferView } from "./shared"
 import "./strings"
-import { useGoTo, useGoToAward } from "@/components/award/use-go-to-award"
+import { useGoToAward } from "@/components/award/use-go-to-award"
 import { AwardLink } from "@/components/award/award-link"
 
 /** /m/shops/[id]/offers: unanswered first (new ones on top), then answered ones, muted. */
@@ -60,16 +60,7 @@ export function OfferList({ shopId }: { shopId: string }) {
   const decide = b.actions.decide
   const prime = b.offers[0]?.prime_name?.split(" ")[0] || "Northgate"
 
-  const undo = React.useCallback(
-    async (jobId: string) => {
-      const r = await decide(jobId, { decision: "undo" })
-      if (r && !r.pending) toast.message(t("o.toast.undone"), { description: t("o.toast.undoneBody", { job: jobId }) })
-    },
-    [decide]
-  )
-
   const goToAward = useGoToAward(true)
-  const goTo = useGoTo()
   const accept = React.useCallback(
     async (jobId: string) => {
       setBusyId(jobId)
@@ -78,20 +69,13 @@ export function OfferList({ shopId }: { shopId: string }) {
         if (!r || r.pending) return
         toast.success(`${t("o.toast.accepted")} · ${jobId}`, {
           description: t("o.toast.acceptedBody", { prime }),
-          duration: UNDO_MS,
-          // Undo from the award page: withdraw the answer and return to the offer.
-          action: {
-            label: t("decision.undo"),
-            onClick: () =>
-              void undo(jobId).then(() => goTo(`/m/shops/${encodeURIComponent(shopId)}/offers/${encodeURIComponent(jobId)}`)),
-          },
         })
         goToAward(shopId, jobId)
       } finally {
         setBusyId(null)
       }
     },
-    [decide, prime, undo, goTo, goToAward, shopId]
+    [decide, prime, goToAward, shopId]
   )
 
   const decline = React.useCallback(
@@ -106,14 +90,12 @@ export function OfferList({ shopId }: { shopId: string }) {
         if (r.pending) return
         toast.message(`${t("o.toast.declined", { reason: t(`reason.${reason}`).toLowerCase() })} · ${jobId}`, {
           description: t("o.toast.declinedBody", { prime }),
-          duration: UNDO_MS,
-          action: { label: t("decision.undo"), onClick: () => void undo(jobId) },
         })
       } finally {
         setBusyId(null)
       }
     },
-    [declineFor, decide, prime, undo]
+    [declineFor, decide, prime]
   )
 
   const routed = stage === "routed" || stage === "funded"
@@ -215,8 +197,6 @@ export function OfferList({ shopId }: { shopId: string }) {
     </div>
   )
 }
-
-const UNDO_MS = 10_000
 
 function ListSkeleton() {
   return (

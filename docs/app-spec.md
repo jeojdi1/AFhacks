@@ -239,7 +239,7 @@ export interface AppActions {
      - Other jobs: "Drawings are released by Northgate after acceptance, outside Shieldworks."
   7. A "Send to estimator" button uses the Web Share API with the deep link and a plain-text summary with no geometry, falling back to copying the link.
 - **Sticky `DecisionBar`** with three `touch-lg` buttons:
-  - **Accept**: Sonner toast "Accepted · Undo" lasting 10 s. Undo sends `decision: "undo"`.
+  - **Accept**: Sonner toast "Accepted" ("Northgate sees it now."), then the award package. No Undo button in the toast (removed Sun 10:50 for a cleaner demo); the engine still accepts `decision: "undo"`.
   - **Decline**: opens `DeclineSheet` with reason chips: No capacity · Price too low · Tooling/process · Schedule · Not our process · Other, plus an optional note of at most 280 characters.
   - **Ask Northgate**: opens `AskSheet` with templated questions: Lead time · Material supply · First-article inspection requirement · Split the quantity. No free-text thread.
 - **After a decision** the bar turns into a status row: "Accepted Sep 26, 9:41 PM", or "Declined: no capacity", or "Question sent: lead time". A secondary button allows a change.
@@ -247,7 +247,7 @@ export interface AppActions {
 **Mobile behaviour**
 - The card must be readable in about 5 seconds.
 - No swipe-to-accept.
-- Undo replaces a confirmation modal.
+- No confirmation modal: one tap answers (the toast confirms it).
 - Reason chips replace typing.
 - Offline decisions show a "Will send" chip until the outbox flushes.
 

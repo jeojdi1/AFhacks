@@ -1,5 +1,7 @@
 // Parse /m paths so the phone header, tabs and hints agree on where we are.
 
+import { requirementUnslug } from "@/lib/app/readiness"
+
 export type MSection = "today" | "offers" | "offer" | "certs" | "grow" | "growItem" | "other"
 
 export type MRoute =
@@ -29,7 +31,7 @@ export function parseMRoute(pathname: string | null): MRoute {
     if (!c) return { kind: "shop", shopId: b, section: "today", param: null }
     if (c === "offers") return d ? { kind: "shop", shopId: b, section: "offer", param: d } : { kind: "shop", shopId: b, section: "offers", param: null }
     if (c === "certs") return { kind: "shop", shopId: b, section: "certs", param: null }
-    if (c === "grow") return d ? { kind: "shop", shopId: b, section: "growItem", param: d } : { kind: "shop", shopId: b, section: "grow", param: null }
+    if (c === "grow") return d ? { kind: "shop", shopId: b, section: "growItem", param: requirementUnslug(d) } : { kind: "shop", shopId: b, section: "grow", param: null }
     return { kind: "shop", shopId: b, section: "other", param: c }
   }
   if (a === "prime") return { kind: "prime" }

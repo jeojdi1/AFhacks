@@ -11,6 +11,7 @@ import type {
   TrainingPackage,
 } from "@/lib/api/types"
 import rules from "../../../data/rules/readiness_steps.json"
+import { STATIC_SITE } from "@/lib/base-path"
 import type { FundingRequestRec, ReadinessStep } from "./types"
 
 // ---------------------------------------------------------------------------
@@ -218,7 +219,31 @@ export function seatHref(packageId: string, seat = 1): string {
 /** /m/shops/syn-012/grow/CWB_W47.1 */
 export function growHref(shopId: string, requirement?: string): string {
   const base = `/m/shops/${encodeURIComponent(shopId)}/grow`
-  return requirement ? `${base}/${encodeURIComponent(requirement)}` : base
+  return requirement ? `${base}/${requirementSegment(requirement)}` : base
+}
+
+/**
+ * GitHub Pages export only: a dotted last segment ("CWB_W47.1") reads as a file extension, so the
+ * static-export client fetches "CWB_W47.1.txt" (404) and falls back to a full reload. There the
+ * Grow route carries dots as "~" ("CWB_W47~1"). No requirement key contains "~".
+ */
+export function requirementSlug(requirement: string): string {
+  return requirement.replace(/\./g, "~")
+}
+
+/** The Grow route segment for a requirement: encoded, and dot-free on the static site. */
+export function requirementSegment(requirement: string): string {
+  return encodeURIComponent(STATIC_SITE ? requirementSlug(requirement) : requirement)
+}
+
+/** Undoes requirementSlug on the static site ("CWB_W47~1" → "CWB_W47.1"); unchanged elsewhere. */
+export function requirementUnslug(v: string): string {
+  return STATIC_SITE ? v.replace(/~/g, ".") : v
+}
+
+/** The requirement a Grow route param names (undoes requirementSegment). */
+export function requirementFromParam(v: string): string {
+  return requirementUnslug(decodeParam(v))
 }
 
 /** Route params can arrive percent-encoded ("NADCAP%3AHEAT_TREAT"); decode once, safely. */

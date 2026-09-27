@@ -6,6 +6,7 @@ import QRCode from "qrcode"
 import { Check, Copy, RefreshCw, Wifi } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useDemo } from "@/lib/data/store"
+import { BASE_PATH, STATIC_SITE } from "@/lib/base-path"
 
 type LanInfo = { urls: string[]; port: number }
 
@@ -16,7 +17,9 @@ type State =
   | { kind: "error" }
 
 const STEPS = [
-  { title: "Join the same Wi-Fi as this laptop.", body: "Your phone and this laptop need to be on one network." },
+  STATIC_SITE
+    ? { title: "Open your phone camera.", body: "Any phone with a camera and a browser works. Nothing to install." }
+    : { title: "Join the same Wi-Fi as this laptop.", body: "Your phone and this laptop need to be on one network." },
   { title: "Scan the code.", body: "Point your phone camera at the square and tap the link that pops up." },
   {
     title: "Pick who you are.",
@@ -57,6 +60,15 @@ function phoneTarget(to: string | null): string {
 }
 
 /**
+ * The static GitHub Pages build has no /api/lan route: the phone opens this same public site
+ * (origin + base path), e.g. https://jeojdi1.github.io/AFhacks/m.
+ */
+function staticLanInfo(): LanInfo {
+  const port = Number(window.location.port) || (window.location.protocol === "https:" ? 443 : 80)
+  return { urls: [`${window.location.origin}${BASE_PATH}/m`], port }
+}
+
+/**
  * Adds mode=live to the phone URL (C3-7). An "auto" phone gives up on the engine after one
  * slow first probe and stays on demo data for the whole session, so its answers never reach
  * this laptop. Only when this laptop is itself live through the same-origin /engine proxy
@@ -90,9 +102,14 @@ export function PhoneConnect() {
     setState({ kind: "loading" })
     if (!demo.ready) return
     try {
-      const res = await fetch("/api/lan", { cache: "no-store" })
-      if (!res.ok) throw new Error(String(res.status))
-      const info = (await res.json()) as LanInfo
+      let info: LanInfo
+      if (STATIC_SITE) {
+        info = staticLanInfo()
+      } else {
+        const res = await fetch("/api/lan", { cache: "no-store" })
+        if (!res.ok) throw new Error(String(res.status))
+        info = (await res.json()) as LanInfo
+      }
       if (!info.urls?.length) {
         setState({ kind: "none", info })
         return
@@ -149,18 +166,27 @@ export function PhoneConnect() {
         </ol>
 
         <div className="rounded-xl border border-border bg-secondary/60 p-4 text-sm leading-relaxed text-slate-700">
-          <p>
-            The phone uses this laptop&apos;s live Shieldworks engine through the web server, so anything you do on the phone
-            (like taking an offer) shows up here too. Nothing is installed on the phone.
-          </p>
+          {STATIC_SITE ? (
+            <p>
+              This hosted demo runs on built-in example data, so the phone gets its own copy of the demo. Nothing is
+              installed on the phone.
+            </p>
+          ) : (
+            <p>
+              The phone uses this laptop&apos;s live Shieldworks engine through the web server, so anything you do on the phone
+              (like taking an offer) shows up here too. Nothing is installed on the phone.
+            </p>
+          )}
         </div>
 
-        <p className="flex items-start gap-2 text-sm leading-relaxed text-slate-600">
-          <Wifi aria-hidden className="mt-0.5 size-4 shrink-0" />
-          <span>
-            If it doesn&apos;t open, both devices must be on the same Wi-Fi; guest networks often block this.
-          </span>
-        </p>
+        {STATIC_SITE ? null : (
+          <p className="flex items-start gap-2 text-sm leading-relaxed text-slate-600">
+            <Wifi aria-hidden className="mt-0.5 size-4 shrink-0" />
+            <span>
+              If it doesn&apos;t open, both devices must be on the same Wi-Fi; guest networks often block this.
+            </span>
+          </p>
+        )}
       </section>
 
       <section

@@ -73,6 +73,12 @@ Shieldworks is **two-sided**. Primes pay; shops use it free.
 - **Outreach order:** DIA ITB team → CME Defence → Waterloo EDC → a regional college (e.g. Conestoga, example, not affiliated) → London primes → CADSI and BDC. We have emailed 55 organisations.
 - **Known gaps we'd close first:** the 25% cap on training credit is not yet modelled in the demo ledger, sign-in is demo-only, and none of the public shops has claimed its profile yet.
 
+## Try it out
+
+- **Live demo (no install):** https://jeojdi1.github.io/AFhacks/ (demo data; open https://jeojdi1.github.io/AFhacks/m/ on a phone for the shop's app)
+- **Code:** https://github.com/jeojdi1/AFhacks
+- **2-minute walkthrough:** https://github.com/jeojdi1/AFhacks/blob/main/docs/demo-2min.md
+
 ## Built with
 
 `next.js` `react` `typescript` `tailwindcss` `shadcn-ui` `leaflet` `react-leaflet` `recharts` `python` `fastapi` `pydantic` `sqlite` `or-tools` `cp-sat` `neo4j` `cypher` `claude` `anthropic-api` `pytest` `statistics-canada-odbus` `open-government-data`

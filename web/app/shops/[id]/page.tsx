@@ -3,6 +3,10 @@ import { ShopView } from "@/components/shop/shop-view"
 import { dndHistoryFor } from "@/components/shop/dnd-history"
 import shops from "@fixtures/shops.json"
 import shopsPublic from "@fixtures/shops_public.json"
+import { PAGES_EXPORT, allShopIds } from "@/lib/pages/static-params"
+
+/** GitHub Pages export only: every demo shop, synthetic and public. Otherwise renders on request. */
+export const generateStaticParams = PAGES_EXPORT ? () => allShopIds().map((id) => ({ id })) : undefined
 
 type NamedShop = { id: string; name: string }
 let names: Map<string, string> | null = null

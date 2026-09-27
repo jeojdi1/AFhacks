@@ -43,10 +43,8 @@ import {
   type OfferState,
 } from "./shared"
 import "./strings"
-import { useGoTo, useGoToAward } from "@/components/award/use-go-to-award"
+import { useGoToAward } from "@/components/award/use-go-to-award"
 import { AwardLink } from "@/components/award/award-link"
-
-const UNDO_MS = 10_000
 
 /**
  * /m/shops/[id]/offers/[jobId]: "can we do it, is it worth it, what's the
@@ -105,16 +103,6 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
 
   const decide = b.actions.decide
   const goToAward = useGoToAward(true)
-  const goTo = useGoTo()
-  const undo = React.useCallback(async () => {
-    const r = await decide(jobId, { decision: "undo" })
-    if (r && !r.pending) toast.message(t("o.toast.undone"), { description: t("o.toast.undoneBody", { job: jobId }) })
-  }, [decide, jobId])
-  // Undo from the award page: withdraw the answer and return to the offer.
-  const undoAccept = React.useCallback(async () => {
-    await undo()
-    goTo(`/m/shops/${encodeURIComponent(shopId)}/offers/${encodeURIComponent(jobId)}`)
-  }, [undo, goTo, shopId, jobId])
 
   const run = React.useCallback(
     async (fn: () => Promise<unknown>) => {
@@ -136,8 +124,6 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
       if (!r || r.pending) return
       toast.success(t("o.toast.accepted"), {
         description: t("o.toast.acceptedBody", { prime }),
-        duration: UNDO_MS,
-        action: { label: t("decision.undo"), onClick: () => void undoAccept() },
       })
       goToAward(shopId, jobId)
     })
@@ -150,8 +136,6 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
       if (r.pending) return
       toast.message(t("o.toast.declined", { reason: t(`reason.${reason}`).toLowerCase() }), {
         description: t("o.toast.declinedBody", { prime }),
-        duration: UNDO_MS,
-        action: { label: t("decision.undo"), onClick: () => void undo() },
       })
     })
 

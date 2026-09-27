@@ -24,6 +24,7 @@ import { AppApiError } from "@/lib/app/api"
 import { seedDemo, setSimulating, useSimulating } from "@/lib/app/demo-sim"
 import { extendStrings, t } from "@/lib/app/strings"
 import { Button } from "@/components/ui/button"
+import { STATIC_SITE, withBase } from "@/lib/base-path"
 
 extendStrings("en", {
   "demo.title": "Demo version",
@@ -64,7 +65,7 @@ extendStrings("en", {
  * (then keeps it in sessionStorage), so a client-side router.push would not switch.
  */
 function switchMode(m: "live" | "fixtures") {
-  let next = `/m?mode=${m}`
+  let next = withBase(`/m?mode=${m}`)
   try {
     const u = new URL(window.location.href)
     u.searchParams.set("mode", m)
@@ -295,14 +296,17 @@ export function DemoControls() {
       </div>
 
       <div role="radiogroup" aria-label={t("demo.mode.label")} className="flex flex-col gap-2">
-        <ModeOption
-          selected={live}
-          disabled={!ready}
-          title={t("demo.mode.live")}
-          body={t("demo.mode.liveBody")}
-          Icon={Wifi}
-          onSelect={() => switchMode("live")}
-        />
+        {/* The static GitHub Pages build has no engine: demo data only. */}
+        {STATIC_SITE ? null : (
+          <ModeOption
+            selected={live}
+            disabled={!ready}
+            title={t("demo.mode.live")}
+            body={t("demo.mode.liveBody")}
+            Icon={Wifi}
+            onSelect={() => switchMode("live")}
+          />
+        )}
         <ModeOption
           selected={ready && mode === "fixtures"}
           disabled={!ready}
@@ -362,9 +366,11 @@ export function DemoControls() {
       ) : (
         <>
           <LocalRouteAction />
-          <p className="text-sm leading-snug text-muted-foreground" data-testid="demo-fixtures-note">
-            {t("demo.fixturesNote")}
-          </p>
+          {STATIC_SITE ? null : (
+            <p className="text-sm leading-snug text-muted-foreground" data-testid="demo-fixtures-note">
+              {t("demo.fixturesNote")}
+            </p>
+          )}
         </>
       )}
     </section>

@@ -37,6 +37,20 @@ export const SECURITY_LAYERS: SecurityLayer[] = [
     activeNow: true,
   },
   {
+    key: "ai",
+    title: "AI suggests, rules decide",
+    demo: "AI only reads part descriptions into fixed labels, checked against a strict format. Answers are saved, so the same parts list gives the same result every time; keyword rules take over if the AI is down. Every match, security check and credit number is plain code, with its reasons shown.",
+    production: "Same design. Every AI answer is logged next to the rule decision it fed, so a person can review or override it.",
+    activeNow: true,
+  },
+  {
+    key: "private-ai",
+    title: "Private AI",
+    demo: "Part descriptions from the fictional parts list only.",
+    production: "The model runs in a Canadian region with no data retention and no training on customer data. It never sees drawings or controlled technical data.",
+    activeNow: false,
+  },
+  {
     key: "signin",
     title: "Sign-in with two-factor",
     demo: "Demo accounts, one tap, no password.",

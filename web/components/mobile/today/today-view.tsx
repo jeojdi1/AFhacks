@@ -25,6 +25,7 @@ import { appToday, fmtWeekday } from "@/lib/app/today"
 import type { Assignment, Renewal } from "@/lib/app/types"
 import { AttentionCard } from "./attention-card"
 import { CapacitySheet } from "./capacity-sheet"
+import { withBase } from "@/lib/base-path"
 
 extendStrings("en", {
   "today.heading": "What needs you",
@@ -145,7 +146,7 @@ export function TodayView({ shopId }: { shopId: string }) {
       setSheetOpen(open)
       if (!open) {
         try {
-          if (window.location.hash === CHECKIN_HASH) window.history.replaceState(window.history.state, "", pathname)
+          if (window.location.hash === CHECKIN_HASH) window.history.replaceState(window.history.state, "", withBase(pathname))
         } catch {
           /* no history access */
         }

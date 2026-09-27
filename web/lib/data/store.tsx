@@ -30,6 +30,7 @@ import type {
 import { CERT_LABEL, fmtMoney } from "@/lib/format"
 import { demoIds, fx } from "./fixture-source"
 import { c } from "@/lib/ui/copy"
+import { STATIC_SITE } from "@/lib/base-path"
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -169,6 +170,8 @@ function sessionSet(k: string, v: string) {
 
 /** Read URL query then sessionStorage; apply to apiBase/envMode. Client only. */
 function resolveOverrides() {
+  // Static GitHub Pages build: demo data only, so ?mode= and ?api= are ignored (no engine to reach).
+  if (STATIC_SITE) return
   let q: URLSearchParams | null = null
   try {
     q = new URLSearchParams(window.location.search)
@@ -1218,7 +1221,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
         p?.modeOverride === "live" ||
         (p?.modeOverride !== "fixtures" && (envMode === "live" || (envMode === "auto" && p?.lastMode === "live")))
       let mode: Mode
-      if (p?.modeOverride === "fixtures") mode = "fixtures"
+      if (STATIC_SITE || p?.modeOverride === "fixtures") mode = "fixtures"
       else if (liveWanted) mode = "live"
       else if (envMode === "auto") mode = (await probeLive()) ? "live" : "fixtures"
       else mode = envMode
@@ -1713,6 +1716,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
 
   const setMode = React.useCallback(
     (m: Mode) => {
+      // Static GitHub Pages build: there is no engine, so Live is never offered or entered.
+      if (STATIC_SITE && m === "live") return
       const gen = ++genRef.current
       offlineLoadRef.current = false
       modeOverrideRef.current = m

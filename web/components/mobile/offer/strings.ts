@@ -91,7 +91,7 @@ extendStrings("en", {
   "o.reply.demo": "Recorded on this device (demo)",
   "o.status.keep": "Keep my answer",
   "o.toast.accepted": "Accepted",
-  "o.toast.acceptedBody": "{prime} sees it now. Undo within 10 seconds.",
+  "o.toast.acceptedBody": "{prime} sees it now.",
   "o.toast.declined": "Declined: {reason}",
   "o.toast.declinedBody": "{prime} sees your reason.",
   "o.toast.question": "Question sent: {question}",

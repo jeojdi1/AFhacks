@@ -6,6 +6,7 @@
 // Keyboard: S toggles (ignored while typing or with modifier keys).
 
 import * as React from "react"
+import { stripBase } from "@/lib/base-path"
 
 const STORAGE_KEY = "muster.ui.story"
 
@@ -98,7 +99,8 @@ export function StoryModeProvider({ children }: { children: React.ReactNode }): 
       if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return
       if (isTyping(e.target) || isTyping(document.activeElement)) return
       // Only the desktop pages have a Story mode switch; /m ignores it.
-      if (window.location.pathname === "/m" || window.location.pathname.startsWith("/m/")) return
+      const path = stripBase(window.location.pathname)
+      if (path === "/m" || path.startsWith("/m/")) return
       e.preventDefault()
       set(!init())
     }

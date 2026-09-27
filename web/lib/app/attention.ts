@@ -9,6 +9,7 @@
 import { COUNTING_CERT_STATUSES } from "@/lib/api/types"
 import { CERT_LABEL, PROCESS_LABEL, fmtMoney, label } from "@/lib/format"
 import { extendStrings, t } from "./strings"
+import { requirementSegment } from "./readiness"
 import { certShortName, riskLine, renewalVerb } from "./renewals"
 import { addBusinessDays, addDays, daysBetween, fmtDay, fmtWeekday, parseAppDate, toISODate } from "./today"
 import type { AttentionItem, CapacityCheckin, DateBasis, Renewal, RenewalStage, ShopBundle } from "./types"
@@ -125,7 +126,7 @@ const shopPath = (shopId: string) => `/m/shops/${encodeURIComponent(shopId)}`
 /** The seats section of a shop's Grow item: /m/shops/syn-012/grow/CWB_W47.1#seats (Grow tab when the requirement is unknown). */
 export function seatsHref(shopId: string, requirement: string | null): string {
   const grow = `${shopPath(shopId)}/grow`
-  return requirement ? `${grow}/${encodeURIComponent(requirement)}#seats` : grow
+  return requirement ? `${grow}/${requirementSegment(requirement)}#seats` : grow
 }
 
 /** Short certificate name for card titles ("CGP", "CPCSC L1", "CWB W47.1"). */
@@ -385,7 +386,7 @@ export function buildAttention(
       detail: requested ? t("today.readiness.requestedDetail", { req, count, value }) : t("today.readiness.detail"),
       due_at: null,
       value_cad: next.value_cad,
-      href: `${base}/grow/${encodeURIComponent(next.requirement)}`,
+      href: `${base}/grow/${requirementSegment(next.requirement)}`,
       tone: requested ? "info" : "action",
       big: String(count),
       big_label: t("today.readiness.big", { count }),

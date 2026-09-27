@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 import { useDemo } from "@/lib/data/store"
 import { useAppActions } from "@/lib/app/actions-store"
 import { c } from "@/lib/ui/copy"
+import { STATIC_SITE } from "@/lib/base-path"
 import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from "@/components/ui/popover"
 
 const OPTIONS = [
@@ -21,6 +22,8 @@ const OPTIONS = [
     dot: "bg-amber-500",
   },
 ]
+/** The static GitHub Pages build has no engine: only demo data is offered. */
+const CHOICES = STATIC_SITE ? OPTIONS.filter((o) => o.mode === "fixtures") : OPTIONS
 
 /** Header badge showing where data comes from; click to switch. */
 export function ModeSwitcher() {
@@ -63,7 +66,7 @@ export function ModeSwitcher() {
           </p>
         ) : null}
         <div className="flex flex-col gap-1.5">
-          {OPTIONS.map((o) => {
+          {CHOICES.map((o) => {
             const active = o.mode === mode
             // Demo mode stays available mid-step so a hung engine never traps the presenter;
             // switching bumps the store generation, so the in-flight result is discarded.
@@ -97,9 +100,11 @@ export function ModeSwitcher() {
         <details className="border-t border-border pt-2 text-[11px] text-muted-foreground">
           <summary className="cursor-pointer text-xs font-medium select-none hover:text-foreground">{c("mode.advanced")}</summary>
           <p className="mt-1.5">Demo data keeps your place. {c("mode.live.note")}</p>
-          <p className="mt-1 truncate font-mono" title={apiUrl}>
-            API: {apiUrl}
-          </p>
+          {STATIC_SITE ? null : (
+            <p className="mt-1 truncate font-mono" title={apiUrl}>
+              API: {apiUrl}
+            </p>
+          )}
         </details>
       </PopoverContent>
     </Popover>

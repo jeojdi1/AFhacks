@@ -43,6 +43,7 @@ import { usePhoneHref } from "@/components/mobile/shell/use-phone-href"
 import { TrainingCapNote } from "@/components/scorecard/training-cap"
 import type { LedgerResponse } from "@/lib/api/types"
 import { AwardsPhoneSection } from "./awards"
+import { withBase } from "@/lib/base-path"
 
 extendStrings("en", {
   "pa.title": "What you can do now",
@@ -453,7 +454,7 @@ export function PrimeActions() {
                 <p className="text-sm text-muted-foreground">{t("pa.dec.detail")}</p>
                 {isSimulatedRecord(d) || simulatedFor(d, "offer_declined") ? <SimulatedChip className="self-start" /> : null}
                 <a
-                  href={phoneHref(`${findAnotherShopHref(d.job_id)}&from=m`)}
+                  href={withBase(phoneHref(`${findAnotherShopHref(d.job_id)}&from=m`))}
                   className={cn(buttonVariants({ variant: "outline", size: "touch" }), "w-full")}
                   data-testid="find-another"
                 >

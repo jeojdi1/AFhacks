@@ -3,6 +3,8 @@
 **Shieldworks turns defence contracts into work and workers for small Canadian factories.**
 
 Built for AF Hacks "Growing Canada" (University of Waterloo, September 2026).
+
+**Try it out:** [jeojdi1.github.io/AFhacks](https://jeojdi1.github.io/AFhacks/): the full demo in your browser, no install (demo data, runs without the engine). Open it on a phone too: [/m](https://jeojdi1.github.io/AFhacks/m/). The 2-minute path is in [docs/demo-2min.md](docs/demo-2min.md). **Code:** this repo; to run the live engine locally see [How to run](#how-to-run).
 *Simplified ITB rules for demo · Public data unverified · Not affiliated.*
 
 ![Landing page: "Defence contracts, turned into work for small Canadian shops", three plain-language panels, the flow from Northgate (fictional) to small shops and welder training, and Start the demo](docs/screenshots/landing.png)

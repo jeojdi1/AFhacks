@@ -1,6 +1,7 @@
 "use client"
 
 import { WifiOff } from "lucide-react"
+import { useSearchParams } from "next/navigation"
 import { useDemo } from "@/lib/data/store"
 import { t } from "@/lib/app/strings"
 import { SeatCard } from "@/components/mobile/trainee/seat-card"
@@ -31,4 +32,15 @@ export function SeatGate({ packageId, seat }: { packageId: string; seat: number 
       </div>
     </div>
   )
+}
+
+/**
+ * GitHub Pages export (static, no server): reads ?seat= in the browser with the same rules as
+ * the server page. No ?seat= means seat 1; anything but a whole number from 1 up is null.
+ * useSearchParams needs a Suspense boundary (page.tsx wraps it).
+ */
+export function SeatGateFromUrl({ packageId }: { packageId: string }) {
+  const raw = useSearchParams().get("seat") ?? undefined
+  const seat = raw === undefined || raw === "" ? 1 : /^\d+$/.test(raw.trim()) && Number(raw) > 0 ? Number(raw) : null
+  return <SeatGate packageId={packageId} seat={seat} />
 }
