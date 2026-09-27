@@ -586,7 +586,17 @@ _NADCAP_BY_PROCESS = (
     ("plating", "NADCAP:CHEM_PROCESSING"),
     ("painting", "NADCAP:COATINGS"),
 )
-_CONTROLLED_RE = re.compile(r"controlled\s+goods|controlled\s+technical\s+data|\bCGP\b", _I)
+# Controlled-goods gate (keyword fallback). A trigger preceded by a negation ("not",
+# "no", "non", "un-"/"non-" prefixes) does not count; export-control / ITAR wording does.
+# When in doubt the rules lean to controlled=True (a false positive only narrows routing).
+_NEG = r"(?<!\bnot\s)(?<!\bno\s)(?<!\bnon\s)(?<!\bnon-)"
+_CONTROLLED_RE = re.compile(
+    _NEG + r"(?<![-\w])controlled\s+(?:goods|technical\s+data)"
+    r"|" + _NEG + r"\bexport[-\s]controlled\b"
+    r"|" + _NEG + r"\bITAR\b"
+    r"|" + _NEG + r"\bCGP\b",
+    _I,
+)
 _ULTRA_RE = re.compile(r"ultra|(?:±|\+/-|\+-)\s?0\.00", _I)
 _PRECISION_RE = re.compile(r"(?:±|\+/-|\+-)\s?0\.0[0-2]|precision|tight", _I)
 _ENVELOPE_RE = re.compile(r"(\d+)\s*[x×]\s*(\d+)\s*[x×]\s*(\d+)\s*mm", _I)
@@ -794,6 +804,8 @@ def tag_rows(
         part_no = str(row["part_no"]).strip()
         description = str(row["description"]).strip()
         qty = float(row["qty"])
+        # unit_price_cad is kept as given (sub-cent prices are real, e.g. fasteners);
+        # est_value_cad, the money figure everything downstream uses, is rounded to cents.
         price = float(row["unit_price_cad"])
         est_value = round(qty * price, 2)
 

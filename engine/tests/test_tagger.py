@@ -567,3 +567,32 @@ def test_duplicate_column_rejected():
 def test_unclosed_quote_is_clear_error():
     with pytest.raises(ValueError, match=r"malformed CSV near row \d+"):
         parse_csv(f'{HEADER}\nP-1,"Bracket, unclosed,1,10\nP-2,Pin,1,10\n')
+
+
+@pytest.mark.parametrize(
+    "desc,controlled",
+    [
+        ("Bracket per ITAR, export-controlled drawing", True),
+        ("Export controlled hull fitting", True),
+        ("Controlled goods hull bracket", True),
+        ("Weldment, controlled technical data", True),
+        ("CGP registered supplier only", True),
+        ("Uncontrolled goods bracket, milled", False),
+        ("Milled bracket (not controlled goods)", False),
+        ("Non-controlled technical data: milled bracket", False),
+        ("Non controlled goods spacer", False),
+        ("Milled bracket, no controlled goods", False),
+        ("Non-ITAR bracket, milled", False),
+    ],
+)
+def test_rule_tags_controlled_gate(desc, controlled):
+    assert rule_tags(desc)["controlled"] is controlled
+
+
+
+def test_unit_price_kept_est_value_rounded_to_cents():
+    jobs, _ = tagger.tag_rows(
+        [{"part_no": "P-1", "description": "Milled bracket", "qty": 3, "unit_price_cad": 333.333}],
+        use_llm=False,
+    )
+    assert jobs[0]["unit_price_cad"] == 333.333 and jobs[0]["est_value_cad"] == 1000.0
