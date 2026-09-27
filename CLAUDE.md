@@ -307,7 +307,7 @@ Format: `ID [lane] [priority] (depends on) — time box — acceptance criteria 
 - [x] **H3.3** [F] [P0] (H3.1) — 60m — ITB Scorecard: obligation meter, direct/indirect split, SMB % vs target, multiplier breakdown chart, "rules_version" tag.
 - [x] **H3.4** [F] [P0] (H3.1) — 90m — Gaps & Training (the hero screen): blocked jobs with reasons, suggestion cards, and a **Fund training** button with an animated before/after (credit counter jump, jobs turning green, the `headline` in big type with the multiplier).
 - [x] **H3.5** [F] [P0] (H3.1) — 60m — Shop view and Network: the shop's **offer inbox** (accept/decline, local state), **readiness card** ("Get CWB W47.1 → qualify for N more jobs worth $X"), **training status** after funding ("2 welders in training"), and certification badges (status, source, date). Network page lists shops with public/synthetic labels.
-- [ ] **H3.6** [F] [P0] (H2.8) — 45m — Wire to the live API with fixture fallback and a "demo mode" badge.
+- [x] **H3.6** [F] [P0] (H2.8) — 45m — Wire to the live API with fixture fallback and a "demo mode" badge.
 
 ### H4: Optional (only in BUILD mode, and only if H2.9 and H3.6 are both done by 8:00 AM)
 
@@ -529,10 +529,10 @@ blockers: [..] | hours left: [..] | question: [..]
 
 | Lane | Mode | Current task | Demo-check reached | Blockers | Updated |
 | --- | --- | --- | --- | --- | --- |
-| E | INTEGRATE | public shops + outreach call list; convergence | live 8/8, fixtures 8/8 | teammate offline → Lane E runs Lane F too | Sat 20:40 |
-| F | INTEGRATE (run by E's session) | H3.6 live wiring check | fixtures 8/8 (UI walkthrough screenshots OK) | teammate's laptop dead | Sat 20:40 |
+| E | BUILD | public shops (Network) + outreach call list | live 8/8, fixtures 8/8 | teammate offline → Lane E runs Lane F too | Sat 20:30 |
+| F | BUILD (run by E's session) | polish; public shops on Network | live 8/8 in browser | teammate's laptop dead | Sat 20:30 |
 
-**Last integration:** —
+**Last integration:** Sat 20:28 — live engine + web (live mode) headless walkthrough: upload → route → scorecard → shop before → fund TP-01 → reload (state restored) → shop after; 42 API calls all 200, 0 console errors; demo-check live 8/8.
 
 ### Log (append-only)
 
@@ -542,11 +542,12 @@ HH:MM [lane] TASK-ID — result (demo-check: step)
 19:31 [E] H0.1 — engine (FastAPI, uv py3.12, OR-Tools 9.15) + web (Next 16.3, React 19.2, shadcn, leaflet, recharts) scaffolded; make test, ruff, npm build/lint pass (demo-check: —)
 19:31 [E] H0.2 — docs/api.md v0.1 + docs/decisions.md (demo-check: —)
 19:44 [E] H1.1 — ODBus ingest: 115 candidates (Kitchener 103, Hamilton 12) (demo-check: —)
-20:25 [B] H0.3 — scenario generator + 20 fixtures: $42.7M package, 36/4, obligation 11.5% → 13.4% after TP-01, headline "$96K training → $480K credit (5x) + 3 jobs unblocked (+$9.1M credit)"; drafts for H1.4/H1.5/H1.6 (demo-check: fixtures 8/8)
-20:25 [E] H0.4 — demo_check.py 8 steps, live + --fixtures, catches 20/20 fixture mutations (demo-check: fixtures 8/8)
-20:25 [E] H2.2/H2.4(solver)/H2.5 — tagger, CP-SAT + greedy, ledger; 130 tests pass on clean main (demo-check: fixtures 8/8)
-20:25 [E] CONTRACT: GET /programs/{id}/jobs added (api.md §3, jobs.json fixtures) (demo-check: fixtures 8/8)
+20:12 [B] H0.3 — scenario generator + 20 fixtures: $42.7M package, 36/4, obligation 11.5% → 13.4% after TP-01, headline "$96K training → $480K credit (5x) + 3 jobs unblocked (+$9.1M credit)"; drafts for H1.4/H1.5/H1.6 (demo-check: fixtures 8/8)
+20:12 [E] H0.4 — demo_check.py 8 steps, live + --fixtures, catches 20/20 fixture mutations (demo-check: fixtures 8/8)
+20:12 [E] H2.2/H2.4(solver)/H2.5 — tagger, CP-SAT + greedy, ledger; 130 tests pass on clean main (demo-check: fixtures 8/8)
+20:12 [E] CONTRACT: GET /programs/{id}/jobs added (api.md §3, jobs.json fixtures) (demo-check: fixtures 8/8)
 20:14 [F] H3.1–H3.5 — shell, store (live/fixtures), Program+map, Scorecard, Gaps hero, Shop+Network; review fixes; build+lint pass; headless walkthrough no console errors (demo-check: fixtures 8/8)
-20:38 [E] H2.1/H2.3/H2.4/H2.6–H2.9 — engine + API; 255 tests; live demo-check 8/8 (demo-check: live 8/8)
-20:38 [E] H5.5 prep — pitch.md, demo-script.md (shop view before+after funding), devpost.md with final numbers (demo-check: live 8/8)
+20:22 [E] H2.1/H2.3/H2.4/H2.6–H2.9 — engine + API; 255 tests; live demo-check 8/8 (demo-check: live 8/8)
+20:22 [E] H5.5 prep — pitch.md, demo-script.md (shop view before+after funding), devpost.md with final numbers (demo-check: live 8/8)
+20:28 [B] INTEGRATE — web live mode ↔ engine: full demo path in headless Chrome, 0 errors, reload restores state; H3.6 done (demo-check: live 8/8)
 ```
