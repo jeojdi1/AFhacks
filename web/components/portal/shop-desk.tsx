@@ -25,7 +25,6 @@ import { useShopBundle } from "@/lib/app/shop-bundle"
 import { useAppActions } from "@/lib/app/actions-store"
 import { useWithParams } from "@/lib/ui/use-with-params"
 import { c } from "@/lib/ui/copy"
-import { growHref } from "@/lib/app/readiness"
 import { needsAttention, renewalVerb, renewalsFor, shortDate } from "@/lib/app/renewals"
 import { appToday } from "@/lib/app/today"
 import { CERT_IN_TRAINING_LABEL, certInTraining, certIsHeld, fmtCertCount, fmtMoney, PROCESS_LABEL } from "@/lib/format"
@@ -195,7 +194,11 @@ export function ShopDesk() {
                 {deskOffers.map((o) => (
                   <li key={o.job_id}>
                     <Link
-                      href={wp(`/m/shops/${SHOP_ID}/offers/${encodeURIComponent(o.job_id)}`)}
+                      href={wp(
+                        o.status === "accepted"
+                          ? `/shops/${SHOP_ID}/offers/${encodeURIComponent(o.job_id)}/award`
+                          : `/shops/${SHOP_ID}`
+                      )}
                       prefetch={false}
                       data-testid={`desk-offer-${o.job_id}`}
                       className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
@@ -254,7 +257,7 @@ export function ShopDesk() {
                       earns credit for it.
                     </InfoTip>
                     <Link
-                      href={wp(growHref(SHOP_ID, "CWB_W47.1"))}
+                      href={wp(`/shops/${SHOP_ID}`)}
                       prefetch={false}
                       className="font-medium text-foreground underline underline-offset-4"
                     >
