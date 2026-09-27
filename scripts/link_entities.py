@@ -1,38 +1,39 @@
 """N4: link the Muster datasets (entity resolution) and emit a Neo4j graph seed.
 
-Inputs (all already produced by other scripts; nothing is downloaded here)
--------------------------------------------------------------------------
-  data/processed/shops_public.json                 78 researched public shops
-  data/processed/shops_synthetic.json              30 synthetic demo shops
-  data/processed/candidates.csv                    ODBus candidates (Kitchener, Hamilton)
-  data/processed/national/odbus_manufacturers.csv  2,946 ODBus manufacturer sites (N1)
+Inputs (already produced by other scripts; nothing is downloaded here)
+---------------------------------------------------------------------
+  data/processed/shops_public.json                   78 researched public shops
+  data/processed/shops_synthetic.json                30 synthetic demo shops
+  data/processed/candidates.csv                      ODBus candidates (Kitchener, Hamilton)
+  data/processed/national/odbus_manufacturers.csv    2,946 ODBus manufacturer sites (N1)
   data/processed/national/dnd_contract_vendors.json  DND vendor aggregates (N2)
-  data/processed/national/labour_outlook.json      Job Bank outlooks (N3)
-  data/processed/national/job_vacancies.json       StatCan JVWS vacancies (N3)
-  data/processed/itb_obligations.json              ISED ITB obligations
-  data/processed/program_northgate.json            fictional demo program
-  data/raw/ODBus_v1/ODBus_v1.csv   (gitignored) for FSA / CSD of ODBus ids and for
-                                   shop-city ODBus rows that carry no NAICS code
-  data/raw/contracts.csv           (gitignored) full DND contract list, so that small
-                                   vendors outside the N2 top-3,000 can still be matched
+  data/processed/national/labour_outlook.json        Job Bank outlooks (N3)
+  data/processed/national/job_vacancies.json         StatCan JVWS vacancies (N3)
+  data/processed/itb_obligations.json                ISED ITB obligations
+  data/processed/program_northgate.json              fictional demo program
+  data/raw/ODBus_v1/ODBus_v1.csv  (gitignored) postal FSA / CSD of ODBus ids, and the
+                                  shop-city ODBus rows that carry no NAICS code
+  data/raw/contracts.csv          (gitignored) full DND contract list (read with N2's
+                                  reader), so vendors outside N2's top 3,000 can match
 
 Method
 ------
-Names are normalized (ASCII fold, lowercase, "&" -> "and", punctuation removed,
-runs of single letters joined so "A.R.D." == "A R D" == "ard", leading "the"
-and trailing legal suffixes inc/ltd/limited/corp/corporation/co/company/ltee/...
-removed, "mfg" -> "manufacturing"). Shop names also yield variants: the part
-before a parenthesis, the parenthetical alias, and the part before " - ".
+Names are normalized: ASCII fold, lowercase, "&" -> "and", punctuation removed,
+runs of single letters joined ("A.R.D." == "A R D" == "ard"), leading "the" and
+trailing legal suffixes (inc, ltd, limited, corp, corporation, co, company, ltee,
+...) removed, a few abbreviations expanded ("mfg" -> "manufacturing"). Shop names
+also yield variants: the part before a parenthesis, the parenthetical alias
+(minus "formerly"/"incl."), and the part before " - ".
 
 Confidence:
-  high    exact normalized name AND city agreement
-          (same census subdivision, or the DND vendor's postal FSA falls in the
-          shop's / site's city FSA set)
+  high    exact normalized name AND city agreement: same census subdivision (ODBus),
+          or one of the DND vendor's reported postal FSAs is in the city's FSA set.
   medium  exact name + same province, or difflib token-set ratio >= 0.90 + same
-          province. Fuzzy matches must also share a distinctive (non-generic)
-          token, and leftover tokens must be generic words (or the plain
-          SequenceMatcher ratio >= 0.90), so "Total Coatings" cannot match
-          "Total Energies" just because one name is a subset of the other.
+          province. Fuzzy matches must share a distinctive (non-generic) token;
+          leftover non-generic tokens on both sides must have close spellings;
+          one-sided leftovers must be generic words (so "Total Coatings" never
+          matches "Total Energies"); a single-token name ("MES") must also agree
+          on city.
   (drop)  anything else.
 
 DND vendors whose names look like a person (N2's rule) are never matched or
@@ -60,8 +61,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-import ingest_dnd_contracts as dnd
-import ingest_odbus_national as odb
+import ingest_dnd_contracts as dnd  # reuse N2 reader + person filter
+import ingest_odbus_national as odb  # reuse N1 person filter + cleaners
 
 PROC = ROOT / "data" / "processed"
 NAT = PROC / "national"
@@ -71,14 +72,19 @@ OUT_GRAPH = NAT / "graph_seed.json"
 RETRIEVED = "2026-09-26"
 MAX_BYTES = 10 * 1024 * 1024
 FUZZY_MIN = 0.90
+RANK = {"high": 2, "medium": 1}
 
-OGL = "Open Government Licence - Canada (https://open.canada.ca/en/open-government-licence-canada)"
+OGL = (
+    "Open Government Licence - Canada "
+    "(https://open.canada.ca/en/open-government-licence-canada)"
+)
 SGC_ER_URL = "https://www.statcan.gc.ca/en/subjects/standard/sgc/2021/er-additionalinfo"
 SGC_ER_TORONTO_URL = (
     "https://www23.statcan.gc.ca/imdb/p3VD.pl?Function=getVD&TVD=131938&CVD=138863"
     "&CPV=3530&CST=01012006&CLV=2&MLV=4"
 )
 ODBUS_URL = "https://www150.statcan.gc.ca/n1/pub/21-26-0003/212600032023001-eng.htm"
+PUBLIC_LABEL = "Public data — unverified — not affiliated"
 
 # --------------------------------------------------------------------------------------
 # Geography
@@ -99,108 +105,37 @@ CITY_TO_CSD = {
     "sherwood park": "strathcona county",
 }
 
-# CSD -> Job Bank / StatCan economic region code. Hand-built from the SGC 2021
-# variant for economic regions (ER = grouping of census divisions): ER 3530 Toronto
-# = CDs Durham, York, Toronto, Peel, Halton except Burlington (-> 3550);
-# 3540 = Dufferin, Wellington, Waterloo, Simcoe; 3550 = Hamilton, Niagara,
-# Haldimand-Norfolk, Brant + Burlington; 3560 = Oxford, Elgin, Middlesex;
-# 5920 Lower Mainland-Southwest; 5910 Vancouver Island and Coast; 4860 Edmonton.
-CSD_TO_ER = {
-    # Toronto ER
-    **dict.fromkeys(
-        [
-            "toronto",
-            "mississauga",
-            "brampton",
-            "caledon",
-            "vaughan",
-            "markham",
-            "newmarket",
-            "richmond hill",
-            "aurora",
-            "whitchurch-stouffville",
-            "east gwillimbury",
-            "king",
-            "georgina",
-            "pickering",
-            "ajax",
-            "oshawa",
-            "whitby",
-            "clarington",
-            "uxbridge",
-            "scugog",
-            "brock",
-            "halton hills",
-            "oakville",
-            "milton",
-        ],
-        "3530",
+# CSD -> Job Bank / StatCan economic region (ER) code. Hand-built from the SGC 2021
+# variant for economic regions (an ER groups whole census divisions): 3530 Toronto =
+# Durham, York, Toronto, Peel, Halton except Burlington (-> 3550); 3540 = Dufferin,
+# Wellington, Waterloo, Simcoe; 3550 = Hamilton, Niagara, Haldimand-Norfolk, Brant
+# (+ Burlington); 3560 = Oxford, Elgin, Middlesex; 5920 Lower Mainland-Southwest;
+# 5910 Vancouver Island and Coast; 4860 Edmonton; 4830 Calgary.
+_ER_GROUPS = {
+    "3530": (
+        "toronto|mississauga|brampton|caledon|vaughan|markham|newmarket|richmond hill"
+        "|aurora|whitchurch-stouffville|east gwillimbury|king|georgina|pickering|ajax"
+        "|oshawa|whitby|clarington|uxbridge|scugog|brock|halton hills|oakville|milton"
     ),
-    # Kitchener - Waterloo - Barrie ER
-    **dict.fromkeys(
-        [
-            "kitchener",
-            "waterloo",
-            "cambridge",
-            "woolwich",
-            "wilmot",
-            "wellesley",
-            "north dumfries",
-            "guelph",
-            "barrie",
-            "orangeville",
-            "puslinch",
-        ],
-        "3540",
+    "3540": (
+        "kitchener|waterloo|cambridge|woolwich|wilmot|wellesley|north dumfries|guelph"
+        "|barrie|orangeville|puslinch"
     ),
-    # Hamilton - Niagara Peninsula ER
-    **dict.fromkeys(
-        [
-            "hamilton",
-            "burlington",
-            "st. catharines",
-            "niagara falls",
-            "welland",
-            "brantford",
-            "brant",
-        ],
-        "3550",
+    "3550": "hamilton|burlington|st. catharines|niagara falls|welland|brantford|brant",
+    "3560": (
+        "london|thames centre|woodstock|st. thomas|ingersoll|zorra"
+        "|east zorra-tavistock|blandford-blenheim"
     ),
-    # London ER
-    **dict.fromkeys(
-        [
-            "london",
-            "thames centre",
-            "woodstock",
-            "st. thomas",
-            "ingersoll",
-            "zorra",
-            "east zorra-tavistock",
-            "blandford-blenheim",
-        ],
-        "3560",
+    "5920": (
+        "langley|surrey|new westminster|squamish|vancouver|burnaby|richmond|coquitlam"
+        "|delta|abbotsford"
     ),
-    # BC
-    **dict.fromkeys(
-        [
-            "langley",
-            "surrey",
-            "new westminster",
-            "squamish",
-            "vancouver",
-            "burnaby",
-            "richmond",
-            "coquitlam",
-            "delta",
-            "abbotsford",
-        ],
-        "5920",
-    ),
-    **dict.fromkeys(["nanaimo", "victoria"], "5910"),
-    # AB
-    **dict.fromkeys(["strathcona county", "edmonton"], "4860"),
-    "calgary": "4830",
+    "5910": "nanaimo|victoria",
+    "4860": "strathcona county|edmonton",
+    "4830": "calgary",
 }
+CSD_TO_ER = {n: code for code, names in _ER_GROUPS.items() for n in names.split("|")}
+
 PROVINCE_ER = {
     "NL": "1000",
     "PE": "1100",
@@ -234,8 +169,9 @@ PROVINCE_NAME = {
     "NU": "Nunavut",
 }
 
-# Postal FSAs per shop-city CSD (assumption: hand-built from Canada Post FSA
-# geography; unioned below with FSAs seen >= 3 times and on >= 0.5% of ODBus rows in that CSD).
+# Postal FSAs per shop-city CSD. Assumption: hand-built from Canada Post FSA
+# geography; unioned at run time with FSAs seen >= 3 times (and on >= 0.5% of rows)
+# on raw ODBus rows in the same CSD.
 CSD_FSAS_HAND = {
     "kitchener": "N2A N2B N2C N2E N2G N2H N2K N2M N2N N2P N2R",
     "waterloo": "N2J N2K N2L N2T N2V",
@@ -260,33 +196,10 @@ def csd_of(city: str) -> str:
 # Names
 # --------------------------------------------------------------------------------------
 LEGAL = {
-    "inc",
-    "incorporated",
-    "incorporee",
-    "ltd",
-    "limited",
-    "ltee",
-    "limitee",
-    "corp",
-    "corporation",
-    "co",
-    "company",
-    "llc",
-    "lp",
-    "llp",
-    "ulc",
-    "plc",
-    "gp",
-    "cie",
-    "gmbh",
-    "ag",
-    "sa",
-    "sas",
-    "bv",
-    "srl",
-    "spa",
-    "pty",
-}
+    "inc", "incorporated", "incorporee", "ltd", "limited", "ltee", "limitee", "corp",
+    "corporation", "co", "company", "llc", "lp", "llp", "ulc", "plc", "gp", "cie",
+    "gmbh", "ag", "sa", "sas", "bv", "srl", "spa", "pty",
+}  # fmt: skip
 ABBREV = {
     "mfg": "manufacturing",
     "intl": "international",
@@ -296,112 +209,23 @@ ABBREV = {
     "eng": "engineering",
     "tech": "technologies",
 }
-GENERIC = set(
-    [
-        "and",
-        "of",
-        "the",
-        "a",
-        "machining",
-        "machine",
-        "machines",
-        "machinery",
-        "tool",
-        "tools",
-        "tooling",
-        "manufacturing",
-        "manufacturers",
-        "industries",
-        "industrial",
-        "industry",
-        "metal",
-        "metals",
-        "products",
-        "product",
-        "fabrication",
-        "fabricating",
-        "fabricators",
-        "fabricator",
-        "welding",
-        "welders",
-        "precision",
-        "engineering",
-        "engineered",
-        "services",
-        "service",
-        "systems",
-        "system",
-        "technologies",
-        "technology",
-        "group",
-        "canada",
-        "canadian",
-        "enterprises",
-        "enterprise",
-        "solutions",
-        "international",
-        "coatings",
-        "coating",
-        "steel",
-        "works",
-        "custom",
-        "plating",
-        "finishing",
-        "heat",
-        "treating",
-        "treat",
-        "powder",
-        "shop",
-        "holdings",
-        "design",
-        "parts",
-        "equipment",
-        "supply",
-        "supplies",
-        "sales",
-        "north",
-        "ontario",
-        "division",
-        "plant",
-        "facility",
-        "sheet",
-        "wire",
-        "mould",
-        "moulds",
-        "mold",
-        "molds",
-        "automation",
-        "assembly",
-        "assemblies",
-        "components",
-        "global",
-        "america",
-        "americas",
-        "north",
-        "american",
-        "defence",
-        "defense",
-        "aerospace",
-        "usa",
-        "inc",
-        "ltd",
-        "corp",
-        "co",
-        "limited",
-        "company",
-        "specialty",
-        "specialized",
-        "general",
-        "mechanical",
-        "electric",
-        "electrical",
-        "electronics",
-        "controls",
-        "hydraulics",
-        "repair",
-        "repairs",
-    ]
-)
+GENERIC = {
+    "and", "of", "the", "a", "machining", "machine", "machines", "machinery", "tool",
+    "tools", "tooling", "manufacturing", "manufacturers", "industries", "industrial",
+    "industry", "metal", "metals", "products", "product", "fabrication",
+    "fabricating", "fabricators", "fabricator", "welding", "welders", "precision",
+    "engineering", "engineered", "services", "service", "systems", "system",
+    "technologies", "technology", "group", "canada", "canadian", "enterprises",
+    "enterprise", "solutions", "international", "coatings", "coating", "steel",
+    "works", "custom", "plating", "finishing", "heat", "treating", "treat", "powder",
+    "shop", "holdings", "design", "parts", "equipment", "supply", "supplies", "sales",
+    "north", "ontario", "division", "plant", "facility", "sheet", "wire", "mould",
+    "moulds", "mold", "molds", "automation", "assembly", "assemblies", "components",
+    "global", "america", "americas", "american", "defence", "defense", "aerospace",
+    "usa", "inc", "ltd", "corp", "co", "limited", "company", "specialty",
+    "specialized", "general", "mechanical", "electric", "electrical", "electronics",
+    "controls", "hydraulics", "repair", "repairs",
+}  # fmt: skip
 ALIAS_DROP = re.compile(r"^(formerly|incl\.?|including|also|dba|o/a)\s+", re.IGNORECASE)
 
 
@@ -413,11 +237,9 @@ def norm(name: str) -> str:
     s = _ascii(name or "").lower().replace("&", " and ").replace("+", " and ")
     s = re.sub(r"['.]", "", s)
     s = re.sub(r"[^a-z0-9]+", " ", s)
-    toks = s.split()
-    # join runs of single letters: "a r d industries" -> "ard industries"
     out: list[str] = []
     run = ""
-    for t in toks:
+    for t in s.split():  # join runs of single letters: "a r d" -> "ard"
         if len(t) == 1 and t.isalpha():
             run += t
             continue
@@ -436,19 +258,14 @@ def norm(name: str) -> str:
 
 
 def name_variants(name: str) -> list[str]:
-    raw = [name]
     base = re.sub(r"\([^)]*\)", " ", name)
-    raw.append(base)
-    raw.append(base.split(" - ")[0])
-    for alias in re.findall(r"\(([^)]*)\)", name):
-        alias = ALIAS_DROP.sub("", alias.strip())
-        raw.append(alias)
+    raw = [name, base, base.split(" - ")[0]]
+    raw += [ALIAS_DROP.sub("", a.strip()) for a in re.findall(r"\(([^)]*)\)", name)]
     out: list[str] = []
     for r in raw:
         n = norm(r)
-        toks = n.split()
-        # an alias made only of generic words / places ("kitchener plant") is not a name
-        if not n or all(t in GENERIC or t in CSD_TO_ER for t in toks):
+        # an alias made only of generic words / places ("kitchener plant") is no name
+        if not n or all(t in GENERIC or t in CSD_TO_ER for t in n.split()):
             continue
         if n not in out:
             out.append(n)
@@ -478,17 +295,9 @@ def _close(tok: str, others: set[str]) -> bool:
 
 
 def fuzzy_ok(a: str, b: str) -> tuple[float, bool]:
-    """Return (token-set ratio, weak) if the pair passes the guards, else (0, False).
+    """(token-set ratio, weak) if the pair passes the guards, else (0, False).
 
-    Guards on top of token-set ratio >= 0.90:
-      * the names share a distinctive (non-generic) token;
-      * when both names have leftover non-generic tokens, each must have a close
-        spelling counterpart on the other side ("cf" vs "cbi" fails, "mounatin" vs
-        "mountain" passes);
-      * when only one side has leftovers (subset), they must be generic words or
-        the whole strings must be >= 0.90 similar ("total" vs "total energies" fails).
-    weak = the shorter name is a single token ("MES", "Felix"); callers require
-    city agreement for weak matches.
+    weak = the shorter name is a single token; callers require city agreement.
     """
     ta, tb = set(a.split()), set(b.split())
     if not distinctive(ta & tb):
@@ -503,12 +312,11 @@ def fuzzy_ok(a: str, b: str) -> tuple[float, bool]:
             return 0.0, False
     elif (la or lb) and SequenceMatcher(None, a, b).ratio() < FUZZY_MIN:
         return 0.0, False
-    weak = min(len(ta), len(tb)) == 1
-    return round(r, 3), weak
+    return round(r, 3), min(len(ta), len(tb)) == 1
 
 
 class NameIndex:
-    """Exact-key and distinctive-token index over records with a `keys` list."""
+    """Exact-key and distinctive-token index over records carrying a `keys` list."""
 
     def __init__(self, records: list[dict]):
         self.records = records
@@ -521,7 +329,7 @@ class NameIndex:
                     self.tok[t].add(i)
 
     def candidates(self, keys: list[str]) -> list[tuple[int, str, float]]:
-        """[(record index, method, score)] best per record."""
+        """[(record index, method, score)], best per record."""
         best: dict[int, tuple[str, float]] = {}
         for k in keys:
             for i in self.exact.get(k, []):
@@ -530,9 +338,7 @@ class NameIndex:
         for k in keys:
             for t in distinctive(set(k.split())):
                 pool |= self.tok.get(t, set())
-        for i in pool:
-            if i in best:
-                continue
+        for i in pool - set(best):
             s, weak = max(
                 (fuzzy_ok(k, rk) for k in keys for rk in self.records[i]["keys"]),
                 default=(0.0, False),
@@ -557,10 +363,10 @@ def fsa_of(postal: str) -> str:
 def scan_odbus_raw(
     want_ids: set[str], shop_csds: set[str]
 ) -> tuple[dict, list, dict, Counter]:
-    """One pass over raw ODBus: FSA/CSD for wanted ids, shop-city rows, CSD->FSA sets."""
+    """One pass over raw ODBus: FSA/CSD per wanted id, shop-city rows, CSD FSA sets."""
     by_id: dict[str, dict] = {}
     city_rows: list[dict] = []
-    csd_fsa: dict[str, Counter] = defaultdict(Counter)
+    csd_fsa: dict[tuple[str, str], Counter] = defaultdict(Counter)
     stats: Counter = Counter()
     enc = odb.detect_encoding(RAW_ODBUS)
     with RAW_ODBUS.open(encoding=enc, newline="") as fh:
@@ -574,35 +380,29 @@ def scan_odbus_raw(
                 csd_fsa[(prov, csd)][fsa] += 1
             idx = odb.clean(row.get("idx"))
             if idx in want_ids:
-                by_id[idx] = {
-                    "fsa": fsa,
-                    "csd": csd,
-                    "csduid": odb.clean(row.get("CSDUID")),
-                }
+                by_id[idx] = {"fsa": fsa, "csd": csd}
             city = csd_of(odb.clean(row.get("city")))
-            if prov == "ON" and (csd in shop_csds or city in shop_csds):
-                name = odb.clean(row.get("business_name")) or odb.clean(
-                    row.get("alt_business_name")
-                )
-                if not name:
-                    continue
-                if odb.looks_like_person(name):
-                    stats["shop_city_rows_person_skipped"] += 1
-                    continue
-                stats["shop_city_rows"] += 1
-                alt = odb.clean(row.get("alt_business_name"))
-                keys = [norm(name)] + (
-                    [norm(alt)] if alt and norm(alt) != norm(name) else []
-                )
-                city_rows.append(
-                    {
-                        "id": idx,
-                        "name": name,
-                        "places": {csd, city} - {""},
-                        "fsa": fsa,
-                        "keys": [k for k in keys if k],
-                    }
-                )
+            if prov != "ON" or (csd not in shop_csds and city not in shop_csds):
+                continue
+            name = odb.clean(row.get("business_name"))
+            alt = odb.clean(row.get("alt_business_name"))
+            name = name or alt
+            if not name:
+                continue
+            if odb.looks_like_person(name):
+                stats["shop_city_rows_person_skipped"] += 1
+                continue
+            stats["shop_city_rows"] += 1
+            keys = {norm(name), norm(alt)} - {""}
+            city_rows.append(
+                {
+                    "id": idx,
+                    "name": name,
+                    "places": {csd, city} - {""},
+                    "keys": sorted(keys),
+                    "src": "ODBus_v1 raw (shop-city rows)",
+                }
+            )
     fsa_sets = {
         k: {f for f, n in c.items() if n >= 3 and n >= 0.005 * sum(c.values())}
         for k, c in csd_fsa.items()
@@ -611,16 +411,16 @@ def scan_odbus_raw(
 
 
 def load_dnd_universe() -> tuple[list[dict], dict]:
-    """All DND vendors 2021+ (N2 method), person-like names dropped."""
+    """All DND vendors with contracts dated 2021+ (N2 method), person names dropped."""
     contracts, _ = dnd.read_contracts()
     agg: dict[str, dict] = {}
-    person_cache: dict[str, bool] = {}
+    person: dict[str, bool] = {}
     dropped: set[str] = set()
     for (_pid, vkey), r in contracts.items():
         raw = r["vendor_name"]
-        if raw not in person_cache:
-            person_cache[raw] = dnd.looks_like_person(raw)
-        if person_cache[raw]:
+        if raw not in person:
+            person[raw] = dnd.looks_like_person(raw)
+        if person[raw]:
             dropped.add(vkey)
             continue
         a = agg.setdefault(
@@ -647,12 +447,9 @@ def load_dnd_universe() -> tuple[list[dict], dict]:
         a["prov"][dnd.province_of(fsa, r["country_of_vendor"])] += 1
     out = []
     for vkey, a in agg.items():
-        if vkey in dropped and not a["count"]:
-            continue
-        name = a["names"].most_common(1)[0][0]
         out.append(
             {
-                "vendor": name,
+                "vendor": a["names"].most_common(1)[0][0],
                 "vendor_key": vkey,
                 "total_value": round(a["value"], 2),
                 "contracts": a["count"],
@@ -667,33 +464,31 @@ def load_dnd_universe() -> tuple[list[dict], dict]:
         )
     stats = {
         "vendors_matchable": len(out),
-        "person_like_vendor_keys_dropped": len(dropped),
+        "person_like_vendor_keys_dropped": len(dropped - set(agg)),
     }
     return out, stats
+
+
+def slug(s: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", _ascii(s).lower()).strip("-")[:60]
 
 
 # --------------------------------------------------------------------------------------
 # Main
 # --------------------------------------------------------------------------------------
-def slug(s: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "-", _ascii(s).lower()).strip("-")[:60]
-
-
 def main() -> int:
     for p in (RAW_ODBUS, dnd.RAW):
         if not p.exists():
-            print(
-                f"ERROR: missing {p.relative_to(ROOT)} (gitignored raw input)",
-                file=sys.stderr,
-            )
+            rel = p.relative_to(ROOT)
+            print(f"ERROR: missing {rel} (gitignored raw input)", file=sys.stderr)
             return 1
 
     pub = load_json(PROC / "shops_public.json")["shops"]
     syn = load_json(PROC / "shops_synthetic.json")["shops"]
-    cands = list(csv.DictReader((PROC / "candidates.csv").open(encoding="utf-8")))
-    odbus = list(
-        csv.DictReader((NAT / "odbus_manufacturers.csv").open(encoding="utf-8"))
-    )
+    with (PROC / "candidates.csv").open(encoding="utf-8") as fh:
+        cands = list(csv.DictReader(fh))
+    with (NAT / "odbus_manufacturers.csv").open(encoding="utf-8") as fh:
+        odbus = list(csv.DictReader(fh))
     dnd_proc = load_json(NAT / "dnd_contract_vendors.json")
     labour = load_json(NAT / "labour_outlook.json")
     jvws = load_json(NAT / "job_vacancies.json")
@@ -705,16 +500,16 @@ def main() -> int:
     want_ids |= {s["odbus_idx"] for s in pub if s.get("odbus_idx")}
     print("scanning raw ODBus ...")
     odbus_raw, city_rows, fsa_sets, odbus_stats = scan_odbus_raw(want_ids, shop_csds)
-    print("reading DND contracts ...")
+    print("reading DND contracts (N2 reader) ...")
     universe, dnd_stats = load_dnd_universe()
+    universe_by_key = {v["vendor_key"]: v for v in universe}
     proc_by_key = {v["vendor_key"]: v for v in dnd_proc["vendors"]}
 
     def city_fsas(prov: str, csd: str) -> set[str]:
-        return set(CSD_FSAS_HAND.get(csd, "").split()) | fsa_sets.get(
-            (prov, csd), set()
-        )
+        hand = set(CSD_FSAS_HAND.get(csd, "").split())
+        return hand | fsa_sets.get((prov, csd), set())
 
-    # ---- labour: region -> outlooks ------------------------------------------------
+    # ---- labour: region -> outlooks, vacancies --------------------------------------
     outlook_by_region: dict[str, list[dict]] = defaultdict(list)
     region_meta: dict[str, dict] = {}
     for r in labour["rows"]:
@@ -725,17 +520,22 @@ def main() -> int:
             "level": r["region_level"],
             "province": r["province"],
         }
+    jv_by_geo = {(r["geo"], r["noc"]): r for r in jvws["rows"]}
 
     def jv_geo(region: dict) -> str:
         if region["level"] == "province":
             return region["name"]
-        return (
-            f"{region['name'].replace(' - ', '-')}, {PROVINCE_NAME[region['province']]}"
-        )
+        er = region["name"].replace(" - ", "-")
+        return f"{er}, {PROVINCE_NAME[region['province']]}"
 
-    jv_by_geo: dict[tuple[str, str], dict] = {}
-    for r in jvws["rows"]:
-        jv_by_geo[(r["geo"], r["noc"])] = r
+    def welder_jv(region: dict) -> dict | None:
+        jv = jv_by_geo.get((jv_geo(region), "72106"))
+        if jv and jv.get("latest_vacancies") is not None:
+            return {
+                "value": jv["latest_vacancies"],
+                "quarter_start": jv["latest_period"],
+            }
+        return None
 
     def region_for(csd: str, prov: str) -> dict | None:
         code = CSD_TO_ER.get(csd) or PROVINCE_ER.get(prov)
@@ -745,7 +545,6 @@ def main() -> int:
         if not region:
             return None
         rows = sorted(outlook_by_region[region["code"]], key=lambda r: r["noc"])
-        jv = jv_by_geo.get((jv_geo(region), "72106"))
         return {
             "region_code": region["code"],
             "region": region["name"],
@@ -759,16 +558,12 @@ def main() -> int:
                 }
                 for r in rows
             ],
-            "welder_vacancies_latest": (
-                {"value": jv["latest_vacancies"], "quarter_start": jv["latest_period"]}
-                if jv and jv.get("latest_vacancies") is not None
-                else None
-            ),
+            "welder_vacancies_latest": welder_jv(region),
         }
 
     # ---- indexes ----------------------------------------------------------------------
     dnd_index = NameIndex(universe)
-    odbus_nat_records = [
+    odbus_nat = [
         {
             **r,
             "keys": [norm(r["name"])],
@@ -788,13 +583,11 @@ def main() -> int:
         }
         for c in cands
     ]
-    city_records = [{**r, "src": "ODBus_v1 (raw, shop city)"} for r in city_rows]
-    odbus_shop_pool = odbus_nat_records + cand_records + city_records
-    odbus_shop_index = NameIndex(odbus_shop_pool)
-    odbus_name_by_id = {r["id"]: r["name"] for r in odbus_shop_pool}
+    odbus_pool = odbus_nat + cand_records + city_rows
+    odbus_index = NameIndex(odbus_pool)
+    odbus_name_by_id = {r["id"]: r["name"] for r in odbus_pool}
 
-    def dnd_link(i: int, method: str, score: float, city_ok: bool) -> dict:
-        v = universe[i]
+    def dnd_link(v: dict, method: str, score: float, city_ok: bool) -> dict:
         p = proc_by_key.get(v["vendor_key"])
         return {
             "vendor": v["vendor"],
@@ -819,29 +612,25 @@ def main() -> int:
         for i, method, score in dnd_index.candidates(keys):
             v = universe[i]
             if prov not in v["provinces"]:
-                continue  # different province (or outside Canada) -> drop
+                continue  # other province or outside Canada -> drop
             city_ok = bool(fsas & set(v["fsas"]))
             if method == "fuzzy_weak" and not city_ok:
-                continue  # single-token name ("MES") needs the same city FSA
-            out.append(dnd_link(i, method, score, city_ok))
-        out.sort(
-            key=lambda x: (x["confidence"] != "high", -x["score"], -x["total_value"])
-        )
+                continue  # single-token name ("MES") needs the same city
+            out.append(dnd_link(v, method, score, city_ok))
+        out.sort(key=lambda x: (-RANK[x["confidence"]], -x["score"], -x["total_value"]))
         return out
 
-    # ---- shops (public 78 + synthetic 30) ---------------------------------------------
+    # ---- public shops -----------------------------------------------------------------
     shop_links = []
     shop_region: dict[str, dict | None] = {}
     for s in pub + syn:
+        shop_region[s["id"]] = region_for(csd_of(s["city"]), "ON")
+    for s in pub:
         csd = csd_of(s["city"])
-        region = region_for(csd, "ON")
-        shop_region[s["id"]] = region
-        if s["source"] != "public":
-            continue
         keys = name_variants(s["name"])
-        odbus_hits: dict[str, dict] = {}
+        hits: dict[str, dict] = {}
         if s.get("odbus_idx"):
-            odbus_hits[s["odbus_idx"]] = {
+            hits[s["odbus_idx"]] = {
                 "id": s["odbus_idx"],
                 "name": odbus_name_by_id.get(s["odbus_idx"]),
                 "source": "shops_public.json odbus_idx (ingest_odbus.py)",
@@ -849,26 +638,19 @@ def main() -> int:
                 "method": "prior_link",
                 "score": 1.0,
             }
-        for i, method, score in odbus_shop_index.candidates(keys):
-            r = odbus_shop_pool[i]
+        for i, method, score in odbus_index.candidates(keys):
+            r = odbus_pool[i]
             same_city = csd in r["places"]
             if method == "fuzzy_weak" and not same_city:
                 continue
-            if method == "exact" and same_city:
-                conf = "high"
-            else:
-                conf = "medium"  # all pools are Ontario, so province always agrees
-            prev = odbus_hits.get(r["id"])
-            if prev and prev["method"] == "prior_link":
-                prev["name"] = prev["name"] or r["name"]
-                continue
-            rank = {"high": 2, "medium": 1}
-            if prev and (rank[prev["confidence"]], prev["score"]) >= (
-                rank[conf],
-                score,
+            conf = "high" if (method == "exact" and same_city) else "medium"
+            prev = hits.get(r["id"])
+            if prev and (
+                prev["method"] == "prior_link"
+                or (RANK[prev["confidence"]], prev["score"]) >= (RANK[conf], score)
             ):
                 continue
-            odbus_hits[r["id"]] = {
+            hits[r["id"]] = {
                 "id": r["id"],
                 "name": r["name"],
                 "source": r["src"],
@@ -877,7 +659,6 @@ def main() -> int:
                 "score": score,
                 "same_city": same_city,
             }
-        dnd_hits = match_dnd(keys, "ON", city_fsas("ON", csd))
         shop_links.append(
             {
                 "shop_id": s["id"],
@@ -886,20 +667,19 @@ def main() -> int:
                 "csd": csd,
                 "name_keys": keys,
                 "odbus": sorted(
-                    odbus_hits.values(),
-                    key=lambda x: (x["confidence"] != "high", -x["score"]),
+                    hits.values(), key=lambda x: (-RANK[x["confidence"]], -x["score"])
                 ),
-                "dnd_vendor": dnd_hits,
-                "labour": labour_block(region),
+                "dnd_vendor": match_dnd(keys, "ON", city_fsas("ON", csd)),
+                "labour": labour_block(shop_region[s["id"]]),
             }
         )
 
     # ---- ODBus national manufacturers -> DND ------------------------------------------
     odbus_dnd = []
-    for r in odbus_nat_records:
-        fsas = ({r["fsa"]} if r["fsa"] else set()) | city_fsas(
-            r["province"], csd_of(r["municipality"])
-        )
+    for r in odbus_nat:
+        fsas = city_fsas(r["province"], csd_of(r["municipality"]))
+        if r["fsa"]:
+            fsas.add(r["fsa"])
         for h in match_dnd(r["keys"], r["province"], fsas):
             odbus_dnd.append(
                 {
@@ -911,6 +691,7 @@ def main() -> int:
                     **h,
                 }
             )
+    odbus_dnd.sort(key=lambda x: (-RANK[x["confidence"]], -x["total_value"]))
 
     # ---- ITB primes -> DND (name only; ITB rows carry no location) --------------------
     primes = sorted({r["contractor"] for r in itb["rows"]})
@@ -938,13 +719,16 @@ def main() -> int:
             1 for s in shop_links if any(h["confidence"] in confs for h in s[field])
         )
 
-    on_ids = {r["id"] for r in odbus_nat_records if r["province"] == "ON"}
-    odbus_conf: dict[str, str] = {}
+    best_conf: dict[str, str] = {}
     for x in odbus_dnd:
-        if odbus_conf.get(x["odbus_id"]) != "high":
-            odbus_conf[x["odbus_id"]] = x["confidence"]
-    on_conf = Counter(c for i, c in odbus_conf.items() if i in on_ids)
-    all_conf = Counter(odbus_conf.values())
+        if best_conf.get(x["odbus_id"]) != "high":
+            best_conf[x["odbus_id"]] = x["confidence"]
+    on_ids = {r["id"] for r in odbus_nat if r["province"] == "ON"}
+    on_conf = Counter(c for i, c in best_conf.items() if i in on_ids)
+    all_conf = Counter(best_conf.values())
+    matched_keys = {x["vendor_key"] for x in odbus_dnd}
+    dnd_high = shops_with("dnd_vendor", ("high",))
+    dnd_any = shops_with("dnd_vendor", ("high", "medium"))
     stats = {
         "public_shops": len(shop_links),
         "public_shops_with_odbus_link": {
@@ -952,59 +736,75 @@ def main() -> int:
             "high": shops_with("odbus", ("high",)),
         },
         "public_shops_holding_dnd_contracts": {
-            "high": shops_with("dnd_vendor", ("high",)),
-            "medium_only": shops_with("dnd_vendor", ("high", "medium"))
-            - shops_with("dnd_vendor", ("high",)),
-            "any": shops_with("dnd_vendor", ("high", "medium")),
+            "high": dnd_high,
+            "medium_only": dnd_any - dnd_high,
+            "any": dnd_any,
             "names": sorted({s["name"] for s in shop_links if s["dnd_vendor"]}),
         },
         "public_shops_with_labour_region": sum(1 for s in shop_links if s["labour"]),
         "odbus_manufacturers_ontario": len(on_ids),
-        "odbus_ontario_matching_dnd_vendor": {
+        "odbus_ontario_sites_matching_dnd_vendor": {
             "high": on_conf["high"],
             "medium": on_conf["medium"],
             "any": sum(on_conf.values()),
         },
-        "odbus_all_provinces_matching_dnd_vendor": {
+        "odbus_all_provinces_sites_matching_dnd_vendor": {
             "high": all_conf["high"],
             "medium": all_conf["medium"],
             "any": sum(all_conf.values()),
-            "of_total": len(odbus_nat_records),
+            "of_total": len(odbus_nat),
         },
         "odbus_dnd_link_rows": len(odbus_dnd),
+        "odbus_dnd_distinct_vendors": len(matched_keys),
+        "odbus_dnd_matched_vendor_value_cad": round(
+            sum(universe_by_key[k]["total_value"] for k in matched_keys), 2
+        ),
         "itb_primes": len(primes),
         "itb_primes_matching_dnd_vendor": len({x["prime"] for x in prime_dnd}),
         "dnd_vendor_universe": dnd_stats,
         "odbus_raw_scan": dict(odbus_stats),
     }
-    matched_keys = {x["vendor_key"] for x in odbus_dnd}
-    stats["odbus_dnd_value_matched_cad"] = round(
-        sum(v["total_value"] for v in universe if v["vendor_key"] in matched_keys), 2
-    )
-    stats["odbus_dnd_distinct_vendors"] = len(matched_keys)
 
     caveats = [
-        "Precision: 'high' links (exact normalized name + same census subdivision or same postal FSA "
-        "set) are expected to be right in the large majority of cases but are not verified; "
-        "'medium' links (exact name elsewhere in the province, or fuzzy >= 0.90) need a human check "
-        "before being shown as fact. Nothing here is verified by the companies.",
-        "Recall: DND lists the vendor's billing / head-office postal code, not the plant, so a "
-        "multi-site company matches only one site or none; DND vendor names are free text (e.g. "
-        "'GD OTS C'), so abbreviations are missed. A shop with no DND match may still hold DND "
-        "subcontracts: subcontracts under primes are not in the proactive-disclosure data at all.",
-        "The shop-to-ODBus pool covers only Kitchener and Hamilton raw rows plus ODBus manufacturer "
-        "sites; ODBus v1 has no Cambridge, Waterloo, Woolwich, London or Woodstock licence data, so "
-        "shops there cannot get an ODBus id except by chance (Toronto-issued licences).",
-        "City FSA sets for shop cities are hand-built (assumption) and unioned with FSAs seen >= 3 "
-        "times (and on >= 0.5% of rows) on ODBus rows in the same census subdivision. A DND vendor "
-        "agrees on city if any of its reported FSAs is in the set.",
-        "Economic-region mapping of cities is hand-built from the StatCan SGC 2021 economic-region "
-        "variant (Toronto ER = Durham, York, Toronto, Peel, Halton minus Burlington).",
-        "Person-like DND vendor names (N2 rule) are excluded from matching and never written; "
-        "ODBus raw rows that look like a person (N1 rule) are skipped.",
+        (
+            "Precision: 'high' links (exact normalized name + same census subdivision "
+            "or same postal-FSA set) are expected to be right in most cases but are "
+            "not verified; 'medium' links (exact name elsewhere in the province, or "
+            "fuzzy >= 0.90) need a human check before being shown as fact. Nothing "
+            "here is confirmed by the companies."
+        ),
+        (
+            "Recall: DND reports the vendor's billing / head-office postal code, not "
+            "the plant, so a multi-site company matches one site or none; DND vendor "
+            "names are free text ('GD OTS C'), so abbreviations are missed. A shop "
+            "with no DND match may still do defence work: subcontracts under primes "
+            "are not in proactive disclosure at all."
+        ),
+        (
+            "The shop-to-ODBus pool is ODBus manufacturer sites, candidates.csv and "
+            "raw ODBus rows for the shop cities; ODBus v1 has no licence data for "
+            "Cambridge, Waterloo, Woolwich, London or Woodstock, so shops there rarely "
+            "get an ODBus id."
+        ),
+        (
+            "City FSA sets for shop cities are hand-built (assumption) and unioned "
+            "with FSAs seen >= 3 times (and on >= 0.5% of rows) on raw ODBus rows in "
+            "the same census subdivision. A DND vendor agrees on city if any FSA it "
+            "reported is in the set."
+        ),
+        (
+            "Economic regions for cities are hand-mapped from the StatCan SGC 2021 "
+            "economic-region variant (Toronto ER = Durham, York, Toronto, Peel and "
+            "Halton minus Burlington)."
+        ),
+        (
+            "Person-like DND vendor names (N2 rule) are excluded from matching and "
+            "never written; raw ODBus rows that look like a person (N1 rule) are "
+            "skipped."
+        ),
     ]
     as_of = {
-        "shops_public": pub and "2026-09-26",
+        "shops_public": "2026-09-26",
         "odbus": "ODBus v1, released 2023-11-28",
         "dnd_contracts": dnd_proc.get("as_of"),
         "labour_outlook": labour.get("as_of"),
@@ -1012,41 +812,38 @@ def main() -> int:
         "itb_obligations": itb.get("as_of"),
     }
     source_urls = sorted(
-        set(
-            list(dnd_proc["source_urls"][:2])
-            + list(labour["source_urls"][:1])
-            + list(jvws["source_urls"][:1])
-            + list(itb["source_urls"][:1])
-            + [ODBUS_URL, SGC_ER_URL, SGC_ER_TORONTO_URL]
-        )
+        set(dnd_proc["source_urls"][:2])
+        | set(labour["source_urls"][:1])
+        | set(jvws["source_urls"][:1])
+        | set(itb["source_urls"][:1])
+        | {ODBUS_URL, SGC_ER_URL, SGC_ER_TORONTO_URL}
     )
     licence = (
-        f"{OGL} for ODBus, DND contracts, Job Bank and ISED data; Statistics Canada Open "
-        "Licence for JVWS; shops_public.json facts are from company websites (facts only, "
-        "labelled 'Public data - unverified - not affiliated'); synthetic shops are Muster's own."
+        f"{OGL} for ODBus, DND contracts, Job Bank and ISED data; Statistics Canada "
+        "Open Licence for JVWS; shops_public.json facts come from company websites "
+        "(facts only, labelled 'Public data - unverified - not affiliated'); "
+        "synthetic shops are Muster's own."
     )
-
     links = {
         "source_urls": source_urls,
         "licence": licence,
         "retrieved": RETRIEVED,
         "as_of": as_of,
         "notes": [
-            "Entity resolution across Muster datasets (script: scripts/link_entities.py).",
-            "Confidence: high = exact normalized name + city agreement; medium = exact name + same "
-            "province, or difflib token-set ratio >= 0.90 + same province with guards; else dropped.",
+            "Entity resolution across Muster datasets (scripts/link_entities.py).",
+            (
+                "Confidence: high = exact normalized name + city agreement; medium = "
+                "exact name + same province, or difflib token-set ratio >= 0.90 + "
+                "same province (with guards); anything else is dropped."
+            ),
             *caveats,
         ],
         "stats": stats,
         "shops": shop_links,
-        "odbus_dnd_links": sorted(
-            odbus_dnd, key=lambda x: (x["confidence"] != "high", -x["total_value"])
-        ),
+        "odbus_dnd_links": odbus_dnd,
         "prime_dnd_links": prime_dnd,
     }
-    OUT_LINKS.write_text(
-        json.dumps(links, ensure_ascii=False, indent=1), encoding="utf-8"
-    )
+    OUT_LINKS.write_text(json.dumps(links, ensure_ascii=False, indent=1), "utf-8")
 
     # ---- graph seed -------------------------------------------------------------------
     nodes: dict[str, dict] = {}
@@ -1054,24 +851,16 @@ def main() -> int:
 
     def node(nid: str, label: str, **props) -> str:
         if nid not in nodes:
-            nodes[nid] = {
-                "id": nid,
-                "label": label,
-                "props": {k: v for k, v in props.items() if v is not None},
-            }
+            clean = {k: v for k, v in props.items() if v is not None}
+            nodes[nid] = {"id": nid, "label": label, "props": clean}
         return nid
 
     def edge(typ: str, src: str, dst: str, **props) -> None:
-        edges.append(
-            {
-                "type": typ,
-                "source": src,
-                "target": dst,
-                "props": {k: v for k, v in props.items() if v is not None},
-            }
-        )
+        clean = {k: v for k, v in props.items() if v is not None}
+        edges.append({"type": typ, "source": src, "target": dst, "props": clean})
 
-    for code, meta in region_meta.items():
+    def region_node(code: str) -> str:
+        meta = region_meta[code]
         rid = node(
             f"region:{code}",
             "Region",
@@ -1080,10 +869,14 @@ def main() -> int:
             level=meta["level"],
             province=meta["province"],
         )
-        jv = jv_by_geo.get((jv_geo(meta), "72106"))
-        if jv and jv.get("latest_vacancies") is not None:
-            nodes[rid]["props"]["welder_vacancies_latest"] = jv["latest_vacancies"]
-            nodes[rid]["props"]["welder_vacancies_quarter"] = jv["latest_period"]
+        jv = welder_jv(meta)
+        if jv:
+            nodes[rid]["props"]["welder_vacancies_latest"] = jv["value"]
+            nodes[rid]["props"]["welder_vacancies_quarter"] = jv["quarter_start"]
+        return rid
+
+    for code, meta in region_meta.items():
+        rid = region_node(code)
         if meta["level"] != "province":
             pcode = PROVINCE_ER[meta["province"]]
             node(
@@ -1111,13 +904,12 @@ def main() -> int:
             wage_median=(r.get("wage") or {}).get("wage_median"),
         )
 
-    # ODBus aggregates onto regions
-    agg = Counter()
-    for r in odbus_nat_records:
+    site_counts: Counter = Counter()
+    for r in odbus_nat:
         reg = region_for(csd_of(r["municipality"]), r["province"])
         if reg:
-            agg[reg["code"]] += 1
-    for code, n in agg.items():
+            site_counts[reg["code"]] += 1
+    for code, n in site_counts.items():
         nodes[f"region:{code}"]["props"]["odbus_manufacturer_sites"] = n
 
     for s in pub + syn:
@@ -1129,39 +921,41 @@ def main() -> int:
             source=s["source"],
             label_text=s.get("label"),
             city=s["city"],
+            province="ON",
             lat=s.get("lat"),
             lon=s.get("lon"),
             naics=s.get("naics"),
             is_sme=s.get("is_sme"),
             website=s.get("website"),
         )
-        for p in s.get("processes", []):
-            edge("SHOP_HAS_PROCESS", sid, node(f"process:{p}", "Process", name=p))
+        for proc in s.get("processes", []):
+            edge("SHOP_HAS_PROCESS", sid, node(f"process:{proc}", "Process", name=proc))
         for c in s.get("certifications", []):
             if c["status"] == "unknown":
                 continue
+            cid = node(f"cert:{c['type']}", "Certification", type=c["type"])
             edge(
                 "SHOP_HOLDS_CERT",
                 sid,
-                node(f"cert:{c['type']}", "Certification", type=c["type"]),
+                cid,
                 status=c["status"],
-                source=c.get("source_url") or s["source"],
+                source=c.get("source_url") or f"{s['source']} shop record",
                 verified_at=c.get("verified_at"),
             )
         reg = shop_region.get(s["id"])
         if reg:
             edge("SHOP_IN_REGION", sid, f"region:{reg['code']}")
-    for c in ["CGP", "CPCSC_L1", "ISO9001", "AS9100", "CWB_W47.1"]:
-        node(f"cert:{c}", "Certification", type=c)
+    for ctype in ("CGP", "CPCSC_L1", "ISO9001", "AS9100", "CWB_W47.1"):
+        node(f"cert:{ctype}", "Certification", type=ctype)
 
-    for r in odbus_nat_records:
+    for r in odbus_nat:
         sid = node(
             f"shop:odbus:{r['id']}",
             "Shop",
             shop_id=f"odbus:{r['id']}",
             name=r["name"],
             source="odbus",
-            label_text="Public data — unverified — not affiliated",
+            label_text=PUBLIC_LABEL,
             city=r["municipality"],
             province=r["province"],
             lat=float(r["lat"]) if r["lat"] else None,
@@ -1175,7 +969,7 @@ def main() -> int:
             edge("SHOP_IN_REGION", sid, f"region:{reg['code']}")
 
     def dnd_node(vkey: str) -> str:
-        v = next(u for u in universe_by_key[vkey])
+        v = universe_by_key[vkey]
         p = proc_by_key.get(vkey) or {}
         return node(
             f"dnd:{slug(vkey)}",
@@ -1194,43 +988,33 @@ def main() -> int:
             top_commodity=(p.get("top_commodities") or [{}])[0].get("description"),
         )
 
-    universe_by_key: dict[str, list[dict]] = defaultdict(list)
-    for v in universe:
-        universe_by_key[v["vendor_key"]].append(v)
-    # manufacturing-relevant DND vendors (N2 flags), person-filtered, aggregated per vendor
-    for vkey, p in proc_by_key.items():
-        if p.get("mfg_relevant") and vkey in universe_by_key:
-            did = dnd_node(vkey)
-            prov = universe_by_key[vkey][0]["province"]
-            if prov in PROVINCE_ER:
-                edge("DND_VENDOR_IN_REGION", did, f"region:{PROVINCE_ER[prov]}")
-    for s in shop_links:
-        for h in s["dnd_vendor"]:
-            edge(
-                "SHOP_MATCHES_DND_VENDOR",
-                f"shop:{s['shop_id']}",
-                dnd_node(h["vendor_key"]),
-                confidence=h["confidence"],
-                method=h["method"],
-                score=h["score"],
-                value=h["total_value"],
-                count=h["contracts"],
-                last_date=h["last_date"],
-            )
-    for x in odbus_dnd:
+    def link_edge(src: str, x: dict, typ: str = "SHOP_MATCHES_DND_VENDOR") -> None:
         edge(
-            "SHOP_MATCHES_DND_VENDOR",
-            f"shop:odbus:{x['odbus_id']}",
+            typ,
+            src,
             dnd_node(x["vendor_key"]),
             confidence=x["confidence"],
             method=x["method"],
-            score=x["score"],
+            score=x.get("score"),
             value=x["total_value"],
             count=x["contracts"],
             last_date=x["last_date"],
         )
 
-    # Programs and primes
+    # manufacturing-relevant DND vendors (N2 flags), person-filtered, per vendor
+    for vkey, p in proc_by_key.items():
+        if p.get("mfg_relevant") and vkey in universe_by_key:
+            did = dnd_node(vkey)
+            prov = universe_by_key[vkey]["province"]
+            if prov in PROVINCE_ER:
+                edge("DND_VENDOR_IN_REGION", did, f"region:{PROVINCE_ER[prov]}")
+    for s in shop_links:
+        for h in s["dnd_vendor"]:
+            link_edge(f"shop:{s['shop_id']}", h)
+    for x in odbus_dnd:
+        link_edge(f"shop:odbus:{x['odbus_id']}", x)
+
+    # programs and primes
     pr_id = node(
         "prime:northgate",
         "Prime",
@@ -1253,7 +1037,6 @@ def main() -> int:
         pr_id,
         pg_id,
         value=program["obligation_cad"],
-        achieved=None,
         currency="CAD",
         status="demo",
     )
@@ -1290,54 +1073,65 @@ def main() -> int:
             status=r["status"],
         )
     for x in prime_dnd:
-        edge(
-            "PRIME_MATCHES_DND_VENDOR",
-            f"prime:{slug(x['prime'])}",
-            dnd_node(x["vendor_key"]),
-            confidence=x["confidence"],
-            method=x["method"],
-            value=x["total_value"],
-            count=x["contracts"],
-            last_date=x["last_date"],
-        )
+        link_edge(f"prime:{slug(x['prime'])}", x, "PRIME_MATCHES_DND_VENDOR")
 
-    edge_types = Counter(e["type"] for e in edges)
-    node_labels = Counter(n["label"] for n in nodes.values())
     graph = {
         "source_urls": source_urls,
         "licence": licence,
         "retrieved": RETRIEVED,
         "as_of": as_of,
         "notes": [
-            "Neo4j seed. Every node has a unique `id` and one `label`; all property values are "
-            "primitives or arrays of primitives. Load e.g.: CALL apoc.load.json('file:///graph_seed.json') "
-            "YIELD value UNWIND value.nodes AS n CALL apoc.merge.node([n.label], {id: n.id}, n.props) "
-            "YIELD node RETURN count(node); then UNWIND value.edges AS e MATCH (a {id: e.source}), "
-            "(b {id: e.target}) CALL apoc.create.relationship(a, e.type, e.props, b) YIELD rel "
-            "RETURN count(rel). Create an index on :Shop(id), :Region(id), etc. first.",
-            "Shop.source: public (78 researched), synthetic (30, Muster-made, label 'Synthetic'), "
-            "odbus (national ODBus manufacturer sites, no street address). Real companies are "
-            "'Public data - unverified - not affiliated'.",
-            "SHOP_HOLDS_CERT edges are written only for status != unknown (unknown = no edge).",
-            "DNDVendorRecord: N2 manufacturing-relevant vendors plus any vendor matched to a shop "
-            "or prime; values are total committed DND contract value 2021-01-01 onward (not payments).",
-            "Prime/Program: ISED ITB rows (real; values in the row currency, not converted) plus the "
-            "fictional Northgate demo prime/program. PRIME_MATCHES_DND_VENDOR is name-only.",
-            "Region: Job Bank economic regions and provinces; REGION_OUTLOOK label is the 2025-2027 "
-            "Job Bank outlook; odbus_manufacturer_sites is an aggregate count.",
+            (
+                "Neo4j seed. Each node has a unique `id`, one `label` and `props`; "
+                "each edge has `type`, `source`, `target`, `props`. All property "
+                "values are primitives or arrays of primitives."
+            ),
+            (
+                "Load with APOC: CALL apoc.load.json('file:///graph_seed.json') YIELD "
+                "value UNWIND value.nodes AS n CALL apoc.merge.node([n.label], "
+                "{id: n.id}, n.props) YIELD node RETURN count(node); then UNWIND "
+                "value.edges AS e MATCH (a {id: e.source}), (b {id: e.target}) CALL "
+                "apoc.create.relationship(a, e.type, e.props, b) YIELD rel RETURN "
+                "count(rel). Create id indexes per label first."
+            ),
+            (
+                "Shop.source: public (78 researched), synthetic (30, Muster-made, "
+                "label 'Synthetic'), odbus (ODBus manufacturer sites, no street "
+                "address). Real companies are 'Public data - unverified - not "
+                "affiliated'."
+            ),
+            "SHOP_HOLDS_CERT is written only for status != unknown (unknown = no edge).",
+            (
+                "DNDVendorRecord: N2 manufacturing-relevant vendors plus any vendor "
+                "matched to a shop or prime; values are total committed DND contract "
+                "value for contracts dated 2021-01-01 onward (not payments)."
+            ),
+            (
+                "Prime/Program: ISED ITB rows (real; values in the row currency, not "
+                "converted) plus the fictional Northgate demo prime and program. "
+                "PRIME_MATCHES_DND_VENDOR is an exact name match only."
+            ),
+            (
+                "Region: Job Bank economic regions and provinces; REGION_OUTLOOK label "
+                "is the 2025-2027 Job Bank outlook; odbus_manufacturer_sites is an "
+                "aggregate count of ODBus sites."
+            ),
             *caveats,
         ],
-        "counts": {"nodes": dict(node_labels), "edges": dict(edge_types)},
+        "counts": {
+            "nodes": dict(Counter(n["label"] for n in nodes.values())),
+            "edges": dict(Counter(e["type"] for e in edges)),
+        },
         "nodes": list(nodes.values()),
         "edges": edges,
     }
     OUT_GRAPH.write_text(
-        json.dumps(graph, ensure_ascii=False, separators=(",", ":")), encoding="utf-8"
+        json.dumps(graph, ensure_ascii=False, separators=(",", ":")), "utf-8"
     )
 
     for p in (OUT_LINKS, OUT_GRAPH):
         size = p.stat().st_size
-        flag = "  WARNING > 10 MB" if size > MAX_BYTES else ""
+        flag = "  WARNING: > 10 MB" if size > MAX_BYTES else ""
         print(f"wrote {p.relative_to(ROOT)} ({size:,} bytes){flag}")
     print(json.dumps(stats, indent=1))
     print(json.dumps(graph["counts"], indent=1))
