@@ -1,0 +1,1222 @@
+{
+  "source_urls": [
+    "https://open.canada.ca/data/en/dataset/d8f85d91-7dec-4fd1-8055-483b77225d8b",
+    "https://open.canada.ca/data/dataset/d8f85d91-7dec-4fd1-8055-483b77225d8b/resource/fac950c0-00d5-4ec1-a4d3-9cbebf98a305/download/contracts.csv",
+    "https://open.canada.ca/data/recombinant-published-schema/contracts.json",
+    "https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=32763",
+    "https://donnees-data.tpsgc-pwgsc.gc.ca/ba2/aev-bas/nibs-gsin.csv",
+    "https://donnees-data.tpsgc-pwgsc.gc.ca/ba2/aev-bas/nibsunspsc-gsinunspsc.csv"
+  ],
+  "licence": "Open Government Licence - Canada (https://open.canada.ca/en/open-government-licence-canada)",
+  "retrieved": "2026-09-26",
+  "as_of": "Contracts dated 2021-01-01 to 2026-06-30; latest reporting period in file 2026-2027-Q1; resource last modified 2026-09-26 (open.canada.ca)",
+  "headline": {
+    "contracts": 59102,
+    "total_value": 82898890458.97,
+    "distinct_vendors": 16167,
+    "ontario_share_of_value": 0.304,
+    "ontario_share_of_value_canadian_vendors": 0.3888,
+    "ontario_vendors": 4377,
+    "ontario_share_of_vendors": 0.2707,
+    "mfg_relevant_vendors": 1023,
+    "mfg_relevant_value_upper_bound": 169165752.17,
+    "dropped_person_like_vendors": 317,
+    "dropped_person_like_contracts": 591,
+    "top10_vendor_share_of_value": 0.6085
+  },
+  "scan": {
+    "rows_in_file": 1313276,
+    "rows_national_defence": 362845,
+    "rows_sosa_excluded": 233160,
+    "rows_in_window": 68647,
+    "contracts_after_dedup": 59693
+  },
+  "by_year": [
+    {
+      "year": "2021",
+      "value": 4093311687.74,
+      "contracts": 6844
+    },
+    {
+      "year": "2022",
+      "value": 13630334919.54,
+      "contracts": 7403
+    },
+    {
+      "year": "2023",
+      "value": 14383815313.81,
+      "contracts": 8348
+    },
+    {
+      "year": "2024",
+      "value": 29300119888.67,
+      "contracts": 9679
+    },
+    {
+      "year": "2025",
+      "value": 16710671839.81,
+      "contracts": 13642
+    },
+    {
+      "year": "2026",
+      "value": 4780636809.4,
+      "contracts": 13186
+    }
+  ],
+  "by_province": [
+    {
+      "province": "ON",
+      "value": 25203384211.71,
+      "contracts": 19116,
+      "vendors": 4377,
+      "share_of_value": 0.304
+    },
+    {
+      "province": "outside Canada",
+      "value": 16825964729.87,
+      "contracts": 7322,
+      "vendors": 3314,
+      "share_of_value": 0.203
+    },
+    {
+      "province": "NS",
+      "value": 15819131892.08,
+      "contracts": 5261,
+      "vendors": 869,
+      "share_of_value": 0.1908
+    },
+    {
+      "province": "QC",
+      "value": 8553701316.3,
+      "contracts": 9473,
+      "vendors": 2303,
+      "share_of_value": 0.1032
+    },
+    {
+      "province": "BC",
+      "value": 8369116008.59,
+      "contracts": 4495,
+      "vendors": 1208,
+      "share_of_value": 0.101
+    },
+    {
+      "province": "SK",
+      "value": 4605899980.57,
+      "contracts": 509,
+      "vendors": 164,
+      "share_of_value": 0.0556
+    },
+    {
+      "province": "unknown",
+      "value": 1245926469.59,
+      "contracts": 2935,
+      "vendors": 1533,
+      "share_of_value": 0.015
+    },
+    {
+      "province": "AB",
+      "value": 1005247730.81,
+      "contracts": 4743,
+      "vendors": 1113,
+      "share_of_value": 0.0121
+    },
+    {
+      "province": "NB",
+      "value": 541771890.84,
+      "contracts": 1946,
+      "vendors": 431,
+      "share_of_value": 0.0065
+    },
+    {
+      "province": "MB",
+      "value": 365667561.19,
+      "contracts": 1722,
+      "vendors": 410,
+      "share_of_value": 0.0044
+    },
+    {
+      "province": "NL",
+      "value": 287603022.85,
+      "contracts": 1249,
+      "vendors": 262,
+      "share_of_value": 0.0035
+    },
+    {
+      "province": "NT/NU",
+      "value": 64822362.73,
+      "contracts": 201,
+      "vendors": 115,
+      "share_of_value": 0.0008
+    },
+    {
+      "province": "YT",
+      "value": 5699881.02,
+      "contracts": 52,
+      "vendors": 33,
+      "share_of_value": 0.0001
+    },
+    {
+      "province": "PE",
+      "value": 4953400.82,
+      "contracts": 78,
+      "vendors": 35,
+      "share_of_value": 0.0001
+    }
+  ],
+  "by_commodity_type": [
+    {
+      "name": "Services",
+      "value": 44937424301.56,
+      "contracts": 29518,
+      "share_of_value": 0.5421
+    },
+    {
+      "name": "Goods",
+      "value": 33722966252.89,
+      "contracts": 24901,
+      "share_of_value": 0.4068
+    },
+    {
+      "name": "Construction",
+      "value": 4238499904.52,
+      "contracts": 4683,
+      "share_of_value": 0.0511
+    }
+  ],
+  "by_commodity_family": [
+    {
+      "name": "Ships and boats",
+      "value": 14186229577.37,
+      "contracts": 1875,
+      "share_of_value": 0.1711
+    },
+    {
+      "name": "Other professional services not elsewhere specified",
+      "value": 12454700317.47,
+      "contracts": 1734,
+      "share_of_value": 0.1502
+    },
+    {
+      "name": "Aircraft",
+      "value": 11789759328.09,
+      "contracts": 103,
+      "share_of_value": 0.1422
+    },
+    {
+      "name": "Engineering consultants-Other",
+      "value": 5905683049.95,
+      "contracts": 1067,
+      "share_of_value": 0.0712
+    },
+    {
+      "name": "Engineering services not elsewhere specified",
+      "value": 5896612928.67,
+      "contracts": 504,
+      "share_of_value": 0.0711
+    },
+    {
+      "name": "Ships and boats Parts",
+      "value": 5465652842.86,
+      "contracts": 486,
+      "share_of_value": 0.0659
+    },
+    {
+      "name": "Aircraft parts",
+      "value": 3466519503.09,
+      "contracts": 408,
+      "share_of_value": 0.0418
+    },
+    {
+      "name": "Ammunition",
+      "value": 2273098912.59,
+      "contracts": 299,
+      "share_of_value": 0.0274
+    },
+    {
+      "name": "Other equipment",
+      "value": 2244819472.27,
+      "contracts": 474,
+      "share_of_value": 0.0271
+    },
+    {
+      "name": "Road motor vehicles-Military",
+      "value": 1706424168.71,
+      "contracts": 460,
+      "share_of_value": 0.0206
+    },
+    {
+      "name": "Other Business services not Elsewhere Specified",
+      "value": 1316029630.02,
+      "contracts": 2154,
+      "share_of_value": 0.0159
+    },
+    {
+      "name": "Information technology and telecommunications consultants",
+      "value": 1238872142.51,
+      "contracts": 630,
+      "share_of_value": 0.0149
+    },
+    {
+      "name": "Industrial buildings",
+      "value": 1107129824.22,
+      "contracts": 525,
+      "share_of_value": 0.0134
+    },
+    {
+      "name": "Other clothing",
+      "value": 954128550.09,
+      "contracts": 415,
+      "share_of_value": 0.0115
+    },
+    {
+      "name": "Weapons (including parts)",
+      "value": 952346206.85,
+      "contracts": 157,
+      "share_of_value": 0.0115
+    },
+    {
+      "name": "Other buildings",
+      "value": 765245035.77,
+      "contracts": 2090,
+      "share_of_value": 0.0092
+    },
+    {
+      "name": "Communications/Networking equipment (includes analog, digital and combined analog/digital equipment, cabling, parts and peripherals)",
+      "value": 636636534.28,
+      "contracts": 586,
+      "share_of_value": 0.0077
+    },
+    {
+      "name": "Other equipment and Parts",
+      "value": 611360011.76,
+      "contracts": 4214,
+      "share_of_value": 0.0074
+    },
+    {
+      "name": "License/Maintenance fees for application software (including COTS) and application development and delivery software",
+      "value": 598916671.2,
+      "contracts": 1334,
+      "share_of_value": 0.0072
+    },
+    {
+      "name": "Computer equipment related to production and operations (P&O) environment-All servers, storage, printers, etc. (includes all related parts and peripherals)",
+      "value": 556203292.9,
+      "contracts": 584,
+      "share_of_value": 0.0067
+    },
+    {
+      "name": "Architectural services",
+      "value": 519093570.81,
+      "contracts": 2,
+      "share_of_value": 0.0063
+    },
+    {
+      "name": "Other engineering works",
+      "value": 493422151.28,
+      "contracts": 437,
+      "share_of_value": 0.006
+    },
+    {
+      "name": "Residential buildings",
+      "value": 487399035.01,
+      "contracts": 3134,
+      "share_of_value": 0.0059
+    },
+    {
+      "name": "Employee relocation in Canada",
+      "value": 450041950.55,
+      "contracts": 5,
+      "share_of_value": 0.0054
+    },
+    {
+      "name": "Management consulting",
+      "value": 336155155.63,
+      "contracts": 121,
+      "share_of_value": 0.0041
+    },
+    {
+      "name": "Road motor vehicles",
+      "value": 328407287.94,
+      "contracts": 517,
+      "share_of_value": 0.004
+    },
+    {
+      "name": "Aviation fuel",
+      "value": 316884835.53,
+      "contracts": 1493,
+      "share_of_value": 0.0038
+    },
+    {
+      "name": "Engineering consultants-Construction",
+      "value": 299089847.9,
+      "contracts": 1043,
+      "share_of_value": 0.0036
+    },
+    {
+      "name": "Computer equipment related to distributed computing environment (DCE)-Desktop/personal/portable (includes all related parts and peripherals)",
+      "value": 237800347.19,
+      "contracts": 1073,
+      "share_of_value": 0.0029
+    },
+    {
+      "name": "Radar equipment and parts",
+      "value": 226564918.42,
+      "contracts": 28,
+      "share_of_value": 0.0027
+    },
+    {
+      "name": "Measuring, controlling, laboratory, medical and optical equipment and parts",
+      "value": 223790197.6,
+      "contracts": 758,
+      "share_of_value": 0.0027
+    },
+    {
+      "name": "Engineering consultants - Other",
+      "value": 204523287.41,
+      "contracts": 15,
+      "share_of_value": 0.0025
+    },
+    {
+      "name": "Miscellaneous manufactured articles",
+      "value": 182950272.23,
+      "contracts": 2186,
+      "share_of_value": 0.0022
+    },
+    {
+      "name": "Protection services",
+      "value": 173339563.71,
+      "contracts": 535,
+      "share_of_value": 0.0021
+    },
+    {
+      "name": "Electricity",
+      "value": 166515027.37,
+      "contracts": 173,
+      "share_of_value": 0.002
+    },
+    {
+      "name": "Pharmaceutical and other medicinal products",
+      "value": 157253468.48,
+      "contracts": 180,
+      "share_of_value": 0.0019
+    },
+    {
+      "name": "Contracted building cleaning",
+      "value": 156809273.82,
+      "contracts": 449,
+      "share_of_value": 0.0019
+    },
+    {
+      "name": "Transportation of things not elsewhere specified",
+      "value": 138520452.44,
+      "contracts": 1235,
+      "share_of_value": 0.0017
+    },
+    {
+      "name": "Highways, roads and streets",
+      "value": 136375845.6,
+      "contracts": 239,
+      "share_of_value": 0.0016
+    },
+    {
+      "name": "Rental of ships",
+      "value": 132160085.51,
+      "contracts": 18,
+      "share_of_value": 0.0016
+    },
+    {
+      "name": "Diesel fuel",
+      "value": 131131689.18,
+      "contracts": 989,
+      "share_of_value": 0.0016
+    },
+    {
+      "name": "Rental of aircraft",
+      "value": 130518233.59,
+      "contracts": 333,
+      "share_of_value": 0.0016
+    },
+    {
+      "name": "Services related to the remediation of contaminated sites",
+      "value": 118916194.46,
+      "contracts": 110,
+      "share_of_value": 0.0014
+    },
+    {
+      "name": "Temporary help services",
+      "value": 116307282.93,
+      "contracts": 485,
+      "share_of_value": 0.0014
+    },
+    {
+      "name": "Armouries, barracks, drill halls, etc.",
+      "value": 115701720.94,
+      "contracts": 25,
+      "share_of_value": 0.0014
+    },
+    {
+      "name": "Office buildings",
+      "value": 110553856.89,
+      "contracts": 428,
+      "share_of_value": 0.0013
+    },
+    {
+      "name": "Commercial buildings",
+      "value": 100049322.6,
+      "contracts": 516,
+      "share_of_value": 0.0012
+    },
+    {
+      "name": "Computer equipment related to Distributed Computing Environment (DCE)-Desktop/personal/portable (includes all related parts and peripherals)",
+      "value": 98440653.28,
+      "contracts": 277,
+      "share_of_value": 0.0012
+    },
+    {
+      "name": "Tuition fees and costs of attending courses including seminars not elsewhere specified",
+      "value": 95720544.0,
+      "contracts": 990,
+      "share_of_value": 0.0012
+    },
+    {
+      "name": "Other non-residential buildings",
+      "value": 94625271.82,
+      "contracts": 45,
+      "share_of_value": 0.0011
+    },
+    {
+      "name": "Miscellaneous textiles, headgear, umbrellas, etc.",
+      "value": 91467764.34,
+      "contracts": 777,
+      "share_of_value": 0.0011
+    },
+    {
+      "name": "Electric lighting, distribution and control equipment and Parts",
+      "value": 89339565.83,
+      "contracts": 771,
+      "share_of_value": 0.0011
+    },
+    {
+      "name": "Roads, highways and airport runways",
+      "value": 88502564.38,
+      "contracts": 16,
+      "share_of_value": 0.0011
+    },
+    {
+      "name": "Heavy fuel oil",
+      "value": 83805745.14,
+      "contracts": 183,
+      "share_of_value": 0.001
+    },
+    {
+      "name": "Road motor vehicles Parts",
+      "value": 82393697.41,
+      "contracts": 625,
+      "share_of_value": 0.001
+    },
+    {
+      "name": "Meat, fish and their preparations",
+      "value": 76778796.53,
+      "contracts": 537,
+      "share_of_value": 0.0009
+    },
+    {
+      "name": "Rental of motor and other vehicles",
+      "value": 71222138.22,
+      "contracts": 1424,
+      "share_of_value": 0.0009
+    },
+    {
+      "name": "Application software (including COTS) and application development and delivery software",
+      "value": 59276243.74,
+      "contracts": 307,
+      "share_of_value": 0.0007
+    },
+    {
+      "name": "Rental of computer equipment related to production and operations (P&O) environment-All servers, storage, printers, etc. (includes all related parts and peripherals)",
+      "value": 56292397.44,
+      "contracts": 66,
+      "share_of_value": 0.0007
+    },
+    {
+      "name": "Employee relocation outside Canada and/or return",
+      "value": 52700000.0,
+      "contracts": 1,
+      "share_of_value": 0.0006
+    }
+  ],
+  "by_commodity_family_note": "Family = DND economic-object description (description_en); top 60 by value.",
+  "by_mfg_flag": [
+    {
+      "flag": "vehicle_parts",
+      "value": 134341561.37,
+      "contracts": 1218,
+      "vendors": 585
+    },
+    {
+      "flag": "cables_harnesses",
+      "value": 17115587.42,
+      "contracts": 264,
+      "vendors": 137
+    },
+    {
+      "flag": "fabrication",
+      "value": 7541678.88,
+      "contracts": 374,
+      "vendors": 243
+    },
+    {
+      "flag": "welding",
+      "value": 3351964.01,
+      "contracts": 96,
+      "vendors": 47
+    },
+    {
+      "flag": "fasteners",
+      "value": 3285252.91,
+      "contracts": 76,
+      "vendors": 42
+    },
+    {
+      "flag": "coatings",
+      "value": 3074408.8,
+      "contracts": 180,
+      "vendors": 80
+    },
+    {
+      "flag": "machining",
+      "value": 455298.78,
+      "contracts": 13,
+      "vendors": 11
+    }
+  ],
+  "top25_vendors_by_value": [
+    {
+      "rank": 1,
+      "vendor": "SkyAlyne Canada Limited Partnership",
+      "total_value": 11219370646.0,
+      "contracts": 1,
+      "province": "ON",
+      "top_categories": [
+        "Other professional services not elsewhere specified"
+      ]
+    },
+    {
+      "rank": 2,
+      "vendor": "Irving Shipbuilding Inc.",
+      "total_value": 10753506708.84,
+      "contracts": 1,
+      "province": "NS",
+      "top_categories": [
+        "Ships and boats"
+      ]
+    },
+    {
+      "rank": 3,
+      "vendor": "Vancouver Shipyards Co Ltd",
+      "total_value": 7345944977.02,
+      "contracts": 7,
+      "province": "BC",
+      "top_categories": [
+        "Ships and boats Parts",
+        "Ships and boats"
+      ]
+    },
+    {
+      "rank": 4,
+      "vendor": "CAE Military Aviation Training Inc.",
+      "total_value": 4482200974.0,
+      "contracts": 1,
+      "province": "SK",
+      "top_categories": [
+        "Engineering consultants-Other"
+      ]
+    },
+    {
+      "rank": 5,
+      "vendor": "Airbus Defence and Space SA",
+      "total_value": 4125667771.32,
+      "contracts": 4,
+      "province": "outside Canada",
+      "top_categories": [
+        "Aircraft",
+        "Engineering services not elsewhere specified"
+      ]
+    },
+    {
+      "rank": 6,
+      "vendor": "I.M.P Group Limited",
+      "total_value": 3507677527.09,
+      "contracts": 4,
+      "province": "NS",
+      "top_categories": [
+        "Aircraft",
+        "Other professional services not elsewhere specified"
+      ]
+    },
+    {
+      "rank": 7,
+      "vendor": "Bell Textron Canada Limited",
+      "total_value": 3080577363.13,
+      "contracts": 2,
+      "province": "outside Canada",
+      "top_categories": [
+        "Aircraft parts",
+        "Engineering services not elsewhere specified"
+      ]
+    },
+    {
+      "rank": 8,
+      "vendor": "KNDS Deutschland GmbH & Co. KG",
+      "total_value": 2422542021.5,
+      "contracts": 2,
+      "province": "outside Canada",
+      "top_categories": [
+        "Road motor vehicles-Military",
+        "Other equipment"
+      ]
+    },
+    {
+      "rank": 9,
+      "vendor": "General Atomics Aeronautical Systems Inc.",
+      "total_value": 1792979385.49,
+      "contracts": 1,
+      "province": "outside Canada",
+      "top_categories": [
+        "Aircraft"
+      ]
+    },
+    {
+      "rank": 10,
+      "vendor": "GENERAL DYNAMICS LAND SYSTEMS-CANADA CORPORATION",
+      "total_value": 1712833065.64,
+      "contracts": 8,
+      "province": "ON",
+      "top_categories": [
+        "Engineering services not elsewhere specified",
+        "Information technology and telecommunications consultants"
+      ]
+    },
+    {
+      "rank": 11,
+      "vendor": "Leonardo UK Ltd",
+      "total_value": 1187009590.26,
+      "contracts": 4,
+      "province": "outside Canada",
+      "top_categories": [
+        "Aircraft",
+        "Other equipment"
+      ]
+    },
+    {
+      "rank": 12,
+      "vendor": "L3Harris MAS Inc.",
+      "total_value": 1180656562.94,
+      "contracts": 4,
+      "province": "QC",
+      "top_categories": [
+        "Engineering services not elsewhere specified",
+        "Aircraft parts"
+      ]
+    },
+    {
+      "rank": 13,
+      "vendor": "EllisDon Corporation (Ottawa)",
+      "total_value": 1023024643.0,
+      "contracts": 2,
+      "province": "ON",
+      "top_categories": [
+        "Industrial buildings",
+        "Engineering consultants-Construction"
+      ]
+    },
+    {
+      "rank": 14,
+      "vendor": "L-3 Technologies MAS Inc",
+      "total_value": 912570114.0,
+      "contracts": 2,
+      "province": "QC",
+      "top_categories": [
+        "Aircraft",
+        "Engineering services not elsewhere specified"
+      ]
+    },
+    {
+      "rank": 15,
+      "vendor": "LOGISTIK UNICORP INC.",
+      "total_value": 901329876.4,
+      "contracts": 99,
+      "province": "QC",
+      "top_categories": [
+        "Other clothing",
+        "Miscellaneous textiles, headgear, umbrellas, etc."
+      ]
+    },
+    {
+      "rank": 16,
+      "vendor": "Serco Facilities Management Inc",
+      "total_value": 742076697.39,
+      "contracts": 1,
+      "province": "unknown",
+      "top_categories": [
+        "Other Business services not Elsewhere Specified"
+      ]
+    },
+    {
+      "rank": 17,
+      "vendor": "Nasittuq Corporation",
+      "total_value": 730838281.63,
+      "contracts": 4,
+      "province": "ON",
+      "top_categories": [
+        "Other equipment",
+        "Engineering consultants-Other"
+      ]
+    },
+    {
+      "rank": 18,
+      "vendor": "Babcock Canada Inc.",
+      "total_value": 712476609.3,
+      "contracts": 3,
+      "province": "ON",
+      "top_categories": [
+        "Ships and boats",
+        "Engineering consultants-Other"
+      ]
+    },
+    {
+      "rank": 19,
+      "vendor": "Bombardier Inc.",
+      "total_value": 709928880.57,
+      "contracts": 2,
+      "province": "QC",
+      "top_categories": [
+        "Aircraft parts",
+        "Electronic subscriptions and electronic publications"
+      ]
+    },
+    {
+      "rank": 20,
+      "vendor": "Weir Canada, Inc.",
+      "total_value": 643860000.0,
+      "contracts": 1,
+      "province": "QC",
+      "top_categories": [
+        "Engineering services not elsewhere specified"
+      ]
+    },
+    {
+      "rank": 21,
+      "vendor": "General Dynamics Ordnance and Tactical Systems - Canada Inc.",
+      "total_value": 545464936.23,
+      "contracts": 44,
+      "province": "QC",
+      "top_categories": [
+        "Ammunition",
+        "Engineering consultants-Other"
+      ]
+    },
+    {
+      "rank": 22,
+      "vendor": "Thales Canada Inc and Thales Australia Limited in Joint Venture",
+      "total_value": 517500000.0,
+      "contracts": 1,
+      "province": "ON",
+      "top_categories": [
+        "Ships and boats Parts"
+      ]
+    },
+    {
+      "rank": 23,
+      "vendor": "Lockheed Martin Canada Inc.",
+      "total_value": 487498813.0,
+      "contracts": 9,
+      "province": "ON",
+      "top_categories": [
+        "Engineering services not elsewhere specified",
+        "Aircraft"
+      ]
+    },
+    {
+      "rank": 24,
+      "vendor": "GD OTS C",
+      "total_value": 470554084.48,
+      "contracts": 67,
+      "province": "outside Canada",
+      "top_categories": [
+        "Ammunition"
+      ]
+    },
+    {
+      "rank": 25,
+      "vendor": "General Dynamics",
+      "total_value": 469051857.32,
+      "contracts": 33,
+      "province": "QC",
+      "top_categories": [
+        "Ammunition",
+        "Engineering consultants-Other"
+      ]
+    }
+  ],
+  "top25_mfg_relevant_vendors": [
+    {
+      "vendor": "FFG Flensburger Fahrzeugbau Gesellschaft mbH",
+      "mfg_value": 12883025.55,
+      "total_value": 21328540.9,
+      "contracts": 11,
+      "province": "outside Canada",
+      "fsa": null,
+      "flags": [
+        "vehicle_parts"
+      ],
+      "first_date": "2021-08-16",
+      "last_date": "2024-09-03"
+    },
+    {
+      "vendor": "Rheinmetall Canada Inc.",
+      "mfg_value": 11558509.7,
+      "total_value": 100986514.92,
+      "contracts": 20,
+      "province": "QC",
+      "fsa": "J3B",
+      "flags": [
+        "vehicle_parts"
+      ],
+      "first_date": "2021-01-19",
+      "last_date": "2026-05-20"
+    },
+    {
+      "vendor": "Michelin North America (Canada) Inc",
+      "mfg_value": 9774271.51,
+      "total_value": 9854386.99,
+      "contracts": 42,
+      "province": "QC",
+      "fsa": "H3C",
+      "flags": [
+        "vehicle_parts"
+      ],
+      "first_date": "2023-04-26",
+      "last_date": "2026-06-18"
+    },
+    {
+      "vendor": "Gunter Langkopf Maschinenbau",
+      "mfg_value": 8677558.96,
+      "total_value": 8677558.96,
+      "contracts": 17,
+      "province": "outside Canada",
+      "fsa": null,
+      "flags": [
+        "vehicle_parts"
+      ],
+      "first_date": "2021-06-24",
+      "last_date": "2023-07-27"
+    },
+    {
+      "vendor": "GRIFFIN ENGINEERED SYSTEMS INC",
+      "mfg_value": 8667050.92,
+      "total_value": 8889276.92,
+      "contracts": 2,
+      "province": "NS",
+      "fsa": "B2Y",
+      "flags": [
+        "vehicle_parts"
+      ],
+      "first_date": "2023-09-27",
+      "last_date": "2024-09-11"
+    },
+    {
+      "vendor": "Simex Defence Inc.",
+      "mfg_value": 8152922.76,
+      "total_value": 132837032.35,
+      "contracts": 738,
+      "province": "QC",
+      "fsa": "H9R",
+      "flags": [
+        "cables_harnesses",
+        "coatings",
+        "fabrication",
+        "fasteners",
+        "machining",
+        "vehicle_parts"
+      ],
+      "first_date": "2021-01-08",
+      "last_date": "2026-06-29"
+    },
+    {
+      "vendor": "Unisource Technology Inc.",
+      "mfg_value": 7666726.58,
+      "total_value": 51041897.83,
+      "contracts": 319,
+      "province": "QC",
+      "fsa": "H9P",
+      "flags": [
+        "cables_harnesses",
+        "fabrication",
+        "fasteners",
+        "vehicle_parts"
+      ],
+      "first_date": "2021-01-26",
+      "last_date": "2026-06-19"
+    },
+    {
+      "vendor": "Dafocom Solutions Inc.",
+      "mfg_value": 5338918.59,
+      "total_value": 5611964.57,
+      "contracts": 6,
+      "province": "ON",
+      "fsa": "K2K",
+      "flags": [
+        "cables_harnesses"
+      ],
+      "first_date": "2023-05-31",
+      "last_date": "2025-10-27"
+    },
+    {
+      "vendor": "Concept Controls Inc",
+      "mfg_value": 4254258.82,
+      "total_value": 7114509.6,
+      "contracts": 45,
+      "province": "AB",
+      "fsa": "T2C",
+      "flags": [
+        "vehicle_parts"
+      ],
+      "first_date": "2021-01-21",
+      "last_date": "2026-05-27"
+    },
+    {
+      "vendor": "Tremcar Inc.",
+      "mfg_value": 4057563.7,
+      "total_value": 8464225.5,
+      "contracts": 3,
+      "province": "ON",
+      "fsa": "N5V",
+      "flags": [
+        "vehicle_parts"
+      ],
+      "first_date": "2024-05-23",
+      "last_date": "2026-05-19"
+    },
+    {
+      "vendor": "Felix Technology Inc.",
+      "mfg_value": 2443598.23,
+      "total_value": 26616760.43,
+      "contracts": 83,
+      "province": "ON",
+      "fsa": "L4K",
+      "flags": [
+        "coatings",
+        "vehicle_parts"
+      ],
+      "first_date": "2021-01-05",
+      "last_date": "2026-04-24"
+    },
+    {
+      "vendor": "Simex Defense",
+      "mfg_value": 2239485.54,
+      "total_value": 2953523.81,
+      "contracts": 22,
+      "province": "QC",
+      "fsa": "H9R",
+      "flags": [
+        "vehicle_parts",
+        "welding"
+      ],
+      "first_date": "2021-01-25",
+      "last_date": "2026-05-07"
+    },
+    {
+      "vendor": "Soucy International Inc.",
+      "mfg_value": 2135906.61,
+      "total_value": 2135906.61,
+      "contracts": 1,
+      "province": "QC",
+      "fsa": "J2E",
+      "flags": [
+        "vehicle_parts"
+      ],
+      "first_date": "2026-04-14",
+      "last_date": "2026-04-14"
+    },
+    {
+      "vendor": "Krauss-Maffei Wegmann GmbH & Co. KG",
+      "mfg_value": 2042557.34,
+      "total_value": 173055112.04,
+      "contracts": 7,
+      "province": "outside Canada",
+      "fsa": null,
+      "flags": [
+        "vehicle_parts"
+      ],
+      "first_date": "2021-04-28",
+      "last_date": "2023-11-24"
+    },
+    {
+      "vendor": "Michelin North America Inc",
+      "mfg_value": 1918989.13,
+      "total_value": 1946122.69,
+      "contracts": 12,
+      "province": "QC",
+      "fsa": "H3C",
+      "flags": [
+        "vehicle_parts"
+      ],
+      "first_date": "2023-07-31",
+      "last_date": "2026-02-23"
+    },
+    {
+      "vendor": "The Goodyear Tire and Rubber Co.",
+      "mfg_value": 1388399.0,
+      "total_value": 2604129.03,
+      "contracts": 4,
+      "province": "outside Canada",
+      "fsa": null,
+      "flags": [
+        "vehicle_parts"
+      ],
+      "first_date": "2023-07-05",
+      "last_date": "2026-04-17"
+    },
+    {
+      "vendor": "Patlon Aircraft & Industries Limited",
+      "mfg_value": 1368212.41,
+      "total_value": 26021485.79,
+      "contracts": 58,
+      "province": "ON",
+      "fsa": "L7G",
+      "flags": [
+        "cables_harnesses",
+        "fabrication",
+        "vehicle_parts"
+      ],
+      "first_date": "2021-01-04",
+      "last_date": "2026-06-17"
+    },
+    {
+      "vendor": "JRoberts Defence & Security Inc.",
+      "mfg_value": 1344211.32,
+      "total_value": 5390498.85,
+      "contracts": 5,
+      "province": "ON",
+      "fsa": "M3N",
+      "flags": [
+        "vehicle_parts"
+      ],
+      "first_date": "2026-01-26",
+      "last_date": "2026-04-01"
+    },
+    {
+      "vendor": "Steeple Incorporated",
+      "mfg_value": 1316137.49,
+      "total_value": 4433024.56,
+      "contracts": 46,
+      "province": "ON",
+      "fsa": "L1N",
+      "flags": [
+        "cables_harnesses",
+        "fabrication",
+        "fasteners",
+        "vehicle_parts"
+      ],
+      "first_date": "2021-01-26",
+      "last_date": "2026-05-20"
+    },
+    {
+      "vendor": "XYLEM CANADA LP",
+      "mfg_value": 1257678.68,
+      "total_value": 1382103.21,
+      "contracts": 9,
+      "province": "QC",
+      "fsa": "H9R",
+      "flags": [
+        "vehicle_parts"
+      ],
+      "first_date": "2023-09-29",
+      "last_date": "2026-04-02"
+    },
+    {
+      "vendor": "Gamble Technologies Limited",
+      "mfg_value": 1216219.0,
+      "total_value": 6997754.48,
+      "contracts": 13,
+      "province": "ON",
+      "fsa": "L5N",
+      "flags": [
+        "vehicle_parts"
+      ],
+      "first_date": "2022-05-02",
+      "last_date": "2026-02-19"
+    },
+    {
+      "vendor": "JHT Defense Inc.",
+      "mfg_value": 1213715.09,
+      "total_value": 10361274.88,
+      "contracts": 249,
+      "province": "QC",
+      "fsa": "H4R",
+      "flags": [
+        "cables_harnesses",
+        "fabrication",
+        "fasteners",
+        "vehicle_parts",
+        "welding"
+      ],
+      "first_date": "2021-01-06",
+      "last_date": "2026-06-25"
+    },
+    {
+      "vendor": "Rampart International Corp",
+      "mfg_value": 1211199.34,
+      "total_value": 19230487.98,
+      "contracts": 47,
+      "province": "ON",
+      "fsa": "K1B",
+      "flags": [
+        "vehicle_parts"
+      ],
+      "first_date": "2021-01-11",
+      "last_date": "2026-06-17"
+    },
+    {
+      "vendor": "Tenaquip Limited",
+      "mfg_value": 1177773.4,
+      "total_value": 6051805.58,
+      "contracts": 253,
+      "province": "QC",
+      "fsa": "H9X",
+      "flags": [
+        "coatings",
+        "fabrication",
+        "vehicle_parts"
+      ],
+      "first_date": "2021-01-08",
+      "last_date": "2026-06-30"
+    },
+    {
+      "vendor": "Nokia Canada Inc",
+      "mfg_value": 1168338.51,
+      "total_value": 5498483.51,
+      "contracts": 4,
+      "province": "ON",
+      "fsa": "K2K",
+      "flags": [
+        "cables_harnesses"
+      ],
+      "first_date": "2021-11-29",
+      "last_date": "2026-06-04"
+    }
+  ],
+  "notes": [
+    "Source: Government of Canada, Proactive Publication - Contracts over $10,000 (owner_org dnd-mdn = National Defence). Contains information licensed under the Open Government Licence - Canada.",
+    "Filter: contract_date 2021-01-01 to 2026-09-26; instrument types C (contract/call-up) and A (amendment). Standing offer / supply arrangement agreements (SOSA) excluded because they are not commitments.",
+    "One contract = procurement_id + normalized vendor; value = contract_value of the most recently reported row (amendments carry the amended total). Values are reported commitments incl. taxes and exercised options, not payments.",
+    "Vendor names normalized (case, accents, punctuation, legal suffixes). Spelling variants such as typos are not merged, so some vendors appear twice.",
+    "Vendors that look like individuals were dropped before aggregation: 317 vendor names, 591 contracts, $32,669,797. No personal names, emails or phones are included; the source buyer_name field (DND staff) is never read.",
+    "Province from vendor_postal_code (first 3 characters, FSA) as published by DND; 'outside Canada' where postal code is NA or vendor country is not CA. Postal code is the vendor's address in DND's system, not where work is done.",
+    "mfg_flags mark what DND bought (GSIN/UNSPSC commodity code or description keywords), not a verified shop capability. Welding flags include purchases of welding equipment/supplies. Keyword-only matches are vetoed for IT, construction, professional-service and fuel categories.",
+    "Real companies: Public data - unverified - not affiliated.",
+    "mfg_value = value of the vendor's contracts in its largest manufacturing flag; mfg_relevant_value_upper_bound sums flags and can double count a contract carrying several flags.",
+    "Ontario share uses vendor postal codes; a head-office address in Ottawa or Toronto can stand in for work done elsewhere."
+  ]
+}

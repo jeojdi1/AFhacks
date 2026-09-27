@@ -1,0 +1,1510 @@
+{
+ "source_urls": [
+  "https://open.canada.ca/data/en/dataset/b0e112e9-cf53-4e79-8838-23cd98debe5b",
+  "https://open.canada.ca/data/dataset/b0e112e9-cf53-4e79-8838-23cd98debe5b/resource/cb52e1d0-ab62-4357-91cc-d8f5a2114e02/download/20252027_outlook_n21_en_251208.xlsx",
+  "https://open.canada.ca/data/dataset/b0e112e9-cf53-4e79-8838-23cd98debe5b/resource/8f7922d2-6f40-4346-93a4-2bed1eac72b8/download/20242026_outlook_n21_en_250117.xlsx",
+  "https://www.jobbank.gc.ca/trend-analysis/search-job-outlooks/outlooks-methodology",
+  "https://open.canada.ca/data/en/dataset/adad580f-76b0-4502-bd05-20c125de9116",
+  "https://open.canada.ca/data/dataset/adad580f-76b0-4502-bd05-20c125de9116/resource/9da94d63-b178-4a64-aeb3-b6a3bd721ad2/download/2a71-das-wage2025opendata-esdc-all-19nov2025-vf.csv"
+ ],
+ "licence": "Open Government Licence - Canada (https://open.canada.ca/en/open-government-licence-canada)",
+ "retrieved": "2026-09-26",
+ "as_of": "2025-12-08",
+ "notes": "ESDC Job Bank 3-year employment outlooks, 2025-2027 edition (NOC 2021), with the 2024-2026 label for the same NOC and region for comparison. region_level='province' rows are province/territory-wide. outlook_score is our ordinal mapping for sorting (Very good=5 ... Very limited=1; Undetermined=null), not a Job Bank field. trend_excerpt is the first ~280 characters of Job Bank's narrative. 'Good'/'Very good' = more job openings than job seekers expected (shortage signal); 'Limited'/'Very limited' = more job seekers than openings. wage = Job Bank 2025 wages open data (hourly unless wage_unit says annual; low/high are roughly the 10th/90th percentiles per Job Bank), null where suppressed.",
+ "nocs": {
+  "72106": "Welders and related machine operators",
+  "72100": "Machinists and machining and tooling inspectors",
+  "72101": "Tool and die makers",
+  "72102": "Sheet metal workers",
+  "72103": "Boilermakers",
+  "72104": "Structural metal and platework fabricators and fitters",
+  "72400": "Construction millwrights and industrial mechanics",
+  "94100": "Machine operators, mineral and metal processing",
+  "94105": "Metalworking and forging machine operators",
+  "94106": "Machining tool operators",
+  "94107": "Machine operators of other metal products",
+  "95101": "Labourers in metal fabrication"
+ },
+ "economic_region_label_counts": {
+  "72100": {
+   "Limited": 30,
+   "Undetermined": 20,
+   "Moderate": 18,
+   "Good": 7,
+   "Very limited": 1
+  },
+  "72101": {
+   "Undetermined": 56,
+   "Moderate": 16,
+   "Limited": 4
+  },
+  "72102": {
+   "Moderate": 15,
+   "Undetermined": 32,
+   "Limited": 19,
+   "Very limited": 10
+  },
+  "72103": {
+   "Undetermined": 68,
+   "Very limited": 3,
+   "Moderate": 4,
+   "Limited": 1
+  },
+  "72104": {
+   "Undetermined": 58,
+   "Limited": 9,
+   "Very limited": 6,
+   "Good": 3
+  },
+  "72106": {
+   "Limited": 30,
+   "Very limited": 22,
+   "Moderate": 19,
+   "Good": 2,
+   "Undetermined": 3
+  },
+  "72400": {
+   "Moderate": 43,
+   "Limited": 13,
+   "Good": 15,
+   "Undetermined": 3,
+   "Very good": 2
+  },
+  "94100": {
+   "Undetermined": 44,
+   "Limited": 12,
+   "Very limited": 5,
+   "Moderate": 13,
+   "Good": 1,
+   "Very good": 1
+  },
+  "94105": {
+   "Limited": 15,
+   "Undetermined": 40,
+   "Moderate": 14,
+   "Very limited": 1,
+   "Good": 6
+  },
+  "94106": {
+   "Undetermined": 53,
+   "Limited": 12,
+   "Moderate": 10,
+   "Very limited": 1
+  },
+  "94107": {
+   "Undetermined": 53,
+   "Limited": 10,
+   "Moderate": 13
+  },
+  "95101": {
+   "Very limited": 7,
+   "Undetermined": 41,
+   "Limited": 22,
+   "Moderate": 4,
+   "Good": 2
+  }
+ },
+ "provincial_outlooks": {
+  "72106": {
+   "AB": "Limited",
+   "BC": "Limited",
+   "MB": "Limited",
+   "NB": "Moderate",
+   "NL": "Moderate",
+   "NS": "Good",
+   "ON": "Very limited",
+   "QC": "Limited",
+   "SK": "Moderate"
+  },
+  "72100": {
+   "AB": "Limited",
+   "BC": "Moderate",
+   "MB": "Moderate",
+   "NB": "Moderate",
+   "NL": "Undetermined",
+   "NS": "Good",
+   "ON": "Limited",
+   "QC": "Moderate",
+   "SK": "Limited"
+  },
+  "72101": {
+   "AB": "Moderate",
+   "BC": "Moderate",
+   "MB": "Moderate",
+   "NB": "Undetermined",
+   "NL": "Undetermined",
+   "NS": "Undetermined",
+   "ON": "Limited",
+   "QC": "Moderate",
+   "SK": "Undetermined"
+  },
+  "72102": {
+   "AB": "Moderate",
+   "BC": "Limited",
+   "MB": "Moderate",
+   "NB": "Moderate",
+   "NL": "Undetermined",
+   "NS": "Moderate",
+   "ON": "Limited",
+   "QC": "Very limited",
+   "SK": "Moderate"
+  },
+  "72103": {
+   "AB": "Very limited",
+   "BC": "Undetermined",
+   "MB": "Undetermined",
+   "NB": "Undetermined",
+   "NL": "Undetermined",
+   "NS": "Undetermined",
+   "ON": "Moderate",
+   "QC": "Very limited",
+   "SK": "Undetermined"
+  },
+  "72104": {
+   "AB": "Limited",
+   "BC": "Limited",
+   "MB": "Limited",
+   "NB": "Undetermined",
+   "NL": "Undetermined",
+   "NS": "Moderate",
+   "ON": "Limited",
+   "QC": "Very limited",
+   "SK": "Limited"
+  },
+  "72400": {
+   "AB": "Moderate",
+   "BC": "Moderate",
+   "MB": "Moderate",
+   "NB": "Moderate",
+   "NL": "Good",
+   "NS": "Good",
+   "ON": "Moderate",
+   "QC": "Moderate",
+   "SK": "Good"
+  },
+  "94100": {
+   "AB": "Limited",
+   "BC": "Very limited",
+   "MB": "Moderate",
+   "NB": "Undetermined",
+   "NL": "Undetermined",
+   "NS": "Undetermined",
+   "ON": "Limited",
+   "QC": "Moderate",
+   "SK": "Good"
+  },
+  "94105": {
+   "AB": "Limited",
+   "BC": "Moderate",
+   "MB": "Moderate",
+   "NB": "Undetermined",
+   "NL": "Undetermined",
+   "NS": "Moderate",
+   "ON": "Limited",
+   "QC": "Good",
+   "SK": "Limited"
+  },
+  "94106": {
+   "AB": "Limited",
+   "BC": "Limited",
+   "MB": "Moderate",
+   "NB": "Undetermined",
+   "NL": "Undetermined",
+   "NS": "Undetermined",
+   "ON": "Limited",
+   "QC": "Moderate",
+   "SK": "Limited"
+  },
+  "94107": {
+   "AB": "Limited",
+   "BC": "Limited",
+   "MB": "Moderate",
+   "NB": "Undetermined",
+   "NL": "Undetermined",
+   "NS": "Moderate",
+   "ON": "Limited",
+   "QC": "Moderate",
+   "SK": "Undetermined"
+  },
+  "95101": {
+   "AB": "Very limited",
+   "BC": "Limited",
+   "MB": "Limited",
+   "NB": "Limited",
+   "NL": "Undetermined",
+   "NS": "Undetermined",
+   "ON": "Limited",
+   "QC": "Limited",
+   "SK": "Limited"
+  }
+ },
+ "ontario": {
+  "72106": [
+   {
+    "region": "Ontario",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Ottawa",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Kingston - Pembroke",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Muskoka - Kawarthas",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Toronto",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Kitchener - Waterloo - Barrie",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Hamilton - Niagara Peninsula",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "London",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Windsor - Sarnia",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Stratford - Bruce Peninsula",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Northeast",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Northwest",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   }
+  ],
+  "72100": [
+   {
+    "region": "Ontario",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Ottawa",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Kingston - Pembroke",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Muskoka - Kawarthas",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Very good"
+   },
+   {
+    "region": "Toronto",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Kitchener - Waterloo - Barrie",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Hamilton - Niagara Peninsula",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "London",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Windsor - Sarnia",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Very limited"
+   },
+   {
+    "region": "Stratford - Bruce Peninsula",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Northeast",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Northwest",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Undetermined"
+   }
+  ],
+  "72101": [
+   {
+    "region": "Ontario",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Ottawa",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Kingston - Pembroke",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Muskoka - Kawarthas",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Toronto",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Kitchener - Waterloo - Barrie",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Hamilton - Niagara Peninsula",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "London",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Windsor - Sarnia",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Stratford - Bruce Peninsula",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Northeast",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Northwest",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   }
+  ],
+  "72102": [
+   {
+    "region": "Ontario",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Ottawa",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Kingston - Pembroke",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Muskoka - Kawarthas",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Toronto",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Kitchener - Waterloo - Barrie",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Hamilton - Niagara Peninsula",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "London",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Windsor - Sarnia",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Stratford - Bruce Peninsula",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Northeast",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Northwest",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Moderate"
+   }
+  ],
+  "72103": [
+   {
+    "region": "Ontario",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Ottawa",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Kingston - Pembroke",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Muskoka - Kawarthas",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Toronto",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Kitchener - Waterloo - Barrie",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Hamilton - Niagara Peninsula",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "London",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Windsor - Sarnia",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Stratford - Bruce Peninsula",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Northeast",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Northwest",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   }
+  ],
+  "72104": [
+   {
+    "region": "Ontario",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Ottawa",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Kingston - Pembroke",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Muskoka - Kawarthas",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Toronto",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Kitchener - Waterloo - Barrie",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Hamilton - Niagara Peninsula",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "London",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Windsor - Sarnia",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Stratford - Bruce Peninsula",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Northeast",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Northwest",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   }
+  ],
+  "72400": [
+   {
+    "region": "Ontario",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Ottawa",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Kingston - Pembroke",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Muskoka - Kawarthas",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Toronto",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Kitchener - Waterloo - Barrie",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Hamilton - Niagara Peninsula",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "London",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Windsor - Sarnia",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Stratford - Bruce Peninsula",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Northeast",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Northwest",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   }
+  ],
+  "94100": [
+   {
+    "region": "Ontario",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Ottawa",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Limited"
+   },
+   {
+    "region": "Kingston - Pembroke",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Muskoka - Kawarthas",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Toronto",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Kitchener - Waterloo - Barrie",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Limited"
+   },
+   {
+    "region": "Hamilton - Niagara Peninsula",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "London",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Windsor - Sarnia",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Stratford - Bruce Peninsula",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Northeast",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Northwest",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   }
+  ],
+  "94105": [
+   {
+    "region": "Ontario",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Ottawa",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Kingston - Pembroke",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Limited"
+   },
+   {
+    "region": "Muskoka - Kawarthas",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Very limited"
+   },
+   {
+    "region": "Toronto",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Kitchener - Waterloo - Barrie",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Hamilton - Niagara Peninsula",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "London",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Windsor - Sarnia",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Stratford - Bruce Peninsula",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Northeast",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Northwest",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   }
+  ],
+  "94106": [
+   {
+    "region": "Ontario",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Ottawa",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Limited"
+   },
+   {
+    "region": "Kingston - Pembroke",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Muskoka - Kawarthas",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Toronto",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Kitchener - Waterloo - Barrie",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Hamilton - Niagara Peninsula",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "London",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Limited"
+   },
+   {
+    "region": "Windsor - Sarnia",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Limited"
+   },
+   {
+    "region": "Stratford - Bruce Peninsula",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Northeast",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Northwest",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   }
+  ],
+  "94107": [
+   {
+    "region": "Ontario",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Ottawa",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Kingston - Pembroke",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Muskoka - Kawarthas",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Toronto",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Kitchener - Waterloo - Barrie",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Hamilton - Niagara Peninsula",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "London",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Limited"
+   },
+   {
+    "region": "Windsor - Sarnia",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Stratford - Bruce Peninsula",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Good"
+   },
+   {
+    "region": "Northeast",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   },
+   {
+    "region": "Northwest",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   }
+  ],
+  "95101": [
+   {
+    "region": "Ontario",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Ottawa",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Limited"
+   },
+   {
+    "region": "Kingston - Pembroke",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Limited"
+   },
+   {
+    "region": "Muskoka - Kawarthas",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Limited"
+   },
+   {
+    "region": "Toronto",
+    "outlook": "Moderate",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Kitchener - Waterloo - Barrie",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Hamilton - Niagara Peninsula",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "London",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Limited"
+   },
+   {
+    "region": "Windsor - Sarnia",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Limited"
+   },
+   {
+    "region": "Stratford - Bruce Peninsula",
+    "outlook": "Very limited",
+    "prior_outlook_2024_2026": "Moderate"
+   },
+   {
+    "region": "Northeast",
+    "outlook": "Limited",
+    "prior_outlook_2024_2026": "Limited"
+   },
+   {
+    "region": "Northwest",
+    "outlook": "Undetermined",
+    "prior_outlook_2024_2026": "Undetermined"
+   }
+  ]
+ },
+ "welder_shortage_regions": [
+  {
+   "region": "Nova Scotia",
+   "province": "NS",
+   "outlook": "Good",
+   "prior_outlook_2024_2026": "Good"
+  },
+  {
+   "region": "Halifax",
+   "province": "NS",
+   "outlook": "Good",
+   "prior_outlook_2024_2026": "Good"
+  },
+  {
+   "region": "Prince Edward Island",
+   "province": "PE",
+   "outlook": "Good",
+   "prior_outlook_2024_2026": "Good"
+  }
+ ],
+ "welder_limited_regions": [
+  {
+   "region": "Alberta",
+   "province": "AB",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Good"
+  },
+  {
+   "region": "Lethbridge - Medicine Hat",
+   "province": "AB",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Camrose - Drumheller",
+   "province": "AB",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Calgary",
+   "province": "AB",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Banff - Jasper - Rocky Mountain House",
+   "province": "AB",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Red Deer",
+   "province": "AB",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Edmonton",
+   "province": "AB",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Athabasca - Grande Prairie - Peace River",
+   "province": "AB",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Wood Buffalo - Cold Lake",
+   "province": "AB",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "British Columbia",
+   "province": "BC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Limited"
+  },
+  {
+   "region": "Vancouver Island and Coast",
+   "province": "BC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Very limited"
+  },
+  {
+   "region": "Lower Mainland - Southwest",
+   "province": "BC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Limited"
+  },
+  {
+   "region": "Thompson - Okanagan",
+   "province": "BC",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Very limited"
+  },
+  {
+   "region": "Kootenay",
+   "province": "BC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Limited"
+  },
+  {
+   "region": "Cariboo",
+   "province": "BC",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Very limited"
+  },
+  {
+   "region": "North Coast",
+   "province": "BC",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Very limited"
+  },
+  {
+   "region": "Nechako",
+   "province": "BC",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Very limited"
+  },
+  {
+   "region": "Northeast",
+   "province": "BC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Very limited"
+  },
+  {
+   "region": "Manitoba",
+   "province": "MB",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Southeast",
+   "province": "MB",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "South Central",
+   "province": "MB",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Limited"
+  },
+  {
+   "region": "Southwest",
+   "province": "MB",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "North Central",
+   "province": "MB",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Limited"
+  },
+  {
+   "region": "Winnipeg",
+   "province": "MB",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Interlake",
+   "province": "MB",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Limited"
+  },
+  {
+   "region": "Parklands",
+   "province": "MB",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Undetermined"
+  },
+  {
+   "region": "North",
+   "province": "MB",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Undetermined"
+  },
+  {
+   "region": "Ontario",
+   "province": "ON",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Ottawa",
+   "province": "ON",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Kingston - Pembroke",
+   "province": "ON",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Muskoka - Kawarthas",
+   "province": "ON",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Toronto",
+   "province": "ON",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Good"
+  },
+  {
+   "region": "Kitchener - Waterloo - Barrie",
+   "province": "ON",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Hamilton - Niagara Peninsula",
+   "province": "ON",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "London",
+   "province": "ON",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Windsor - Sarnia",
+   "province": "ON",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Stratford - Bruce Peninsula",
+   "province": "ON",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Northeast",
+   "province": "ON",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Northwest",
+   "province": "ON",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Quebec",
+   "province": "QC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Limited"
+  },
+  {
+   "region": "Gaspésie - Îles-de-la-Madeleine",
+   "province": "QC",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Limited"
+  },
+  {
+   "region": "Bas-Saint-Laurent",
+   "province": "QC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Limited"
+  },
+  {
+   "region": "Capitale-Nationale",
+   "province": "QC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Estrie",
+   "province": "QC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Centre-du-Québec",
+   "province": "QC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Montérégie",
+   "province": "QC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Montreal",
+   "province": "QC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Limited"
+  },
+  {
+   "region": "Laval",
+   "province": "QC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Limited"
+  },
+  {
+   "region": "Lanaudière",
+   "province": "QC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Laurentides",
+   "province": "QC",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Outaouais",
+   "province": "QC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Limited"
+  },
+  {
+   "region": "Abitibi - Témiscamingue",
+   "province": "QC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Mauricie",
+   "province": "QC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Saguenay - Lac-Saint-Jean",
+   "province": "QC",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  },
+  {
+   "region": "Côte-Nord",
+   "province": "QC",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Limited"
+  },
+  {
+   "region": "Nord-du-Québec",
+   "province": "QC",
+   "outlook": "Very limited",
+   "prior_outlook_2024_2026": "Limited"
+  },
+  {
+   "region": "Saskatoon - Biggar",
+   "province": "SK",
+   "outlook": "Limited",
+   "prior_outlook_2024_2026": "Moderate"
+  }
+ ],
+ "national_wages_2025": {
+  "72106": {
+   "wage_low": 22.0,
+   "wage_median": 30.0,
+   "wage_high": 47.0,
+   "wage_unit": "hourly",
+   "wage_source": "Labour Force Survey",
+   "wage_reference_period": "2023-2024",
+   "region": "Canada",
+   "province": "NAT"
+  },
+  "72100": {
+   "wage_low": 21.0,
+   "wage_median": 30.0,
+   "wage_high": 41.5,
+   "wage_unit": "hourly",
+   "wage_source": "Labour Force Survey",
+   "wage_reference_period": "2023-2024",
+   "region": "Canada",
+   "province": "NAT"
+  },
+  "72101": {
+   "wage_low": 22.5,
+   "wage_median": 34.0,
+   "wage_high": 44.65,
+   "wage_unit": "hourly",
+   "wage_source": "Labour Force Survey",
+   "wage_reference_period": "2023-2024",
+   "region": "Canada",
+   "province": "NAT"
+  },
+  "72102": {
+   "wage_low": 22.7,
+   "wage_median": 34.07,
+   "wage_high": 45.95,
+   "wage_unit": "hourly",
+   "wage_source": "Employment Insurance Survey Data",
+   "wage_reference_period": "2023-2024",
+   "region": "Canada",
+   "province": "NAT"
+  },
+  "72103": {
+   "wage_low": 37.66,
+   "wage_median": 49.0,
+   "wage_high": 54.57,
+   "wage_unit": "hourly",
+   "wage_source": "Employment Insurance Survey Data",
+   "wage_reference_period": "2023-2024",
+   "region": "Canada",
+   "province": "NAT"
+  },
+  "72104": {
+   "wage_low": 21.0,
+   "wage_median": 29.0,
+   "wage_high": 43.3,
+   "wage_unit": "hourly",
+   "wage_source": "Employment Insurance Survey Data",
+   "wage_reference_period": "2023-2024",
+   "region": "Canada",
+   "province": "NAT"
+  },
+  "72400": {
+   "wage_low": 24.0,
+   "wage_median": 37.0,
+   "wage_high": 52.0,
+   "wage_unit": "hourly",
+   "wage_source": "Labour Force Survey",
+   "wage_reference_period": "2023-2024",
+   "region": "Canada",
+   "province": "NAT"
+  },
+  "94100": {
+   "wage_low": 22.0,
+   "wage_median": 35.0,
+   "wage_high": 50.0,
+   "wage_unit": "hourly",
+   "wage_source": "Labour Force Survey",
+   "wage_reference_period": "2023-2024",
+   "region": "Canada",
+   "province": "NAT"
+  },
+  "94105": {
+   "wage_low": 19.0,
+   "wage_median": 25.0,
+   "wage_high": 34.68,
+   "wage_unit": "hourly",
+   "wage_source": "Labour Force Survey",
+   "wage_reference_period": "2023-2024",
+   "region": "Canada",
+   "province": "NAT"
+  },
+  "94106": {
+   "wage_low": 17.5,
+   "wage_median": 25.0,
+   "wage_high": 33.08,
+   "wage_unit": "hourly",
+   "wage_source": "Labour Force Survey",
+   "wage_reference_period": "2023-2024",
+   "region": "Canada",
+   "province": "NAT"
+  },
+  "94107": {
+   "wage_low": 18.0,
+   "wage_median": 22.65,
+   "wage_high": 34.0,
+   "wage_unit": "hourly",
+   "wage_source": "Labour Force Survey",
+   "wage_reference_period": "2023-2024",
+   "region": "Canada",
+   "province": "NAT"
+  },
+  "95101": {
+   "wage_low": 18.5,
+   "wage_median": 24.0,
+   "wage_high": 32.5,
+   "wage_unit": "hourly",
+   "wage_source": "Employment Insurance Survey Data",
+   "wage_reference_period": "2023-2024",
+   "region": "Canada",
+   "province": "NAT"
+  }
+ },
+ "welder_changes_vs_2024_2026": [
+  {
+   "from": "Moderate",
+   "to": "Limited",
+   "regions": 20
+  },
+  {
+   "from": "Moderate",
+   "to": "Very limited",
+   "regions": 13
+  },
+  {
+   "from": "Limited",
+   "to": "Very limited",
+   "regions": 6
+  },
+  {
+   "from": "Good",
+   "to": "Moderate",
+   "regions": 4
+  },
+  {
+   "from": "Good",
+   "to": "Limited",
+   "regions": 2
+  },
+  {
+   "from": "Very limited",
+   "to": "Limited",
+   "regions": 2
+  },
+  {
+   "from": "Undetermined",
+   "to": "Limited",
+   "regions": 2
+  }
+ ]
+}

@@ -1,0 +1,321 @@
+{
+  "source_urls": [
+    "https://www150.statcan.gc.ca/n1/pub/21-26-0003/212600032023001-eng.htm",
+    "https://www150.statcan.gc.ca/n1/pub/21-26-0003/2023001/ODBus_2023.zip",
+    "https://www23.statcan.gc.ca/imdb/p3VD.pl?Function=getVD&TVD=1181553"
+  ],
+  "licence": "Open Government Licence – Canada",
+  "retrieved": "2026-09-26",
+  "as_of": "2023-11-28 (ODBus v1 release; underlying municipal extracts vary by provider)",
+  "source": "Statistics Canada, Open Database of Businesses (ODBus) v1",
+  "script": "scripts/ingest_odbus_national.py",
+  "output_file": "data/processed/national/odbus_manufacturers.csv",
+  "output_bytes": 562573,
+  "filter": {
+    "naics_kept": "source NAICS (primary, else secondary) in 3311-3369 (subsectors 331-336), or bare 3-digit 331-336",
+    "naics_excluded_in_range": "337 furniture, 339 miscellaneous (off-target)",
+    "keyword_matching": false,
+    "priority_groups": [
+      "3321",
+      "3323",
+      "3327",
+      "3328",
+      "3329",
+      "3332",
+      "3333",
+      "3336",
+      "3339",
+      "3344",
+      "3345",
+      "3353",
+      "3359",
+      "3363",
+      "3364",
+      "3365",
+      "3366",
+      "3369"
+    ]
+  },
+  "counts": {
+    "input_rows": 446575,
+    "input_rows_by_province": {
+      "AB": 76526,
+      "BC": 163200,
+      "NB": 110,
+      "NT": 1445,
+      "NU": 171,
+      "ON": 205122,
+      "unknown": 1
+    },
+    "input_rows_with_source_naics_by_province": {
+      "AB": 2291,
+      "BC": 19826,
+      "NT": 5,
+      "ON": 74203
+    },
+    "naics_matched_rows": 2955,
+    "rows_337_339_excluded": 1488,
+    "dropped_person_name": 5,
+    "dropped_no_name": 0,
+    "duplicates_merged": 4,
+    "distinct_names": 2866,
+    "total": 2946,
+    "priority_group_rows": 2070,
+    "rows_with_coordinates": 1905,
+    "rows_without_coordinates": 1041
+  },
+  "by_province": {
+    "ON": 2653,
+    "BC": 240,
+    "AB": 53
+  },
+  "provinces_territories_with_zero": [
+    "MB",
+    "NB",
+    "NL",
+    "NS",
+    "NT",
+    "NU",
+    "PE",
+    "QC",
+    "SK",
+    "YT"
+  ],
+  "by_municipality_top40": {
+    "Mississauga, ON": 855,
+    "Vaughan, ON": 549,
+    "Brampton, ON": 402,
+    "Markham, ON": 202,
+    "Langley, BC": 149,
+    "Kitchener, ON": 112,
+    "Newmarket, ON": 87,
+    "Richmond Hill, ON": 69,
+    "Caledon, ON": 63,
+    "Strathcona County, AB": 53,
+    "Pickering, ON": 51,
+    "Aurora, ON": 49,
+    "Nanaimo, BC": 40,
+    "Ajax, ON": 40,
+    "Oshawa, ON": 38,
+    "Whitby, ON": 34,
+    "Squamish, BC": 28,
+    "Whitchurch-Stouffville, ON": 26,
+    "Clarington, ON": 25,
+    "New Westminster, BC": 21,
+    "Uxbridge, ON": 12,
+    "East Gwillimbury, ON": 10,
+    "King, ON": 8,
+    "Georgina, ON": 7,
+    "Scugog, ON": 7,
+    "Brock, ON": 6,
+    "Surrey, BC": 2,
+    "Halton Hills, ON": 1
+  },
+  "by_naics4": {
+    "331 (3-digit only)": {
+      "count": 1,
+      "title": "Primary metal manufacturing"
+    },
+    "3311": {
+      "count": 55,
+      "title": "Iron and steel mills and ferro-alloy manufacturing"
+    },
+    "3312": {
+      "count": 61,
+      "title": "Steel product manufacturing from purchased steel"
+    },
+    "3313": {
+      "count": 34,
+      "title": "Alumina and aluminum production and processing"
+    },
+    "3314": {
+      "count": 11,
+      "title": "Non-ferrous metal (except aluminum) production and processing"
+    },
+    "3315": {
+      "count": 28,
+      "title": "Foundries"
+    },
+    "332 (3-digit only)": {
+      "count": 33,
+      "title": "Fabricated metal product manufacturing"
+    },
+    "3321": {
+      "count": 52,
+      "title": "Forging and stamping"
+    },
+    "3322": {
+      "count": 53,
+      "title": "Cutlery and hand tool manufacturing"
+    },
+    "3323": {
+      "count": 369,
+      "title": "Architectural and structural metals manufacturing"
+    },
+    "3324": {
+      "count": 21,
+      "title": "Boiler, tank and shipping container manufacturing"
+    },
+    "3325": {
+      "count": 36,
+      "title": "Hardware manufacturing"
+    },
+    "3326": {
+      "count": 25,
+      "title": "Spring and wire product manufacturing"
+    },
+    "3327": {
+      "count": 382,
+      "title": "Machine shops, turned product, and screw, nut and bolt manufacturing"
+    },
+    "3328": {
+      "count": 94,
+      "title": "Coating, engraving, cold and heat treating and allied activities"
+    },
+    "3329": {
+      "count": 246,
+      "title": "Other fabricated metal product manufacturing"
+    },
+    "333 (3-digit only)": {
+      "count": 10,
+      "title": "Machinery manufacturing"
+    },
+    "3331": {
+      "count": 30,
+      "title": "Agricultural, construction and mining machinery manufacturing"
+    },
+    "3332": {
+      "count": 135,
+      "title": "Industrial machinery manufacturing"
+    },
+    "3333": {
+      "count": 71,
+      "title": "Commercial and service industry machinery manufacturing"
+    },
+    "3334": {
+      "count": 90,
+      "title": "Ventilation, heating, air-conditioning and commercial refrigeration equipment manufacturing"
+    },
+    "3335": {
+      "count": 168,
+      "title": "Metalworking machinery manufacturing"
+    },
+    "3336": {
+      "count": 17,
+      "title": "Engine, turbine and power transmission equipment manufacturing"
+    },
+    "3339": {
+      "count": 172,
+      "title": "Other general-purpose machinery manufacturing"
+    },
+    "334 (3-digit only)": {
+      "count": 7,
+      "title": "Computer and electronic product manufacturing"
+    },
+    "3341": {
+      "count": 45,
+      "title": "Computer and peripheral equipment manufacturing"
+    },
+    "3342": {
+      "count": 38,
+      "title": "Communications equipment manufacturing"
+    },
+    "3343": {
+      "count": 15,
+      "title": "Audio and video equipment manufacturing"
+    },
+    "3344": {
+      "count": 64,
+      "title": "Semiconductor and other electronic component manufacturing"
+    },
+    "3345": {
+      "count": 90,
+      "title": "Navigational, measuring, medical and control instruments manufacturing"
+    },
+    "3346": {
+      "count": 4,
+      "title": "Manufacturing and reproducing magnetic and optical media"
+    },
+    "3351": {
+      "count": 49,
+      "title": "Electric lighting equipment manufacturing"
+    },
+    "3352": {
+      "count": 18,
+      "title": "Household appliance manufacturing"
+    },
+    "3353": {
+      "count": 72,
+      "title": "Electrical equipment manufacturing"
+    },
+    "3359": {
+      "count": 74,
+      "title": "Other electrical equipment and component manufacturing"
+    },
+    "336 (3-digit only)": {
+      "count": 5,
+      "title": "Transportation equipment manufacturing"
+    },
+    "3361": {
+      "count": 18,
+      "title": "Motor vehicle manufacturing"
+    },
+    "3362": {
+      "count": 21,
+      "title": "Motor vehicle body and trailer manufacturing"
+    },
+    "3363": {
+      "count": 156,
+      "title": "Motor vehicle parts manufacturing"
+    },
+    "3364": {
+      "count": 53,
+      "title": "Aerospace product and parts manufacturing"
+    },
+    "3365": {
+      "count": 3,
+      "title": "Railroad rolling stock manufacturing"
+    },
+    "3366": {
+      "count": 2,
+      "title": "Ship and boat building"
+    },
+    "3369": {
+      "count": 18,
+      "title": "Other transportation equipment manufacturing"
+    }
+  },
+  "by_provider": {
+    "Regional Municipality of York": 1007,
+    "City of Mississauga": 856,
+    "City of Brampton": 402,
+    "Regional Municipality of Durham": 213,
+    "Township of Langley": 151,
+    "City of Kitchener": 112,
+    "Regional Municipality of Peel": 63,
+    "Stathcona County": 53,
+    "City of Nanaimo": 40,
+    "City of Squamish": 28,
+    "City of New Westminster": 21
+  },
+  "by_employees_band": {
+    "unknown": 567,
+    "1-4": 681,
+    "5-9": 468,
+    "10-19": 436,
+    "20-49": 408,
+    "50-99": 188,
+    "100-499": 178,
+    "500+": 20
+  },
+  "notes": [
+    "COVERAGE CAVEAT: ODBus only contains businesses from municipalities and regions that publish business licence/directory open data. In v1 the only rows with a source NAICS code in 331-336 come from Ontario (York, Peel, Mississauga, Brampton, Durham, Kitchener), British Columbia (Langley Township, Squamish, Nanaimo, New Westminster) and Alberta (Strathcona County). Quebec, Manitoba, Saskatchewan and Atlantic Canada have zero rows here; this is a data-availability gap, not an absence of manufacturers. Toronto, Hamilton, Montreal, Winnipeg etc. are absent or lack NAICS codes.",
+    "Counts are establishments/licences as published, not firms; one firm may hold several sites (same name at different civic numbers is kept as separate rows; see counts.distinct_names).",
+    "NAICS codes are as supplied by each municipality (self-declared or clerk-assigned), not verified by Statistics Canada.",
+    "Rows without coordinates (mostly Regional Municipality of York, which publishes no lat/lon) are kept with blank lat/lon; map them by municipality centroid if needed.",
+    "Employee bands are normalized across providers; providers using 100-299 and 300-499 are both mapped to 100-499.",
+    "Provider 'City of Kitchener' rows carry city='Cambridge' in ODBus v1; CSDNAME (Kitchener) is used instead.",
+    "5 rows dropped because the business name looks like a person's name (heuristic: 'LAST, FIRST', 'F. Last', or a 2-3 word name starting or ending with a common given name and no business word).",
+    "No street addresses, phone numbers, emails or personal names are included. Public data — unverified — not affiliated."
+  ]
+}
