@@ -8,6 +8,7 @@
 
 import type { ShopTraining, TrainingPackage } from "@/lib/api/types"
 import { CERT_LABEL, PROCESS_LABEL } from "@/lib/format"
+import { certPlain } from "@/lib/ui/plain"
 import { extendStrings, t } from "./strings"
 
 /** "Tallowfield Fabricating Ltd." → "Tallowfield Fabricating" */
@@ -58,11 +59,28 @@ export function trainingLine(tr: ShopTraining): string {
     : t("copy.training.w471Suggested", { count: tr.trainees })
 }
 
-/** Grow item title: "Get CWB W47.1", "More welding hours" (capacity), "Add welding" (process). */
+const lowerFirst = (x: string) => (x ? x.charAt(0).toLowerCase() + x.slice(1) : x)
+
+/**
+ * Grow title for a certificate, never a bare acronym (docs/ux-simplification.md §2):
+ * "Get welding certification (CWB W47.1)", "Get quality certificate (ISO 9001)",
+ * "Register for Controlled Goods", "Do the cyber self-check (CPCSC L1)".
+ */
+export function certGrowTitle(req: string): string {
+  if (req === "CGP") return t("grow.itemTitleCgp")
+  if (req === "CPCSC_L1") return t("grow.itemTitleCpcsc")
+  const p = certPlain(req)
+  return t("grow.itemTitle", { req: p.first !== p.label ? lowerFirst(p.first) : p.first })
+}
+
+/**
+ * Grow item title: "Get welding certification (CWB W47.1)", "More welding hours" (capacity),
+ * "Add wire harness work" (process). A raw key ("wire_harness") never reaches the screen.
+ */
 export function growTitle(req: string, kind?: string | null): string {
   if (kind === "capacity") return t("grow.itemTitleCapacity", { req: requirementName(req).toLowerCase() })
-  if (kind === "process") return t("grow.itemTitleProcess", { req: requirementName(req).toLowerCase() })
-  return t("grow.itemTitle", { req: requirementShort(req) })
+  if (kind === "process" || (!kind && PROCESS_LABEL[req])) return t("grow.itemTitleProcess", { req: requirementName(req).toLowerCase() })
+  return certGrowTitle(req)
 }
 
 /** { welding: 80 } → "+80 welding h/wk" (null when empty). */
@@ -89,7 +107,9 @@ extendStrings("en", {
   "grow.subtitle": "Each item is one step from more Northgate jobs. Tap to see what it takes and who pays.",
   "grow.itemTitle": "Get {req}",
   "grow.itemTitleCapacity": "More {req} hours",
-  "grow.itemTitleProcess": "Add {req}",
+  "grow.itemTitleProcess": "Add {req} work",
+  "grow.itemTitleCgp": "Register for Controlled Goods",
+  "grow.itemTitleCpcsc": "Do the cyber self-check (CPCSC L1)",
   "grow.itemJobs": "{count} more jobs · {value}",
   "grow.itemJobs_one": "1 more job · {value}",
   "grow.tier.oneGap": "One gap",
@@ -138,6 +158,10 @@ extendStrings("en", {
 
   // --- Trainee seat ------------------------------------------------------------
   "seat.header": "Seat {seat} of {total} · {pkg}",
+  "seat.missing": "This seat does not exist on {pkg} ({total} seats)",
+  "seat.missingNoTotal": "This seat does not exist on {pkg}",
+  "seat.missingBody": "Check the link you were sent. Seats are numbered from 1, never named.",
+  "seat.pick": "Seat {seat} of {total}",
   "seat.private": "Private link. Muster never shows your name.",
   "seat.stage": "Your stage",
   "seat.stageNote": "Demo simulation: funding puts every seat at \"enrolled\".",

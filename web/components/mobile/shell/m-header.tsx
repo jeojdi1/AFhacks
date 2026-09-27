@@ -8,9 +8,12 @@ import { useDemo } from "@/lib/data/store"
 import { shopInfo } from "@/lib/app/actions-store"
 import { useConnection } from "@/lib/app/connection"
 import { t } from "@/lib/app/strings"
-import { CERT_LABEL } from "@/lib/format"
+import { certGrowTitle } from "@/lib/app/copy"
+import { PROCESS_LABEL } from "@/lib/format"
 import { BrandMark } from "@/components/shell/brand-mark"
 import { parentHref, parseMRoute, type MRoute } from "./route"
+import { SimActivityStrip } from "./simulation"
+import { useFromPrime } from "./use-from-prime"
 
 function titleFor(r: MRoute): string {
   switch (r.kind) {
@@ -18,6 +21,8 @@ function titleFor(r: MRoute): string {
       return t("title.home")
     case "prime":
       return t("title.prime")
+    case "college":
+      return t("title.college")
     case "trainee":
       return t("title.trainee")
     case "tenders":
@@ -35,7 +40,9 @@ function titleFor(r: MRoute): string {
         case "grow":
           return t("title.grow")
         case "growItem":
-          return t("title.growItem", { cert: CERT_LABEL[r.param ?? ""] ?? r.param ?? "" })
+          // Plain words, never a raw key: "Wire harness work", "Get welding certification (CWB W47.1)".
+          // A process link may add a new process or more hours; the page title says which.
+          return PROCESS_LABEL[r.param ?? ""] ? t("title.growProcess", { process: PROCESS_LABEL[r.param ?? ""] }) : certGrowTitle(r.param ?? "")
         default:
           return t("title.today")
       }
@@ -115,7 +122,8 @@ export function MHeader() {
   const pathname = usePathname()
   const { assignments } = useDemo()
   const r = parseMRoute(pathname)
-  const back = parentHref(pathname)
+  const fromPrime = useFromPrime()
+  const back = parentHref(pathname, fromPrime)
   const shop = r.kind === "shop" ? shopInfo(r.shopId) : null
   const shopName =
     r.kind === "shop" ? (shop?.name ?? assignments.find((a) => a.shop_id === r.shopId)?.shop_name ?? r.shopId) : null
@@ -146,7 +154,7 @@ export function MHeader() {
           {shopName ? (
             <div className="mt-0.5 flex min-w-0 items-center gap-1.5">
               <span className="truncate text-sm text-muted-foreground">{shopName}</span>
-              {source === "synthetic" ? <ShopLabelChip source="synthetic" className="py-0 text-[11px]" /> : null}
+              {source === "synthetic" ? <ShopLabelChip source="synthetic" className="py-0 text-[13px]" /> : null}
             </div>
           ) : null}
         </div>
@@ -155,6 +163,7 @@ export function MHeader() {
       {source === "public" ? (
         <p className="border-t border-border bg-public-soft px-4 py-1 text-xs font-medium text-public">{t("label.public")}</p>
       ) : null}
+      <SimActivityStrip />
     </header>
   )
 }

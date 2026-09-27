@@ -6,6 +6,7 @@ import { IosInstallHint } from "@/components/mobile/shell/ios-install-hint"
 import { MFooter } from "@/components/mobile/shell/m-footer"
 import { BottomTabs } from "@/components/mobile/shell/bottom-tabs"
 import { LiveStepSync } from "@/components/mobile/shell/live-step-sync"
+import { SimulationRunner } from "@/components/mobile/shell/simulation"
 
 export const metadata: Metadata = {
   title: "Muster",
@@ -25,6 +26,7 @@ export default function PhoneLayout({ children }: LayoutProps<"/m">) {
     <div className="flex flex-1 flex-col bg-secondary md:px-4 md:py-6">
       <div className="mx-auto flex w-full max-w-[430px] flex-1 flex-col bg-background text-base md:overflow-clip md:rounded-[28px] md:border md:border-border md:shadow-sm">
         <LiveStepSync />
+        <SimulationRunner />
         <MHeader />
         <OfflineBanner />
         <FreshnessStamp />

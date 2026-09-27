@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Building2, ChevronRight, Factory, GraduationCap, Inbox } from "lucide-react"
+import { Building2, ChevronRight, Factory, GraduationCap, Inbox, School } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { fmtMoney } from "@/lib/format"
 import { useDemo } from "@/lib/data/store"
@@ -11,21 +11,23 @@ import { t } from "@/lib/app/strings"
 import { UnreachableNotice } from "@/components/mobile/shell/unreachable-notice"
 import { useConnection } from "@/lib/app/connection"
 import { ShopLabelChip } from "@/components/mobile/shell/m-header"
+import { DemoControls } from "@/components/mobile/shell/demo-controls"
 
 const ROLE_KEY = "muster.app.v1.role"
 
-type RoleId = "shop" | "prime" | "trainee"
+type RoleId = "shop" | "prime" | "college" | "trainee"
 
 const ROLES: { id: RoleId; href: string; title: string; body: string; Icon: typeof Factory }[] = [
   { id: "shop", href: "/m/shops/syn-012", title: "role.shop.title", body: "role.shop.body", Icon: Factory },
   { id: "prime", href: "/m/prime", title: "role.prime.title", body: "role.prime.body", Icon: Building2 },
+  { id: "college", href: "/m/college", title: "role.college.title", body: "role.college.body", Icon: School },
   { id: "trainee", href: "/m/trainee/TP-01?seat=3", title: "role.trainee.title", body: "role.trainee.body", Icon: GraduationCap },
 ]
 
 function readRole(): RoleId | null {
   try {
     const v = window.localStorage.getItem(ROLE_KEY)
-    return v === "shop" || v === "prime" || v === "trainee" ? v : null
+    return v === "shop" || v === "prime" || v === "college" || v === "trainee" ? v : null
   } catch {
     return null
   }
@@ -37,6 +39,15 @@ function writeRole(r: RoleId) {
   } catch {
     /* storage unavailable: nothing remembered */
   }
+  // Keep the demo sign-in (web/lib/auth, desktop) on the same fictional account.
+  // Loaded lazily and guarded: the phone app works without it.
+  void import("@/lib/auth/session")
+    .then((m) => {
+      if (typeof m.signIn === "function") m.signIn(r)
+    })
+    .catch(() => {
+      /* no session module: nothing to sync */
+    })
 }
 
 /** /m: pick shop, prime or trainee. The choice is remembered; launching from the Home Screen reopens it. */
@@ -113,6 +124,8 @@ export default function RolePickerPage() {
           ))}
         </ul>
       </section>
+
+      <DemoControls />
 
       <section aria-labelledby="other-shops-title" className="flex flex-col gap-3">
         <h2 id="other-shops-title" className="text-lg font-semibold tracking-tight">

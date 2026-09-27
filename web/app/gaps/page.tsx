@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
 import { GapsView } from "@/components/gaps/gaps-view";
+import { COPY_D } from "@/lib/ui/copy-d";
 
 export const metadata: Metadata = {
-  title: "Gaps & Training · Muster",
-  description:
-    "Jobs no qualified shop can take, and ITB-eligible training the prime can fund to unblock them.",
+  title: COPY_D["gaps.meta.title"],
+  description: COPY_D["gaps.meta.description"],
 };
 
 export default function GapsPage() {

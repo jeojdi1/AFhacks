@@ -449,6 +449,8 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }):
   const lastSeqRef = React.useRef(0)
   const flushingRef = React.useRef(false)
   const syncingRef = React.useRef(false)
+  /** flushOutbox, for syncLive (the two callbacks refer to each other). */
+  const flushRef = React.useRef<(() => Promise<void>) | null>(null)
 
   const live = demo.ready && demo.mode === "live"
   const local = demo.ready && (demo.mode === "fixtures" || supported === false)
@@ -537,6 +539,7 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }):
       if (!useEngineRef.current || syncingRef.current) return
       syncingRef.current = true
       const api = demoRef.current.apiUrl
+      let reached = false
       try {
         const since = full ? 0 : lastSeqRef.current
         let ev = await fetchEvents(api, since)
@@ -559,10 +562,16 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }):
         lastSeqRef.current = ev.last_seq
         setOnline(true)
         setLastSyncAt(nowIso())
+        reached = true
       } catch (e) {
         if (e instanceof AppApiError && e.network) setOnline(false)
       } finally {
         syncingRef.current = false
+      }
+      // The engine answered: send anything queued while it was down. The browser "online" event
+      // never fires when only the engine (not the phone's network) was unreachable (Q11).
+      if (reached && !flushingRef.current && (outboxRef.current.length > 0 || readOutbox().length > 0)) {
+        void flushRef.current?.()
       }
     },
     [putBase]
@@ -637,6 +646,9 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }):
     }
     if (rest.length < queue.length) void syncLive(false)
   }, [mergeResponse, putOutbox, syncLive])
+  React.useEffect(() => {
+    flushRef.current = flushOutbox
+  }, [flushOutbox])
 
   // Poll while visible; flush on startup, online and visibility.
   React.useEffect(() => {

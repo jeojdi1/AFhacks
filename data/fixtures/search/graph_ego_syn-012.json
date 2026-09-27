@@ -1,0 +1,4009 @@
+{
+  "engine": "memory",
+  "root": "shop:syn-012",
+  "depth": 2,
+  "limit": 150,
+  "truncated": true,
+  "nodes": [
+    {
+      "id": "shop:syn-012",
+      "type": "Shop",
+      "label": "Tallowfield Fabricating Ltd.",
+      "props": {
+        "capacity_hours_week": 200,
+        "city": "Woolwich",
+        "employee_band": "20-49",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.599,
+        "lon": -80.557,
+        "naics": "332319",
+        "name": "Tallowfield Fabricating Ltd.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-012",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "process:painting",
+      "type": "Process",
+      "label": "painting",
+      "props": {
+        "label": "painting",
+        "name": "painting"
+      }
+    },
+    {
+      "id": "process:sheet_metal",
+      "type": "Process",
+      "label": "sheet metal",
+      "props": {
+        "label": "sheet metal",
+        "name": "sheet_metal"
+      }
+    },
+    {
+      "id": "process:welding",
+      "type": "Process",
+      "label": "welding",
+      "props": {
+        "label": "welding",
+        "name": "welding"
+      }
+    },
+    {
+      "id": "cert:CPCSC_L1",
+      "type": "Cert",
+      "label": "CPCSC Level 1",
+      "props": {
+        "label": "CPCSC Level 1",
+        "type": "CPCSC_L1"
+      }
+    },
+    {
+      "id": "region:3540",
+      "type": "Region",
+      "label": "Kitchener - Waterloo - Barrie",
+      "props": {
+        "code": "3540",
+        "level": "economic_region",
+        "name": "Kitchener - Waterloo - Barrie",
+        "odbus_manufacturer_sites": 112,
+        "province": "ON",
+        "welder_vacancies_latest": 185.0,
+        "welder_vacancies_quarter": "2026-04-01"
+      }
+    },
+    {
+      "id": "job:NG-017",
+      "type": "Job",
+      "label": "NG-017 · CARC paint system service, armour steel hull subassemblies up to 3.4 m, Nadcap coatings",
+      "props": {
+        "ccv_pct": 0.92,
+        "controlled": false,
+        "description": "CARC paint system service, armour steel hull subassemblies up to 3.4 m, Nadcap coatings",
+        "hours_week": 24,
+        "job_id": "NG-017",
+        "material": "armour_steel",
+        "part_no": "NG-PNT-6301",
+        "qty": 1440,
+        "value_cad": 1267200.0
+      }
+    },
+    {
+      "id": "job:NG-018",
+      "type": "Job",
+      "label": "NG-018 · Powder coat service, steel interior stowage brackets and covers, commercial finish",
+      "props": {
+        "ccv_pct": 0.93,
+        "controlled": false,
+        "description": "Powder coat service, steel interior stowage brackets and covers, commercial finish",
+        "hours_week": 10,
+        "job_id": "NG-018",
+        "material": "steel",
+        "part_no": "NG-PNT-6318",
+        "qty": 11000,
+        "value_cad": 352000.0
+      }
+    },
+    {
+      "id": "job:NG-021",
+      "type": "Job",
+      "label": "NG-021 · Crew stowage rack, mild steel sheet metal, formed and MIG welded, primed and painted (non-structural)",
+      "props": {
+        "ccv_pct": 0.91,
+        "controlled": false,
+        "description": "Crew stowage rack, mild steel sheet metal, formed and MIG welded, primed and painted (non-structural)",
+        "hours_week": 22,
+        "job_id": "NG-021",
+        "material": "steel",
+        "part_no": "NG-STW-2210",
+        "qty": 1440,
+        "value_cad": 921600.0
+      }
+    },
+    {
+      "id": "job:NG-022",
+      "type": "Job",
+      "label": "NG-022 · Tool and equipment box, steel, MIG welded and painted (non-structural)",
+      "props": {
+        "ccv_pct": 0.91,
+        "controlled": false,
+        "description": "Tool and equipment box, steel, MIG welded and painted (non-structural)",
+        "hours_week": 24,
+        "job_id": "NG-022",
+        "material": "steel",
+        "part_no": "NG-STW-2224",
+        "qty": 1080,
+        "value_cad": 777600.0
+      }
+    },
+    {
+      "id": "job:NG-030",
+      "type": "Job",
+      "label": "NG-030 · Boarding step weldment, steel, structural welding to CWB W47.1, painted, ISO 9001",
+      "props": {
+        "ccv_pct": 0.9,
+        "controlled": false,
+        "description": "Boarding step weldment, steel, structural welding to CWB W47.1, painted, ISO 9001",
+        "hours_week": 20,
+        "job_id": "NG-030",
+        "material": "steel",
+        "part_no": "NG-STP-4405",
+        "qty": 1460,
+        "value_cad": 569400.0
+      }
+    },
+    {
+      "id": "job:NG-033",
+      "type": "Job",
+      "label": "NG-033 · Rear ramp door frame weldment, armour steel, structural welding to CWB W47.1, primed and painted",
+      "props": {
+        "ccv_pct": 0.9,
+        "controlled": false,
+        "description": "Rear ramp door frame weldment, armour steel, structural welding to CWB W47.1, primed and painted",
+        "hours_week": 48,
+        "job_id": "NG-033",
+        "material": "armour_steel",
+        "part_no": "NG-HUL-4431",
+        "qty": 380,
+        "value_cad": 1710000.0
+      }
+    },
+    {
+      "id": "shop:pub-004",
+      "type": "Shop",
+      "label": "Arrow Engineered Products (Arrow Machine and Fabrication Group)",
+      "props": {
+        "city": "Cambridge",
+        "employee_band": "100-499 (three plants; not stated)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.41596,
+        "lon": -80.3759,
+        "naics": "332319",
+        "name": "Arrow Engineered Products (Arrow Machine and Fabrication Group)",
+        "onboarding": "discovered",
+        "shop_id": "pub-004",
+        "source": "public",
+        "website": "https://arrowmfgep.com/"
+      }
+    },
+    {
+      "id": "shop:pub-005",
+      "type": "Shop",
+      "label": "Ascendant Coatings",
+      "props": {
+        "city": "Cambridge",
+        "employee_band": "1-19",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.42795,
+        "lon": -80.38356,
+        "naics": "332812",
+        "name": "Ascendant Coatings",
+        "onboarding": "discovered",
+        "shop_id": "pub-005",
+        "source": "public",
+        "website": "https://www.ascendantcoatings.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-011",
+      "type": "Shop",
+      "label": "Hespeler Powder Coating",
+      "props": {
+        "city": "Cambridge",
+        "employee_band": "1-19",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.40828,
+        "lon": -80.30608,
+        "naics": "332812",
+        "name": "Hespeler Powder Coating",
+        "onboarding": "discovered",
+        "shop_id": "pub-011",
+        "source": "public",
+        "website": "https://hespelerpowdercoating.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-014",
+      "type": "Shop",
+      "label": "Novatek Welding & Fabrication",
+      "props": {
+        "city": "Cambridge",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.36363,
+        "lon": -80.28871,
+        "naics": "332990",
+        "name": "Novatek Welding & Fabrication",
+        "onboarding": "discovered",
+        "shop_id": "pub-014",
+        "source": "public",
+        "website": "https://novatekwelding.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-016",
+      "type": "Shop",
+      "label": "Shimco",
+      "props": {
+        "city": "Cambridge",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.42547,
+        "lon": -80.35913,
+        "naics": "332999",
+        "name": "Shimco",
+        "onboarding": "discovered",
+        "shop_id": "pub-016",
+        "source": "public",
+        "website": "https://shimco.com/"
+      }
+    },
+    {
+      "id": "shop:pub-019",
+      "type": "Shop",
+      "label": "Trade-Mark Industrial Inc.",
+      "props": {
+        "city": "Cambridge",
+        "employee_band": "200-499 (ODBus 240)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.41588,
+        "lon": -80.35433,
+        "naics": "332310",
+        "name": "Trade-Mark Industrial Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-019",
+        "source": "public",
+        "website": "https://tmi.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-024",
+      "type": "Shop",
+      "label": "Trylon (Trylon TSF Inc.)",
+      "props": {
+        "city": "Elmira",
+        "employee_band": "200-700 (third-party estimates conflict)",
+        "is_sme": false,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.583,
+        "lon": -80.5583,
+        "naics": "332312",
+        "name": "Trylon (Trylon TSF Inc.)",
+        "onboarding": "discovered",
+        "shop_id": "pub-024",
+        "source": "public",
+        "website": "https://www.trylon.com/"
+      }
+    },
+    {
+      "id": "shop:pub-025",
+      "type": "Shop",
+      "label": "Advanced Steel Fabrication Ltd.",
+      "props": {
+        "city": "Hamilton",
+        "employee_band": "1-19 (site states about 10 staff)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.23981,
+        "lon": -79.75541,
+        "naics": "332314",
+        "name": "Advanced Steel Fabrication Ltd.",
+        "onboarding": "discovered",
+        "shop_id": "pub-025",
+        "source": "public",
+        "website": "https://advsteelfab.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-029",
+      "type": "Shop",
+      "label": "Hamilton Specialized Welding Inc.",
+      "props": {
+        "city": "Hamilton",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.19192,
+        "lon": -79.8409,
+        "naics": "332319",
+        "name": "Hamilton Specialized Welding Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-029",
+        "source": "public",
+        "website": "https://hamiltonweldinginc.com/"
+      }
+    },
+    {
+      "id": "shop:pub-030",
+      "type": "Shop",
+      "label": "MES Powder Coating",
+      "props": {
+        "city": "Hamilton",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.23632,
+        "lon": -79.74534,
+        "naics": "332812",
+        "name": "MES Powder Coating",
+        "onboarding": "discovered",
+        "shop_id": "pub-030",
+        "source": "public",
+        "website": "https://mespowdercoating.com/"
+      }
+    },
+    {
+      "id": "shop:pub-048",
+      "type": "Shop",
+      "label": "ADJ Industries Inc.",
+      "props": {
+        "city": "London",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.02412,
+        "lon": -81.16848,
+        "naics": "332710",
+        "name": "ADJ Industries Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-048",
+        "source": "public",
+        "website": "https://adjindustries.com/"
+      }
+    },
+    {
+      "id": "shop:pub-054",
+      "type": "Shop",
+      "label": "Lor-Don Limited",
+      "props": {
+        "city": "London",
+        "employee_band": "51-200 (third-party listing)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 42.99792,
+        "lon": -81.21268,
+        "naics": "332319",
+        "name": "Lor-Don Limited",
+        "onboarding": "discovered",
+        "shop_id": "pub-054",
+        "source": "public",
+        "website": "https://lordon.com/"
+      }
+    },
+    {
+      "id": "shop:pub-055",
+      "type": "Shop",
+      "label": "Militex Coatings Inc.",
+      "props": {
+        "city": "London",
+        "employee_band": "100-199 (site states 180 employees)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.02765,
+        "lon": -81.18808,
+        "naics": "332810",
+        "name": "Militex Coatings Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-055",
+        "source": "public",
+        "website": "https://www.militex.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-056",
+      "type": "Shop",
+      "label": "NASCO Industrial Coating",
+      "props": {
+        "city": "London",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 42.93376,
+        "lon": -81.18152,
+        "naics": "332812",
+        "name": "NASCO Industrial Coating",
+        "onboarding": "discovered",
+        "shop_id": "pub-056",
+        "source": "public",
+        "website": "https://www.nasco1.com/"
+      }
+    },
+    {
+      "id": "shop:pub-067",
+      "type": "Shop",
+      "label": "Total Coatings",
+      "props": {
+        "city": "Stoney Creek",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.22622,
+        "lon": -79.7086,
+        "naics": "332812",
+        "name": "Total Coatings",
+        "onboarding": "discovered",
+        "shop_id": "pub-067",
+        "source": "public",
+        "website": "https://totalcoatings.com/"
+      }
+    },
+    {
+      "id": "shop:pub-074",
+      "type": "Shop",
+      "label": "Seaborn Manufacturing",
+      "props": {
+        "city": "Waterloo",
+        "employee_band": "20-99",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.50759,
+        "lon": -80.54097,
+        "naics": "332319",
+        "name": "Seaborn Manufacturing",
+        "onboarding": "discovered",
+        "shop_id": "pub-074",
+        "source": "public",
+        "website": "https://seabornmfg.com/"
+      }
+    },
+    {
+      "id": "shop:pub-076",
+      "type": "Shop",
+      "label": "Westex Coatings Inc.",
+      "props": {
+        "city": "Waterloo",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.50516,
+        "lon": -80.53915,
+        "naics": "332810",
+        "name": "Westex Coatings Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-076",
+        "source": "public",
+        "website": "https://westexcoatings.ca/"
+      }
+    },
+    {
+      "id": "shop:syn-006",
+      "type": "Shop",
+      "label": "Lanternfield Sheet Metal Ltd.",
+      "props": {
+        "capacity_hours_week": 80,
+        "city": "London",
+        "employee_band": "20-49",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 42.9285,
+        "lon": -81.2215,
+        "naics": "332319",
+        "name": "Lanternfield Sheet Metal Ltd.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-006",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-008",
+      "type": "Shop",
+      "label": "Anvilbrook Structural Welding Ltd.",
+      "props": {
+        "capacity_hours_week": 36,
+        "city": "Cambridge",
+        "employee_band": "20-49",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.344,
+        "lon": -80.308,
+        "naics": "332319",
+        "name": "Anvilbrook Structural Welding Ltd.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-008",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-014",
+      "type": "Shop",
+      "label": "Carapace Coatings Inc.",
+      "props": {
+        "capacity_hours_week": 100,
+        "city": "London",
+        "employee_band": "50-99",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 42.975,
+        "lon": -81.165,
+        "naics": "332810",
+        "name": "Carapace Coatings Inc.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-014",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-024",
+      "type": "Shop",
+      "label": "Glossmark Finishing Inc.",
+      "props": {
+        "capacity_hours_week": 60,
+        "city": "Kitchener",
+        "employee_band": "10-19",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.439,
+        "lon": -80.412,
+        "naics": "332810",
+        "name": "Glossmark Finishing Inc.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-024",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-026",
+      "type": "Shop",
+      "label": "Keelbar Heavy Fabrication Ltd.",
+      "props": {
+        "capacity_hours_week": 36,
+        "city": "Hamilton",
+        "employee_band": "100-199",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.253,
+        "lon": -79.795,
+        "naics": "332319",
+        "name": "Keelbar Heavy Fabrication Ltd.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-026",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "job:NG-002",
+      "type": "Job",
+      "label": "NG-002 · Periscope guard bracket, mild steel, laser cut and press-brake formed sheet metal, commercial quality",
+      "props": {
+        "ccv_pct": 0.9,
+        "controlled": false,
+        "description": "Periscope guard bracket, mild steel, laser cut and press-brake formed sheet metal, commercial quality",
+        "hours_week": 8,
+        "job_id": "NG-002",
+        "material": "steel",
+        "part_no": "NG-BRK-1022",
+        "qty": 1520,
+        "value_cad": 212800.0
+      }
+    },
+    {
+      "id": "job:NG-025",
+      "type": "Job",
+      "label": "NG-025 · Driver display enclosure, sheet aluminum enclosure with electronics assembly, ISO 9001",
+      "props": {
+        "ccv_pct": 0.74,
+        "controlled": false,
+        "description": "Driver display enclosure, sheet aluminum enclosure with electronics assembly, ISO 9001",
+        "hours_week": 16,
+        "job_id": "NG-025",
+        "material": "aluminum",
+        "part_no": "NG-ELC-7133",
+        "qty": 380,
+        "value_cad": 1406000.0
+      }
+    },
+    {
+      "id": "job:NG-031",
+      "type": "Job",
+      "label": "NG-031 · Hull side stowage bin weldment, armour steel plate, press-brake formed sheet metal, structural welding to CWB W47.1",
+      "props": {
+        "ccv_pct": 0.9,
+        "controlled": false,
+        "description": "Hull side stowage bin weldment, armour steel plate, press-brake formed sheet metal, structural welding to CWB W47.1",
+        "hours_week": 40,
+        "job_id": "NG-031",
+        "material": "armour_steel",
+        "part_no": "NG-HUL-4410",
+        "qty": 1440,
+        "value_cad": 1656000.0
+      }
+    },
+    {
+      "id": "job:NG-035",
+      "type": "Job",
+      "label": "NG-035 · Fuel tank mounting bracket, mild steel, laser cut and press-brake formed sheet metal",
+      "props": {
+        "ccv_pct": 0.9,
+        "controlled": false,
+        "description": "Fuel tank mounting bracket, mild steel, laser cut and press-brake formed sheet metal",
+        "hours_week": 8,
+        "job_id": "NG-035",
+        "material": "steel",
+        "part_no": "NG-BRK-1040",
+        "qty": 760,
+        "value_cad": 197600.0
+      }
+    },
+    {
+      "id": "shop:pub-002",
+      "type": "Shop",
+      "label": "Welder Series Inc.",
+      "props": {
+        "city": "Breslau",
+        "employee_band": "1-49",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.46984,
+        "lon": -80.41034,
+        "naics": "336390",
+        "name": "Welder Series Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-002",
+        "source": "public",
+        "website": "https://welderseries.com/"
+      }
+    },
+    {
+      "id": "shop:pub-009",
+      "type": "Shop",
+      "label": "Freedom Welding Company Inc.",
+      "props": {
+        "city": "Cambridge",
+        "employee_band": "10-49",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.39443,
+        "lon": -80.30607,
+        "naics": "332314",
+        "name": "Freedom Welding Company Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-009",
+        "source": "public",
+        "website": "https://www.freedomwelding.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-015",
+      "type": "Shop",
+      "label": "Ridsdale Metal Products",
+      "props": {
+        "city": "Cambridge",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.37082,
+        "lon": -80.30107,
+        "naics": "332319",
+        "name": "Ridsdale Metal Products",
+        "onboarding": "discovered",
+        "shop_id": "pub-015",
+        "source": "public",
+        "website": "http://www.ridsdalemetal.com/"
+      }
+    },
+    {
+      "id": "shop:pub-020",
+      "type": "Shop",
+      "label": "Armatec Survivability Corp.",
+      "props": {
+        "city": "Dorchester",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 42.99348,
+        "lon": -81.08698,
+        "naics": "336992",
+        "name": "Armatec Survivability Corp.",
+        "onboarding": "discovered",
+        "shop_id": "pub-020",
+        "source": "public",
+        "website": "https://www.armateconline.com/"
+      }
+    },
+    {
+      "id": "shop:pub-021",
+      "type": "Shop",
+      "label": "Engineered Lifting Systems & Equipment Inc. (ELS)",
+      "props": {
+        "city": "Elmira",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.57822,
+        "lon": -80.55753,
+        "naics": "333923",
+        "name": "Engineered Lifting Systems & Equipment Inc. (ELS)",
+        "onboarding": "discovered",
+        "shop_id": "pub-021",
+        "source": "public",
+        "website": "https://engliftsystems.com/"
+      }
+    },
+    {
+      "id": "shop:pub-022",
+      "type": "Shop",
+      "label": "S Bend Welding Inc.",
+      "props": {
+        "city": "Elmira",
+        "employee_band": "1-19",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.58939,
+        "lon": -80.55074,
+        "naics": "332319",
+        "name": "S Bend Welding Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-022",
+        "source": "public",
+        "website": "https://sbendwelding.com/"
+      }
+    },
+    {
+      "id": "shop:pub-023",
+      "type": "Shop",
+      "label": "TASK Custom Metal Fabricators",
+      "props": {
+        "city": "Elmira",
+        "employee_band": "10-49",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.57909,
+        "lon": -80.56126,
+        "naics": "332319",
+        "name": "TASK Custom Metal Fabricators",
+        "onboarding": "discovered",
+        "shop_id": "pub-023",
+        "source": "public",
+        "website": "https://www.taskcustommetal.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-042",
+      "type": "Shop",
+      "label": "Marcon Custom Metals Inc.",
+      "props": {
+        "city": "Kitchener",
+        "employee_band": "50-99 (ODBus 65)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.41687,
+        "lon": -80.44147,
+        "naics": "332310",
+        "name": "Marcon Custom Metals Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-042",
+        "source": "public",
+        "website": "https://marconmetals.com/"
+      }
+    },
+    {
+      "id": "shop:pub-046",
+      "type": "Shop",
+      "label": "William Radtke Sheet Metal Ltd.",
+      "props": {
+        "city": "Kitchener",
+        "employee_band": "20-49 (ODBus 27)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.46601,
+        "lon": -80.48089,
+        "naics": "332310",
+        "name": "William Radtke Sheet Metal Ltd.",
+        "onboarding": "discovered",
+        "shop_id": "pub-046",
+        "source": "public",
+        "website": "https://www.williamradtke.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-052",
+      "type": "Shop",
+      "label": "Diversified Metal Fabrication Inc.",
+      "props": {
+        "city": "London",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 42.93204,
+        "lon": -81.21183,
+        "naics": "332319",
+        "name": "Diversified Metal Fabrication Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-052",
+        "source": "public",
+        "website": "https://diversifiedmetalfabrication.com/"
+      }
+    },
+    {
+      "id": "shop:pub-059",
+      "type": "Shop",
+      "label": "V&C Machinery Inc.",
+      "props": {
+        "city": "London",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 42.98728,
+        "lon": -81.21105,
+        "naics": "332319",
+        "name": "V&C Machinery Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-059",
+        "source": "public",
+        "website": "https://vcmachineryinc.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-060",
+      "type": "Shop",
+      "label": "Wolfram Group Inc.",
+      "props": {
+        "city": "London",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 42.93195,
+        "lon": -81.21343,
+        "naics": "332999",
+        "name": "Wolfram Group Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-060",
+        "source": "public",
+        "website": "https://wolframgroup.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-061",
+      "type": "Shop",
+      "label": "Weber's Fabricating Ltd.",
+      "props": {
+        "city": "St. Jacobs",
+        "employee_band": "10-49",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.54496,
+        "lon": -80.54931,
+        "naics": "332319",
+        "name": "Weber's Fabricating Ltd.",
+        "onboarding": "discovered",
+        "shop_id": "pub-061",
+        "source": "public",
+        "website": "https://www.webersfab.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-064",
+      "type": "Shop",
+      "label": "GF Machine Shop Ltd.",
+      "props": {
+        "city": "Stoney Creek",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.2241,
+        "lon": -79.69305,
+        "naics": "332710",
+        "name": "GF Machine Shop Ltd.",
+        "onboarding": "discovered",
+        "shop_id": "pub-064",
+        "source": "public",
+        "website": "https://www.gfmachineshop.com/"
+      }
+    },
+    {
+      "id": "shop:pub-068",
+      "type": "Shop",
+      "label": "VP Expert Machining Inc.",
+      "props": {
+        "city": "Stoney Creek",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.23344,
+        "lon": -79.73569,
+        "naics": "332710",
+        "name": "VP Expert Machining Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-068",
+        "source": "public",
+        "website": "https://www.vpexpert.com/"
+      }
+    },
+    {
+      "id": "shop:pub-078",
+      "type": "Shop",
+      "label": "Harvan Manufacturing Ltd.",
+      "props": {
+        "city": "Woodstock",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.11233,
+        "lon": -80.7196,
+        "naics": "332710",
+        "name": "Harvan Manufacturing Ltd.",
+        "onboarding": "discovered",
+        "shop_id": "pub-078",
+        "source": "public",
+        "website": "https://www.harvan.com/"
+      }
+    },
+    {
+      "id": "shop:syn-018",
+      "type": "Shop",
+      "label": "Circuitry Row Assembly Ltd.",
+      "props": {
+        "capacity_hours_week": 60,
+        "city": "Kitchener",
+        "employee_band": "20-49",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.4225,
+        "lon": -80.4857,
+        "naics": "334410",
+        "name": "Circuitry Row Assembly Ltd.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-018",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-023",
+      "type": "Shop",
+      "label": "Ridgeplate Metalworks Ltd.",
+      "props": {
+        "capacity_hours_week": 36,
+        "city": "Hamilton",
+        "employee_band": "20-49",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.251,
+        "lon": -79.815,
+        "naics": "332319",
+        "name": "Ridgeplate Metalworks Ltd.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-023",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-025",
+      "type": "Shop",
+      "label": "Foldwell Enclosures Inc.",
+      "props": {
+        "capacity_hours_week": 50,
+        "city": "Waterloo",
+        "employee_band": "10-19",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.501,
+        "lon": -80.5405,
+        "naics": "332319",
+        "name": "Foldwell Enclosures Inc.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-025",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "job:NG-029",
+      "type": "Job",
+      "label": "NG-029 · Tow bracket weldment, armour steel, structural welding to CWB W47.1, ISO 9001",
+      "props": {
+        "ccv_pct": 0.9,
+        "controlled": false,
+        "description": "Tow bracket weldment, armour steel, structural welding to CWB W47.1, ISO 9001",
+        "hours_week": 18,
+        "job_id": "NG-029",
+        "material": "armour_steel",
+        "part_no": "NG-TOW-4401",
+        "qty": 760,
+        "value_cad": 623200.0
+      }
+    },
+    {
+      "id": "job:NG-032",
+      "type": "Job",
+      "label": "NG-032 · Engine deck access hatch frame weldment, armour steel, structural welding to CWB W47.1",
+      "props": {
+        "ccv_pct": 0.9,
+        "controlled": false,
+        "description": "Engine deck access hatch frame weldment, armour steel, structural welding to CWB W47.1",
+        "hours_week": 44,
+        "job_id": "NG-032",
+        "material": "armour_steel",
+        "part_no": "NG-HUL-4422",
+        "qty": 740,
+        "value_cad": 1702000.0
+      }
+    },
+    {
+      "id": "job:NG-034",
+      "type": "Job",
+      "label": "NG-034 · Hull belly plate weldment, 3200 mm long, armour steel, structural welding to CWB W47.1",
+      "props": {
+        "ccv_pct": 0.9,
+        "controlled": false,
+        "description": "Hull belly plate weldment, 3200 mm long, armour steel, structural welding to CWB W47.1",
+        "hours_week": 40,
+        "job_id": "NG-034",
+        "material": "armour_steel",
+        "part_no": "NG-HUL-4450",
+        "qty": 380,
+        "value_cad": 1501000.0
+      }
+    },
+    {
+      "id": "shop:pub-003",
+      "type": "Shop",
+      "label": "A.R.D. Industries Ltd.",
+      "props": {
+        "city": "Cambridge",
+        "employee_band": "25 (stated)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.40477,
+        "lon": -80.31003,
+        "naics": "332999",
+        "name": "A.R.D. Industries Ltd.",
+        "onboarding": "discovered",
+        "shop_id": "pub-003",
+        "source": "public",
+        "website": "https://www.ardindustries.com/"
+      }
+    },
+    {
+      "id": "shop:pub-006",
+      "type": "Shop",
+      "label": "Ascension Manufacturing Ltd.",
+      "props": {
+        "city": "Cambridge",
+        "employee_band": "10-49",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.42795,
+        "lon": -80.38356,
+        "naics": "332710",
+        "name": "Ascension Manufacturing Ltd.",
+        "onboarding": "discovered",
+        "shop_id": "pub-006",
+        "source": "public",
+        "website": "https://www.ascensionm.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-026",
+      "type": "Shop",
+      "label": "All Tool Manufacturing Inc.",
+      "props": {
+        "city": "Hamilton",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.2364,
+        "lon": -79.74102,
+        "naics": "332710",
+        "name": "All Tool Manufacturing Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-026",
+        "source": "public",
+        "website": "https://alltoolgroup.com/"
+      }
+    },
+    {
+      "id": "shop:pub-027",
+      "type": "Shop",
+      "label": "F.C. Welding Inc.",
+      "props": {
+        "city": "Hamilton",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.23188,
+        "lon": -79.72693,
+        "naics": "332319",
+        "name": "F.C. Welding Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-027",
+        "source": "public",
+        "website": "https://www.fcweldinginc.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-031",
+      "type": "Shop",
+      "label": "RUMIX Machining & Fabrication Inc.",
+      "props": {
+        "city": "Hamilton",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.25581,
+        "lon": -79.77378,
+        "naics": "332710",
+        "name": "RUMIX Machining & Fabrication Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-031",
+        "source": "public",
+        "website": "https://rumix.org/"
+      }
+    },
+    {
+      "id": "shop:pub-032",
+      "type": "Shop",
+      "label": "Triple Crown Enterprises (TCE)",
+      "props": {
+        "city": "Hamilton",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.25508,
+        "lon": -79.78442,
+        "naics": "332319",
+        "name": "Triple Crown Enterprises (TCE)",
+        "onboarding": "discovered",
+        "shop_id": "pub-032",
+        "source": "public",
+        "website": "https://tceont.com/"
+      }
+    },
+    {
+      "id": "shop:pub-033",
+      "type": "Shop",
+      "label": "A.J. Braun Mfg. Limited",
+      "props": {
+        "city": "Kitchener",
+        "employee_band": "20-49 (ODBus 35)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.42684,
+        "lon": -80.47161,
+        "naics": "332310",
+        "name": "A.J. Braun Mfg. Limited",
+        "onboarding": "discovered",
+        "shop_id": "pub-033",
+        "source": "public",
+        "website": "https://ajbraun.com/"
+      }
+    },
+    {
+      "id": "shop:pub-037",
+      "type": "Shop",
+      "label": "Cooksville Steel Limited (Kitchener plant)",
+      "props": {
+        "city": "Kitchener",
+        "employee_band": "50-99 (75 across two sites per site; ODBus 43 at Kitchener)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.41767,
+        "lon": -80.44538,
+        "naics": "332300",
+        "name": "Cooksville Steel Limited (Kitchener plant)",
+        "onboarding": "discovered",
+        "shop_id": "pub-037",
+        "source": "public",
+        "website": "https://cooksvillesteel.com/"
+      }
+    },
+    {
+      "id": "shop:pub-043",
+      "type": "Shop",
+      "label": "NMT Machining Group Inc.",
+      "props": {
+        "city": "Kitchener",
+        "employee_band": "50-99 (ODBus 60)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.40348,
+        "lon": -80.46654,
+        "naics": "332710",
+        "name": "NMT Machining Group Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-043",
+        "source": "public",
+        "website": "https://www.nmtgroup.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-049",
+      "type": "Shop",
+      "label": "Armo-Tool Ltd. (incl. Abuma Manufacturing)",
+      "props": {
+        "city": "London",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 42.91173,
+        "lon": -81.33628,
+        "naics": "333514",
+        "name": "Armo-Tool Ltd. (incl. Abuma Manufacturing)",
+        "onboarding": "discovered",
+        "shop_id": "pub-049",
+        "source": "public",
+        "website": "https://armotool.com/"
+      }
+    },
+    {
+      "id": "shop:pub-053",
+      "type": "Shop",
+      "label": "I.G.D. Machine & Tool Ltd.",
+      "props": {
+        "city": "London",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 42.9326,
+        "lon": -81.18412,
+        "naics": "332710",
+        "name": "I.G.D. Machine & Tool Ltd.",
+        "onboarding": "discovered",
+        "shop_id": "pub-053",
+        "source": "public",
+        "website": "https://igdmachine.com/"
+      }
+    },
+    {
+      "id": "shop:pub-065",
+      "type": "Shop",
+      "label": "Novacro Machining Industries Inc.",
+      "props": {
+        "city": "Stoney Creek",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.22847,
+        "lon": -79.70764,
+        "naics": "332710",
+        "name": "Novacro Machining Industries Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-065",
+        "source": "public",
+        "website": "https://www.novacro.com/"
+      }
+    },
+    {
+      "id": "shop:pub-066",
+      "type": "Shop",
+      "label": "Superior Boiler Works & Welding Ltd.",
+      "props": {
+        "city": "Stoney Creek",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.21866,
+        "lon": -79.66878,
+        "naics": "23",
+        "name": "Superior Boiler Works & Welding Ltd.",
+        "onboarding": "discovered",
+        "shop_id": "pub-066",
+        "source": "public",
+        "website": "https://www.sbww.com/"
+      }
+    },
+    {
+      "id": "shop:pub-070",
+      "type": "Shop",
+      "label": "Innostrat Solutions Inc.",
+      "props": {
+        "city": "Waterloo",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.5119,
+        "lon": -80.52676,
+        "naics": "333519",
+        "name": "Innostrat Solutions Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-070",
+        "source": "public",
+        "website": "https://innostrat.com/"
+      }
+    },
+    {
+      "id": "shop:syn-004",
+      "type": "Shop",
+      "label": "Forkline Weld & Machine Ltd.",
+      "props": {
+        "capacity_hours_week": 30,
+        "city": "London",
+        "employee_band": "10-19",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 42.948,
+        "lon": -81.202,
+        "naics": "332710",
+        "name": "Forkline Weld & Machine Ltd.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-004",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-005",
+      "type": "Shop",
+      "label": "Brassgate Turning & Weld Inc.",
+      "props": {
+        "capacity_hours_week": 60,
+        "city": "Kitchener",
+        "employee_band": "10-19",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.433,
+        "lon": -80.463,
+        "naics": "332710",
+        "name": "Brassgate Turning & Weld Inc.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-005",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "job:NG-020",
+      "type": "Job",
+      "label": "NG-020 · Vetronics data bus wire harness, shielded copper, IPC/WHMA-A-620 Class 3, CPCSC Level 1, ISO 9001, controlled technical data (CGP)",
+      "props": {
+        "ccv_pct": 0.76,
+        "controlled": true,
+        "description": "Vetronics data bus wire harness, shielded copper, IPC/WHMA-A-620 Class 3, CPCSC Level 1, ISO 9001, controlled technical data (CGP)",
+        "hours_week": 30,
+        "job_id": "NG-020",
+        "material": "copper",
+        "part_no": "NG-VET-7010",
+        "qty": 1100,
+        "value_cad": 2640000.0
+      }
+    },
+    {
+      "id": "job:NG-024",
+      "type": "Job",
+      "label": "NG-024 · Mission computer chassis, CNC milled aluminum enclosure with electronics assembly, CPCSC Level 1, ISO 9001, controlled technical data (CGP)",
+      "props": {
+        "ccv_pct": 0.75,
+        "controlled": true,
+        "description": "Mission computer chassis, CNC milled aluminum enclosure with electronics assembly, CPCSC Level 1, ISO 9001, controlled technical data (CGP)",
+        "hours_week": 28,
+        "job_id": "NG-024",
+        "material": "aluminum",
+        "part_no": "NG-MCC-7120",
+        "qty": 380,
+        "value_cad": 3724000.0
+      }
+    },
+    {
+      "id": "shop:syn-016",
+      "type": "Shop",
+      "label": "Trunkline Interconnect Corp.",
+      "props": {
+        "capacity_hours_week": 300,
+        "city": "London",
+        "employee_band": "500-999",
+        "is_sme": false,
+        "label_text": "Synthetic",
+        "lat": 42.9365,
+        "lon": -81.278,
+        "naics": "335920",
+        "name": "Trunkline Interconnect Corp.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-016",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-017",
+      "type": "Shop",
+      "label": "Bitmesh Electronics Assembly Inc.",
+      "props": {
+        "capacity_hours_week": 70,
+        "city": "Waterloo",
+        "employee_band": "50-99",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.4905,
+        "lon": -80.527,
+        "naics": "334410",
+        "name": "Bitmesh Electronics Assembly Inc.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-017",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:pub-007",
+      "type": "Shop",
+      "label": "Cambridge Heat Treating Inc.",
+      "props": {
+        "city": "Cambridge",
+        "employee_band": "20-99 (30,000 sq ft; not stated)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.39304,
+        "lon": -80.33664,
+        "naics": "332811",
+        "name": "Cambridge Heat Treating Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-007",
+        "source": "public",
+        "website": "https://cambridgeheattreating.com/"
+      }
+    },
+    {
+      "id": "shop:pub-008",
+      "type": "Shop",
+      "label": "ESS Manufacturing",
+      "props": {
+        "city": "Cambridge",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.39525,
+        "lon": -80.3247,
+        "naics": "334418",
+        "name": "ESS Manufacturing",
+        "onboarding": "discovered",
+        "shop_id": "pub-008",
+        "source": "public",
+        "website": "https://www.essmanufacturing.com/"
+      }
+    },
+    {
+      "id": "shop:pub-010",
+      "type": "Shop",
+      "label": "HQ-Tec Machining (High Quality Technology Machining Ltd.)",
+      "props": {
+        "city": "Cambridge",
+        "employee_band": "20-99 (15,000 sq ft; not stated)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.39871,
+        "lon": -80.33069,
+        "naics": "332710",
+        "name": "HQ-Tec Machining (High Quality Technology Machining Ltd.)",
+        "onboarding": "discovered",
+        "shop_id": "pub-010",
+        "source": "public",
+        "website": "http://www.hqtecmachining.com/"
+      }
+    },
+    {
+      "id": "shop:pub-012",
+      "type": "Shop",
+      "label": "Industrial Processing (Krebsz Electroplating Ltd. - Industrial Processing Division)",
+      "props": {
+        "city": "Cambridge",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.38002,
+        "lon": -80.30233,
+        "naics": "332813",
+        "name": "Industrial Processing (Krebsz Electroplating Ltd. - Industrial Processing Division)",
+        "onboarding": "discovered",
+        "shop_id": "pub-012",
+        "source": "public"
+      }
+    },
+    {
+      "id": "shop:pub-013",
+      "type": "Shop",
+      "label": "Kam Wire E.D.M. Technologies Inc.",
+      "props": {
+        "city": "Cambridge",
+        "employee_band": "1-19",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.39933,
+        "lon": -80.29723,
+        "naics": "332710",
+        "name": "Kam Wire E.D.M. Technologies Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-013",
+        "source": "public",
+        "website": "https://www.kamwireedm.com/"
+      }
+    },
+    {
+      "id": "shop:pub-017",
+      "type": "Shop",
+      "label": "Spektrum Machining",
+      "props": {
+        "city": "Cambridge",
+        "employee_band": "7 (stated)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.40042,
+        "lon": -80.30669,
+        "naics": "332710",
+        "name": "Spektrum Machining",
+        "onboarding": "discovered",
+        "shop_id": "pub-017",
+        "source": "public",
+        "website": "https://www.spektrumcnc.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-018",
+      "type": "Shop",
+      "label": "Technical Hard Chrome Inc.",
+      "props": {
+        "city": "Cambridge",
+        "employee_band": "1-19",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.40488,
+        "lon": -80.3049,
+        "naics": "332813",
+        "name": "Technical Hard Chrome Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-018",
+        "source": "public",
+        "website": "https://technicalhardchrome.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-034",
+      "type": "Shop",
+      "label": "ABRO Manufacturing Inc.",
+      "props": {
+        "city": "Kitchener",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.47368,
+        "lon": -80.43523,
+        "naics": "332710",
+        "name": "ABRO Manufacturing Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-034",
+        "source": "public",
+        "website": "https://abrom.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-035",
+      "type": "Shop",
+      "label": "Answer Precision Technologies (Answer Precision Tool Inc.)",
+      "props": {
+        "city": "Kitchener",
+        "employee_band": "51-200 (LinkedIn); ODBus 40",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.40804,
+        "lon": -80.45048,
+        "naics": "332210",
+        "name": "Answer Precision Technologies (Answer Precision Tool Inc.)",
+        "onboarding": "discovered",
+        "shop_id": "pub-035",
+        "source": "public",
+        "website": "https://www.answerprecision.com/"
+      }
+    },
+    {
+      "id": "shop:pub-036",
+      "type": "Shop",
+      "label": "Car-San Manufacturing Limited",
+      "props": {
+        "city": "Kitchener",
+        "employee_band": "10-19 (ODBus 18)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.40337,
+        "lon": -80.47826,
+        "naics": "334410",
+        "name": "Car-San Manufacturing Limited",
+        "onboarding": "discovered",
+        "shop_id": "pub-036",
+        "source": "public",
+        "website": "http://www.car-san.com/"
+      }
+    },
+    {
+      "id": "shop:pub-038",
+      "type": "Shop",
+      "label": "Formex Metal Industries Inc.",
+      "props": {
+        "city": "Kitchener",
+        "employee_band": "20-49 (ODBus 30)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.46862,
+        "lon": -80.4701,
+        "naics": "332720",
+        "name": "Formex Metal Industries Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-038",
+        "source": "public",
+        "website": "https://www.formexmetal.com/"
+      }
+    },
+    {
+      "id": "shop:pub-039",
+      "type": "Shop",
+      "label": "Kevtron Industries Limited",
+      "props": {
+        "city": "Kitchener",
+        "employee_band": "10-19 (ODBus 10)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.48041,
+        "lon": -80.46005,
+        "naics": "335920",
+        "name": "Kevtron Industries Limited",
+        "onboarding": "discovered",
+        "shop_id": "pub-039",
+        "source": "public",
+        "website": "https://kevtron.com/"
+      }
+    },
+    {
+      "id": "shop:pub-040",
+      "type": "Shop",
+      "label": "MSD Machine Tool Inc.",
+      "props": {
+        "city": "Kitchener",
+        "employee_band": "10-19 (ODBus 12)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.39982,
+        "lon": -80.47172,
+        "naics": "332710",
+        "name": "MSD Machine Tool Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-040",
+        "source": "public",
+        "website": "http://msdmachine.com/"
+      }
+    },
+    {
+      "id": "shop:pub-041",
+      "type": "Shop",
+      "label": "MTM Precision Inc.",
+      "props": {
+        "city": "Kitchener",
+        "employee_band": "10-19 (ODBus 18)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.40016,
+        "lon": -80.48554,
+        "naics": "332710",
+        "name": "MTM Precision Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-041",
+        "source": "public"
+      }
+    },
+    {
+      "id": "shop:pub-044",
+      "type": "Shop",
+      "label": "Rapid Gear Ltd.",
+      "props": {
+        "city": "Kitchener",
+        "employee_band": "50-99 (ODBus 65)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.39839,
+        "lon": -80.46832,
+        "naics": "333610",
+        "name": "Rapid Gear Ltd.",
+        "onboarding": "discovered",
+        "shop_id": "pub-044",
+        "source": "public",
+        "website": "https://rapidgear.com/"
+      }
+    },
+    {
+      "id": "shop:pub-045",
+      "type": "Shop",
+      "label": "Velatron Technologies (formerly S.G. Smallwood Inc.)",
+      "props": {
+        "city": "Kitchener",
+        "employee_band": "11-50",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.40872,
+        "lon": -80.44155,
+        "naics": "334410",
+        "name": "Velatron Technologies (formerly S.G. Smallwood Inc.)",
+        "onboarding": "discovered",
+        "shop_id": "pub-045",
+        "source": "public",
+        "website": "https://velatron.com/"
+      }
+    },
+    {
+      "id": "shop:pub-047",
+      "type": "Shop",
+      "label": "XL Tool Inc.",
+      "props": {
+        "city": "Kitchener",
+        "employee_band": "20-49 (ODBus 48)",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.479,
+        "lon": -80.43226,
+        "naics": "332118",
+        "name": "XL Tool Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-047",
+        "source": "public",
+        "website": "https://www.xltool.com/"
+      }
+    },
+    {
+      "id": "shop:pub-069",
+      "type": "Shop",
+      "label": "H&O Cylindrical Precision",
+      "props": {
+        "city": "Waterloo",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.5059,
+        "lon": -80.53574,
+        "naics": "332710",
+        "name": "H&O Cylindrical Precision",
+        "onboarding": "discovered",
+        "shop_id": "pub-069",
+        "source": "public",
+        "website": "https://cylindricalprecision.com/"
+      }
+    },
+    {
+      "id": "shop:pub-071",
+      "type": "Shop",
+      "label": "Michael Stephen Manufacturing Ltd.",
+      "props": {
+        "city": "Waterloo",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.50695,
+        "lon": -80.53484,
+        "naics": "335929",
+        "name": "Michael Stephen Manufacturing Ltd.",
+        "onboarding": "discovered",
+        "shop_id": "pub-071",
+        "source": "public",
+        "website": "https://msmltd.com/"
+      }
+    },
+    {
+      "id": "shop:pub-072",
+      "type": "Shop",
+      "label": "Novy Manufacturing Inc.",
+      "props": {
+        "city": "Waterloo",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.50478,
+        "lon": -80.55525,
+        "naics": "332710",
+        "name": "Novy Manufacturing Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-072",
+        "source": "public",
+        "website": "https://novymfg.on.ca/"
+      }
+    },
+    {
+      "id": "shop:pub-073",
+      "type": "Shop",
+      "label": "Progressive AMS (Progressive Machining Inc.)",
+      "props": {
+        "city": "Waterloo",
+        "employee_band": "20-99",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.50909,
+        "lon": -80.53673,
+        "naics": "332710",
+        "name": "Progressive AMS (Progressive Machining Inc.)",
+        "onboarding": "discovered",
+        "shop_id": "pub-073",
+        "source": "public",
+        "website": "https://www.progressiveams.com/"
+      }
+    },
+    {
+      "id": "shop:pub-075",
+      "type": "Shop",
+      "label": "Waterloo Electroplating & Metal Finishing Inc.",
+      "props": {
+        "city": "Waterloo",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.50204,
+        "lon": -80.5494,
+        "naics": "332810",
+        "name": "Waterloo Electroplating & Metal Finishing Inc.",
+        "onboarding": "discovered",
+        "shop_id": "pub-075",
+        "source": "public",
+        "website": "http://www.waterlooelectroplating.com/"
+      }
+    },
+    {
+      "id": "shop:pub-077",
+      "type": "Shop",
+      "label": "accu-automation corp.",
+      "props": {
+        "city": "Waterloo",
+        "is_sme": true,
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.48718,
+        "lon": -80.51575,
+        "naics": "334418",
+        "name": "accu-automation corp.",
+        "onboarding": "discovered",
+        "shop_id": "pub-077",
+        "source": "public",
+        "website": "https://www.accuauto.com/"
+      }
+    },
+    {
+      "id": "shop:syn-001",
+      "type": "Shop",
+      "label": "Tessellate Precision Machining Inc.",
+      "props": {
+        "capacity_hours_week": 90,
+        "city": "Kitchener",
+        "employee_band": "50-99",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.4186,
+        "lon": -80.445,
+        "naics": "332710",
+        "name": "Tessellate Precision Machining Inc.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-001",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-002",
+      "type": "Shop",
+      "label": "Kestrel Axis Manufacturing Ltd.",
+      "props": {
+        "capacity_hours_week": 70,
+        "city": "Waterloo",
+        "employee_band": "20-49",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.488,
+        "lon": -80.539,
+        "naics": "332710",
+        "name": "Kestrel Axis Manufacturing Ltd.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-002",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-003",
+      "type": "Shop",
+      "label": "Quillon Mill & Turn Inc.",
+      "props": {
+        "capacity_hours_week": 80,
+        "city": "Cambridge",
+        "employee_band": "20-49",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.3855,
+        "lon": -80.328,
+        "naics": "332710",
+        "name": "Quillon Mill & Turn Inc.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-003",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-007",
+      "type": "Shop",
+      "label": "Pinwheel Precision Turning Inc.",
+      "props": {
+        "capacity_hours_week": 60,
+        "city": "Waterloo",
+        "employee_band": "20-49",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.4972,
+        "lon": -80.5502,
+        "naics": "332720",
+        "name": "Pinwheel Precision Turning Inc.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-007",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-010",
+      "type": "Shop",
+      "label": "Coldframe Heat Treating Inc.",
+      "props": {
+        "capacity_hours_week": 80,
+        "city": "Kitchener",
+        "employee_band": "10-19",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.4501,
+        "lon": -80.431,
+        "naics": "332810",
+        "name": "Coldframe Heat Treating Inc.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-010",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-011",
+      "type": "Shop",
+      "label": "Galvanta Surface Finishing Corp.",
+      "props": {
+        "capacity_hours_week": 200,
+        "city": "Cambridge",
+        "employee_band": "500-999",
+        "is_sme": false,
+        "label_text": "Synthetic",
+        "lat": 43.37,
+        "lon": -80.351,
+        "naics": "332810",
+        "name": "Galvanta Surface Finishing Corp.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-011",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-015",
+      "type": "Shop",
+      "label": "Loomline Harness Systems Inc.",
+      "props": {
+        "capacity_hours_week": 80,
+        "city": "Waterloo",
+        "employee_band": "50-99",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.476,
+        "lon": -80.513,
+        "naics": "335990",
+        "name": "Loomline Harness Systems Inc.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-015",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-019",
+      "type": "Shop",
+      "label": "Solderpoint Contract Manufacturing Inc.",
+      "props": {
+        "capacity_hours_week": 60,
+        "city": "Cambridge",
+        "employee_band": "20-49",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.418,
+        "lon": -80.315,
+        "naics": "335315",
+        "name": "Solderpoint Contract Manufacturing Inc.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-019",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-022",
+      "type": "Shop",
+      "label": "Orchard Line Machine Ltd.",
+      "props": {
+        "capacity_hours_week": 50,
+        "city": "Woolwich",
+        "employee_band": "10-19",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.539,
+        "lon": -80.554,
+        "naics": "332710",
+        "name": "Orchard Line Machine Ltd.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-022",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-027",
+      "type": "Shop",
+      "label": "Quintaxis Machining Inc.",
+      "props": {
+        "capacity_hours_week": 60,
+        "city": "Cambridge",
+        "employee_band": "20-49",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.36,
+        "lon": -80.295,
+        "naics": "332710",
+        "name": "Quintaxis Machining Inc.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-027",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "shop:syn-028",
+      "type": "Shop",
+      "label": "Millrace Machine Works Ltd.",
+      "props": {
+        "capacity_hours_week": 50,
+        "city": "Woolwich",
+        "employee_band": "10-19",
+        "is_sme": true,
+        "label_text": "Synthetic",
+        "lat": 43.605,
+        "lon": -80.548,
+        "naics": "332710",
+        "name": "Millrace Machine Works Ltd.",
+        "onboarding": "onboarded",
+        "shop_id": "syn-028",
+        "source": "synthetic"
+      }
+    },
+    {
+      "id": "region:3500",
+      "type": "Region",
+      "label": "Ontario",
+      "props": {
+        "code": "3500",
+        "level": "province",
+        "name": "Ontario",
+        "province": "ON",
+        "welder_vacancies_latest": 875.0,
+        "welder_vacancies_quarter": "2026-04-01"
+      }
+    },
+    {
+      "id": "occupation:72100",
+      "type": "Occupation",
+      "label": "Machinists and machining and tooling inspectors",
+      "props": {
+        "name": "Machinists and machining and tooling inspectors",
+        "noc": "72100"
+      }
+    },
+    {
+      "id": "occupation:72101",
+      "type": "Occupation",
+      "label": "Tool and die makers",
+      "props": {
+        "name": "Tool and die makers",
+        "noc": "72101"
+      }
+    },
+    {
+      "id": "occupation:72102",
+      "type": "Occupation",
+      "label": "Sheet metal workers",
+      "props": {
+        "name": "Sheet metal workers",
+        "noc": "72102"
+      }
+    },
+    {
+      "id": "occupation:72103",
+      "type": "Occupation",
+      "label": "Boilermakers",
+      "props": {
+        "name": "Boilermakers",
+        "noc": "72103"
+      }
+    },
+    {
+      "id": "occupation:72104",
+      "type": "Occupation",
+      "label": "Structural metal and platework fabricators and fitters",
+      "props": {
+        "name": "Structural metal and platework fabricators and fitters",
+        "noc": "72104"
+      }
+    },
+    {
+      "id": "occupation:72106",
+      "type": "Occupation",
+      "label": "Welders and related machine operators",
+      "props": {
+        "name": "Welders and related machine operators",
+        "noc": "72106"
+      }
+    },
+    {
+      "id": "occupation:72400",
+      "type": "Occupation",
+      "label": "Construction millwrights and industrial mechanics",
+      "props": {
+        "name": "Construction millwrights and industrial mechanics",
+        "noc": "72400"
+      }
+    },
+    {
+      "id": "occupation:94100",
+      "type": "Occupation",
+      "label": "Machine operators, mineral and metal processing",
+      "props": {
+        "name": "Machine operators, mineral and metal processing",
+        "noc": "94100"
+      }
+    },
+    {
+      "id": "occupation:94105",
+      "type": "Occupation",
+      "label": "Metalworking and forging machine operators",
+      "props": {
+        "name": "Metalworking and forging machine operators",
+        "noc": "94105"
+      }
+    },
+    {
+      "id": "occupation:94106",
+      "type": "Occupation",
+      "label": "Machining tool operators",
+      "props": {
+        "name": "Machining tool operators",
+        "noc": "94106"
+      }
+    },
+    {
+      "id": "occupation:94107",
+      "type": "Occupation",
+      "label": "Machine operators of other metal products",
+      "props": {
+        "name": "Machine operators of other metal products",
+        "noc": "94107"
+      }
+    },
+    {
+      "id": "occupation:95101",
+      "type": "Occupation",
+      "label": "Labourers in metal fabrication",
+      "props": {
+        "name": "Labourers in metal fabrication",
+        "noc": "95101"
+      }
+    },
+    {
+      "id": "mfr:00a8ca7ca0e4d9a21b10",
+      "type": "Manufacturer",
+      "label": "Enertech Maintenance Contractor Inc.",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.46907,
+        "lon": -80.48031,
+        "naics": "333410",
+        "naics4": "3334",
+        "name": "Enertech Maintenance Contractor Inc.",
+        "odbus_id": "00a8ca7ca0e4d9a21b10",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:018b4f043ace63f8c2ce",
+      "type": "Manufacturer",
+      "label": "Colt Canada Corporation",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.40791,
+        "lon": -80.43874,
+        "naics": "336990",
+        "naics4": "3369",
+        "name": "Colt Canada Corporation",
+        "odbus_id": "018b4f043ace63f8c2ce",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:0191460d693ab1020304",
+      "type": "Manufacturer",
+      "label": "Panel Shop Inc.",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.42618,
+        "lon": -80.4753,
+        "naics": "335315",
+        "naics4": "3353",
+        "name": "Panel Shop Inc.",
+        "odbus_id": "0191460d693ab1020304",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:026a9a7075504a2f76db",
+      "type": "Manufacturer",
+      "label": "Christie Digital Systems Canada, Inc.",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.46282,
+        "lon": -80.47562,
+        "naics": "334310",
+        "naics4": "3343",
+        "name": "Christie Digital Systems Canada, Inc.",
+        "odbus_id": "026a9a7075504a2f76db",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:079f24f9ed146ae9549c",
+      "type": "Manufacturer",
+      "label": "Novatek Welding/Fabrication",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.41616,
+        "lon": -80.44291,
+        "naics": "333920",
+        "naics4": "3339",
+        "name": "Novatek Welding/Fabrication",
+        "odbus_id": "079f24f9ed146ae9549c",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:07c070893ff135df0128",
+      "type": "Manufacturer",
+      "label": "Oblitech Tooling System Ltd",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.46654,
+        "lon": -80.46657,
+        "naics": "332210",
+        "naics4": "3322",
+        "name": "Oblitech Tooling System Ltd",
+        "odbus_id": "07c070893ff135df0128",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:0ba4d048b05f481d5d97",
+      "type": "Manufacturer",
+      "label": "Cooksville Steel Limited",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.41767,
+        "lon": -80.44538,
+        "naics": "332300",
+        "naics4": "3323",
+        "name": "Cooksville Steel Limited",
+        "odbus_id": "0ba4d048b05f481d5d97",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:0bcadfc25b21b8dff7a4",
+      "type": "Manufacturer",
+      "label": "Canada Alloy Castings",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.40035,
+        "lon": -80.4482,
+        "naics": "331110",
+        "naics4": "3311",
+        "name": "Canada Alloy Castings",
+        "odbus_id": "0bcadfc25b21b8dff7a4",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:0d7cfc879100b4544149",
+      "type": "Manufacturer",
+      "label": "Kuntz Electroplating Inc.",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.4128,
+        "lon": -80.44358,
+        "naics": "332810",
+        "naics4": "3328",
+        "name": "Kuntz Electroplating Inc.",
+        "odbus_id": "0d7cfc879100b4544149",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:0f2eab500b1a966cfc41",
+      "type": "Manufacturer",
+      "label": "Communiteq Systems Inc.",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.40315,
+        "lon": -80.48039,
+        "naics": "334110",
+        "naics4": "3341",
+        "name": "Communiteq Systems Inc.",
+        "odbus_id": "0f2eab500b1a966cfc41",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:0fc0fb285ce648c000c8",
+      "type": "Manufacturer",
+      "label": "Double R Steel Inc",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.42859,
+        "lon": -80.47571,
+        "naics": "331200",
+        "naics4": "3312",
+        "name": "Double R Steel Inc",
+        "odbus_id": "0fc0fb285ce648c000c8",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:16cf8da459c40513a286",
+      "type": "Manufacturer",
+      "label": "Fibertech Optica Inc.",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.44522,
+        "lon": -80.51901,
+        "naics": "335920",
+        "naics4": "3359",
+        "name": "Fibertech Optica Inc.",
+        "odbus_id": "16cf8da459c40513a286",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:17dd64351229561f898b",
+      "type": "Manufacturer",
+      "label": "Limnoterra Ltd.",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.48145,
+        "lon": -80.4866,
+        "naics": "334510",
+        "naics4": "3345",
+        "name": "Limnoterra Ltd.",
+        "odbus_id": "17dd64351229561f898b",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:1942b49b89da38b63bb6",
+      "type": "Manufacturer",
+      "label": "AGS Machine Tool Inc.",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.40318,
+        "lon": -80.48124,
+        "naics": "332710",
+        "naics4": "3327",
+        "name": "AGS Machine Tool Inc.",
+        "odbus_id": "1942b49b89da38b63bb6",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:1c6dc3227e83bd0623d1",
+      "type": "Manufacturer",
+      "label": "Teleflex GFI Control Systems",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.48015,
+        "lon": -80.46128,
+        "naics": "336310",
+        "naics4": "3363",
+        "name": "Teleflex GFI Control Systems",
+        "odbus_id": "1c6dc3227e83bd0623d1",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:1cb7c6c4df5f3dd91cf1",
+      "type": "Manufacturer",
+      "label": "Lau Ironworks Ltd., Ed",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.44185,
+        "lon": -80.48945,
+        "naics": "332310",
+        "naics4": "3323",
+        "name": "Lau Ironworks Ltd., Ed",
+        "odbus_id": "1cb7c6c4df5f3dd91cf1",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:1d315498065913477317",
+      "type": "Manufacturer",
+      "label": "Studio A-Mirador",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.40229,
+        "lon": -80.47683,
+        "naics": "334610",
+        "naics4": "3346",
+        "name": "Studio A-Mirador",
+        "odbus_id": "1d315498065913477317",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:1e2da95b1d19779d68ba",
+      "type": "Manufacturer",
+      "label": "Amber Steel",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.47016,
+        "lon": -80.47585,
+        "naics": "332999",
+        "naics4": "3329",
+        "name": "Amber Steel",
+        "odbus_id": "1e2da95b1d19779d68ba",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:2d70d36af870fb80eecf",
+      "type": "Manufacturer",
+      "label": "T & G Precision Tool & Die Inc.",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.40564,
+        "lon": -80.47255,
+        "naics": "332710",
+        "naics4": "3327",
+        "name": "T & G Precision Tool & Die Inc.",
+        "odbus_id": "2d70d36af870fb80eecf",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:2eb37c5f308480def0c3",
+      "type": "Manufacturer",
+      "label": "AR Alloy Repair Welding",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.37362,
+        "lon": -80.51333,
+        "naics": "332710",
+        "naics4": "3327",
+        "name": "AR Alloy Repair Welding",
+        "odbus_id": "2eb37c5f308480def0c3",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:2f1be32490d364aa807c",
+      "type": "Manufacturer",
+      "label": "Canaramp Corp.",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.44009,
+        "lon": -80.48861,
+        "naics": "332990",
+        "naics4": "3329",
+        "name": "Canaramp Corp.",
+        "odbus_id": "2f1be32490d364aa807c",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:2fce3aa5e8cbb5ba96aa",
+      "type": "Manufacturer",
+      "label": "Eagle Bridge Inc.",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.46892,
+        "lon": -80.45813,
+        "naics": "332300",
+        "naics4": "3323",
+        "name": "Eagle Bridge Inc.",
+        "odbus_id": "2fce3aa5e8cbb5ba96aa",
+        "province": "ON",
+        "source": "odbus"
+      }
+    },
+    {
+      "id": "mfr:31eb1de262547a6c8d5a",
+      "type": "Manufacturer",
+      "label": "Kitchener Die Craftsmen",
+      "props": {
+        "city": "Kitchener",
+        "label_text": "Public data — unverified — not affiliated",
+        "lat": 43.46901,
+        "lon": -80.47049,
+        "naics": "332210",
+        "naics4": "3322",
+        "name": "Kitchener Die Craftsmen",
+        "odbus_id": "31eb1de262547a6c8d5a",
+        "province": "ON",
+        "source": "odbus"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "job:NG-002",
+      "target": "process:sheet_metal",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-017",
+      "target": "process:painting",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-018",
+      "target": "process:painting",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-020",
+      "target": "cert:CPCSC_L1",
+      "type": "NEEDS_CERT",
+      "props": {
+        "via": "required_certs"
+      }
+    },
+    {
+      "source": "job:NG-021",
+      "target": "process:painting",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-021",
+      "target": "process:sheet_metal",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-021",
+      "target": "process:welding",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-022",
+      "target": "process:painting",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-022",
+      "target": "process:welding",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-024",
+      "target": "cert:CPCSC_L1",
+      "type": "NEEDS_CERT",
+      "props": {
+        "via": "required_certs"
+      }
+    },
+    {
+      "source": "job:NG-025",
+      "target": "process:sheet_metal",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-029",
+      "target": "process:welding",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-030",
+      "target": "process:painting",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-030",
+      "target": "process:welding",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-031",
+      "target": "process:sheet_metal",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-031",
+      "target": "process:welding",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-032",
+      "target": "process:welding",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-033",
+      "target": "process:painting",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-033",
+      "target": "process:welding",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-034",
+      "target": "process:welding",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "job:NG-035",
+      "target": "process:sheet_metal",
+      "type": "NEEDS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "mfr:00a8ca7ca0e4d9a21b10",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:018b4f043ace63f8c2ce",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:0191460d693ab1020304",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:026a9a7075504a2f76db",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:079f24f9ed146ae9549c",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:07c070893ff135df0128",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:0ba4d048b05f481d5d97",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:0bcadfc25b21b8dff7a4",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:0d7cfc879100b4544149",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:0f2eab500b1a966cfc41",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:0fc0fb285ce648c000c8",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:16cf8da459c40513a286",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:17dd64351229561f898b",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:1942b49b89da38b63bb6",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:1c6dc3227e83bd0623d1",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:1cb7c6c4df5f3dd91cf1",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:1d315498065913477317",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:1e2da95b1d19779d68ba",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:2d70d36af870fb80eecf",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:2eb37c5f308480def0c3",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:2f1be32490d364aa807c",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:2fce3aa5e8cbb5ba96aa",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "mfr:31eb1de262547a6c8d5a",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "region:3540",
+      "target": "occupation:72100",
+      "type": "OUTLOOK",
+      "props": {
+        "label": "Limited",
+        "noc": "72100",
+        "period": "2025-2027",
+        "prior_label": "Moderate",
+        "score": 2,
+        "wage_median": 30.0
+      }
+    },
+    {
+      "source": "region:3540",
+      "target": "occupation:72101",
+      "type": "OUTLOOK",
+      "props": {
+        "label": "Limited",
+        "noc": "72101",
+        "period": "2025-2027",
+        "prior_label": "Moderate",
+        "score": 2,
+        "wage_median": 34.87
+      }
+    },
+    {
+      "source": "region:3540",
+      "target": "occupation:72102",
+      "type": "OUTLOOK",
+      "props": {
+        "label": "Limited",
+        "noc": "72102",
+        "period": "2025-2027",
+        "prior_label": "Moderate",
+        "score": 2,
+        "wage_median": 36.1
+      }
+    },
+    {
+      "source": "region:3540",
+      "target": "occupation:72103",
+      "type": "OUTLOOK",
+      "props": {
+        "label": "Undetermined",
+        "noc": "72103",
+        "period": "2025-2027",
+        "prior_label": "Undetermined"
+      }
+    },
+    {
+      "source": "region:3540",
+      "target": "occupation:72104",
+      "type": "OUTLOOK",
+      "props": {
+        "label": "Limited",
+        "noc": "72104",
+        "period": "2025-2027",
+        "prior_label": "Moderate",
+        "score": 2,
+        "wage_median": 27.68
+      }
+    },
+    {
+      "source": "region:3540",
+      "target": "occupation:72106",
+      "type": "OUTLOOK",
+      "props": {
+        "label": "Very limited",
+        "noc": "72106",
+        "period": "2025-2027",
+        "prior_label": "Moderate",
+        "score": 1,
+        "wage_median": 27.66
+      }
+    },
+    {
+      "source": "region:3540",
+      "target": "occupation:72400",
+      "type": "OUTLOOK",
+      "props": {
+        "label": "Moderate",
+        "noc": "72400",
+        "period": "2025-2027",
+        "prior_label": "Moderate",
+        "score": 3,
+        "wage_median": 35.0
+      }
+    },
+    {
+      "source": "region:3540",
+      "target": "occupation:94100",
+      "type": "OUTLOOK",
+      "props": {
+        "label": "Very limited",
+        "noc": "94100",
+        "period": "2025-2027",
+        "prior_label": "Limited",
+        "score": 1,
+        "wage_median": 28.0
+      }
+    },
+    {
+      "source": "region:3540",
+      "target": "occupation:94105",
+      "type": "OUTLOOK",
+      "props": {
+        "label": "Limited",
+        "noc": "94105",
+        "period": "2025-2027",
+        "prior_label": "Moderate",
+        "score": 2,
+        "wage_median": 22.0
+      }
+    },
+    {
+      "source": "region:3540",
+      "target": "occupation:94106",
+      "type": "OUTLOOK",
+      "props": {
+        "label": "Limited",
+        "noc": "94106",
+        "period": "2025-2027",
+        "prior_label": "Moderate",
+        "score": 2,
+        "wage_median": 25.0
+      }
+    },
+    {
+      "source": "region:3540",
+      "target": "occupation:94107",
+      "type": "OUTLOOK",
+      "props": {
+        "label": "Moderate",
+        "noc": "94107",
+        "period": "2025-2027",
+        "prior_label": "Good",
+        "score": 3,
+        "wage_median": 21.85
+      }
+    },
+    {
+      "source": "region:3540",
+      "target": "occupation:95101",
+      "type": "OUTLOOK",
+      "props": {
+        "label": "Limited",
+        "noc": "95101",
+        "period": "2025-2027",
+        "prior_label": "Moderate",
+        "score": 2,
+        "wage_median": 22.45
+      }
+    },
+    {
+      "source": "region:3540",
+      "target": "region:3500",
+      "type": "PART_OF",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-002",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-002",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-002",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-003",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-003",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-004",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-004",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-004",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-004",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-005",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-005",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-006",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-006",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-007",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-008",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-009",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-009",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-009",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-010",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-011",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-011",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-012",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-013",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-014",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-014",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-014",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-014",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-015",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-015",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-015",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-016",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-016",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-016",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-017",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-018",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-019",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-019",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-019",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-019",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-020",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-020",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-021",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-021",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-021",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-022",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-022",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-022",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-023",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-023",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-023",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-024",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-024",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-024",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-024",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-025",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-025",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-026",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-027",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-029",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-029",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-030",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-031",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-032",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-033",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-033",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-034",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-035",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-036",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-037",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-037",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-038",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-039",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-040",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-041",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-042",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-042",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-042",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-043",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-043",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-044",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-045",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-046",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-046",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-046",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-047",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-048",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-048",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-049",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-052",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-052",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-053",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-054",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-054",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-054",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-055",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-056",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-059",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-059",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-060",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-060",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-061",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-061",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-061",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-064",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-064",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-065",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-066",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-067",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-068",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-068",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-069",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-070",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-070",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-071",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-072",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-073",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-074",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-074",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-074",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-074",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-075",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-076",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-076",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-077",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-078",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:pub-078",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-001",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-002",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-003",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-004",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-005",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-005",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-006",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-006",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-007",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-008",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-008",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-008",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-008",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-010",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-011",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-012",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-012",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-012",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-012",
+      "target": "cert:CPCSC_L1",
+      "type": "HOLDS_CERT",
+      "props": {
+        "expires_at": "2027-09-06",
+        "status": "declared",
+        "verified_at": "2026-09-06"
+      }
+    },
+    {
+      "source": "shop:syn-012",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-014",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-015",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-016",
+      "target": "cert:CPCSC_L1",
+      "type": "HOLDS_CERT",
+      "props": {
+        "expires_at": "2028-09-09",
+        "status": "declared",
+        "verified_at": "2026-09-09"
+      }
+    },
+    {
+      "source": "shop:syn-017",
+      "target": "cert:CPCSC_L1",
+      "type": "HOLDS_CERT",
+      "props": {
+        "expires_at": "2029-09-16",
+        "status": "declared",
+        "verified_at": "2026-09-16"
+      }
+    },
+    {
+      "source": "shop:syn-017",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-018",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-018",
+      "target": "cert:CPCSC_L1",
+      "type": "HOLDS_CERT",
+      "props": {
+        "expires_at": "2027-09-23",
+        "status": "declared",
+        "verified_at": "2026-09-23"
+      }
+    },
+    {
+      "source": "shop:syn-018",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-019",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-022",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-023",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-023",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-024",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-024",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-025",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-025",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-026",
+      "target": "process:painting",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-026",
+      "target": "process:sheet_metal",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-026",
+      "target": "process:welding",
+      "type": "HAS_PROCESS",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-027",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    },
+    {
+      "source": "shop:syn-028",
+      "target": "region:3540",
+      "type": "IN_REGION",
+      "props": {}
+    }
+  ]
+}

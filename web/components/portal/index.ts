@@ -1,0 +1,6 @@
+export { PrimeDesk } from "./prime-desk"
+export { ShopDesk } from "./shop-desk"
+export { CollegeDesk } from "./college-desk"
+export { TraineeHome } from "./trainee-home"
+export { RoleBanner } from "./role-banner"
+export { PortalPage, Panel, BigAction } from "./portal-page"

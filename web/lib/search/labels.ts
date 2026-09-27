@@ -1,0 +1,196 @@
+// Plain labels, quick chips and the plain-language query reader for the search pages.
+// Acronyms follow docs/ux-simplification.md §2: never on screen by themselves.
+
+import { PROCESS_LABEL, fmtMoney } from "@/lib/format"
+import { certPlain } from "@/lib/ui/plain"
+import type { ShopSearchParams } from "./types"
+
+/** Process order (matches engine.rules.PROCESS_LABEL). */
+export const PROCESS_KEYS = [
+  "cnc_milling",
+  "five_axis_milling",
+  "cnc_turning",
+  "sheet_metal",
+  "welding",
+  "heat_treat",
+  "anodizing",
+  "plating",
+  "painting",
+  "wire_harness",
+  "electronics_assembly",
+  "fasteners",
+] as const
+
+/** Certificate order (matches engine.rules.CERT_LABEL). */
+export const CERT_KEYS = [
+  "CGP",
+  "CPCSC_L1",
+  "ISO9001",
+  "AS9100",
+  "NADCAP:HEAT_TREAT",
+  "NADCAP:CHEM_PROCESSING",
+  "NADCAP:COATINGS",
+  "CWB_W47.1",
+] as const
+
+export const COUNTING_STATUSES = ["verified", "declared", "pending_training"] as const
+
+export function processPlain(p: string): string {
+  return PROCESS_LABEL[p] ?? p.replace(/_/g, " ")
+}
+
+/** "Welding certification (CWB W47.1)" style: safe to show on its own. */
+export function certFirst(type: string): string {
+  return certPlain(type).first
+}
+
+export function certTip(type: string): string {
+  return certPlain(type).tip
+}
+
+/** What a certificate status means for this kind of shop. */
+export function certStatusPlain(status: string, source: "synthetic" | "public"): string {
+  switch (status) {
+    case "verified":
+      return "verified"
+    case "pending_training":
+      return "in training, paid by Northgate"
+    case "declared":
+      return source === "public" ? "stated on its website (unverified)" : "held (demo data)"
+    default:
+      return "not held"
+  }
+}
+
+export interface QuickChip {
+  key: string
+  label: string
+  process: string[]
+  cert: string[]
+}
+
+export const QUICK_CHIPS: QuickChip[] = [
+  { key: "five-axis", label: "5-axis machining", process: ["five_axis_milling"], cert: [] },
+  { key: "cwb-welding", label: "Certified welding (CWB)", process: ["welding"], cert: ["CWB_W47.1"] },
+  { key: "harness", label: "Wire harness", process: ["wire_harness"], cert: [] },
+  { key: "heat-treat", label: "Heat treat", process: ["heat_treat"], cert: [] },
+  { key: "cgp", label: "Security-cleared (CGP)", process: [], cert: ["CGP"] },
+]
+
+export const RADIUS_OPTIONS = [25, 50, 100, 200] as const
+
+/** "near <city>" without a distance means this many km (engine.search.DEFAULT_RADIUS_KM, docs/api.md §7). */
+export const DEFAULT_RADIUS_KM = 100
+
+/** The result of reading a plain-language request ("CWB welding near London"). */
+export interface ParsedQuery {
+  process: string[]
+  cert: string[]
+  near: string | null
+  radius_km: number | null
+  dnd_history: boolean | null
+  includePublic: boolean | null
+  /** Left-over text used as a name / city search when nothing else was recognised. */
+  q: string | null
+  recognised: string[]
+}
+
+const PROCESS_WORDS: [RegExp, string][] = [
+  [/\b(5|five)[\s-]?axis\b/, "five_axis_milling"],
+  [/\b(cnc\s+)?turn(ing|ed)?\b|\blathes?\b/, "cnc_turning"],
+  [/\bsheet[\s-]?metal\b|\blaser[\s-]?cut|\bpress[\s-]?brake|\bform(ed|ing)\b/, "sheet_metal"],
+  [/\bweld/, "welding"],
+  [/\bheat[\s-]?treat/, "heat_treat"],
+  [/\banodi[sz]/, "anodizing"],
+  [/\bplat(ing|ed)\b/, "plating"],
+  [/\bpaint|\bpowder[\s-]?coat|\bcoating/, "painting"],
+  [/\bharness|\bcable\s+assembl/, "wire_harness"],
+  [/\belectronic|\bpcb\b|\bcircuit/, "electronics_assembly"],
+  [/\bfasteners?\b|\bbolts?\b/, "fasteners"],
+]
+const MILLING = /\bcnc\b|\bmill(ing|ed)?\b|\bmachin(ing|ed|e shop)\b/
+
+const CERT_WORDS: [RegExp, string][] = [
+  [/\bcwb\b|\bw47(\.1)?\b|\bcertified weld/, "CWB_W47.1"],
+  [/\bcgp\b|\bcontrolled[\s-]goods\b|\bsecurity[\s-]?clear|\bcleared\b/, "CGP"],
+  [/\bcpcsc\b|\bcyber/, "CPCSC_L1"],
+  [/\biso(\s?9001)?\b/, "ISO9001"],
+  [/\bas\s?9100\b|\baerospace\b/, "AS9100"],
+]
+
+/**
+ * Read a plain-language request into search filters. Deterministic and forgiving:
+ * process and certificate words, "near <city>", "within N km", "defence contract",
+ * "real shops". Anything unrecognised becomes a name / city search.
+ */
+export function parseQuery(text: string, cities: string[]): ParsedQuery {
+  const raw = text.trim()
+  const t = ` ${raw.toLowerCase()} `
+  const out: ParsedQuery = {
+    process: [],
+    cert: [],
+    near: null,
+    radius_km: null,
+    dnd_history: null,
+    includePublic: null,
+    q: null,
+    recognised: [],
+  }
+  if (!raw) return out
+  for (const [re, p] of PROCESS_WORDS) if (re.test(t) && !out.process.includes(p)) out.process.push(p)
+  if (MILLING.test(t) && !out.process.includes("five_axis_milling") && !out.process.includes("cnc_turning"))
+    out.process.unshift("cnc_milling")
+  for (const [re, c] of CERT_WORDS) if (re.test(t) && !out.cert.includes(c)) out.cert.push(c)
+  if (/\bnadcap\b/.test(t)) {
+    if (out.process.includes("heat_treat")) out.cert.push("NADCAP:HEAT_TREAT")
+    else if (out.process.includes("anodizing") || out.process.includes("plating")) out.cert.push("NADCAP:CHEM_PROCESSING")
+    else if (out.process.includes("painting")) out.cert.push("NADCAP:COATINGS")
+  }
+  // Longest city names first so "Stoney Creek" wins over a shorter overlap.
+  const byLength = [...cities].sort((a, b) => b.length - a.length)
+  for (const city of byLength) {
+    const re = new RegExp(`\\b${city.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`)
+    if (re.test(t)) {
+      out.near = city
+      break
+    }
+  }
+  const km = t.match(/\b(?:within\s+)?(\d{1,4})\s?km\b/)
+  if (km && out.near) out.radius_km = Math.min(5000, Math.max(1, Number(km[1])))
+  if (/\bdefen[cs]e\s+contract|\bdnd\b|\bnational\s+defen[cs]e\b|\bpast\s+defen[cs]e/.test(t)) out.dnd_history = true
+  if (/\breal\s+shops?\b|\bpublic\b/.test(t)) out.includePublic = true
+
+  for (const p of out.process) out.recognised.push(processPlain(p))
+  for (const c of out.cert) out.recognised.push(certFirst(c))
+  if (out.near) out.recognised.push(`near ${out.near} (${out.radius_km ?? DEFAULT_RADIUS_KM} km)`)
+  if (out.dnd_history) out.recognised.push("has National Defence contract history")
+  if (!out.recognised.length) out.q = raw
+  return out
+}
+
+/** A short human summary of the active filters, for the results heading. */
+export function describeFilters(p: ShopSearchParams): string {
+  const bits: string[] = []
+  for (const x of p.process) bits.push(processPlain(x))
+  for (const c of p.cert) bits.push(certFirst(c))
+  if (p.q) bits.push(`name or city contains "${p.q}"`)
+  if (p.near) bits.push(`within ${p.radius_km ?? DEFAULT_RADIUS_KM} km of ${p.near}`)
+  if (p.dnd_history) bits.push("with National Defence contract history")
+  return bits.join(" · ")
+}
+
+export function fmtDnd(value: number, contracts: number): string {
+  return `${contracts} contract${contracts === 1 ? "" : "s"} · ${fmtMoney(value, { compact: true })}`
+}
+
+/** CanadaBuys search for one notice reference (their public tender search). */
+export function canadaBuysSearchUrl(reference: string): string {
+  return `https://canadabuys.canada.ca/en/tender-opportunities?search_filter=${encodeURIComponent(reference)}`
+}
+
+export function fmtDate(iso: string | null | undefined): string {
+  if (!iso) return "—"
+  const d = new Date(iso.length === 10 ? `${iso}T12:00:00` : iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" })
+}

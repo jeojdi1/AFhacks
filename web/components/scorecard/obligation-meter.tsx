@@ -1,14 +1,26 @@
-import { AssumptionTag } from "@/components/muster/assumption-tag";
+"use client";
+
 import { ArrowUpRight } from "lucide-react";
 
 import type { LedgerResponse } from "@/lib/api/types";
+import { AssumptionTag } from "@/components/muster/assumption-tag";
+import { BeforeAfterBar } from "@/components/muster/before-after-bar";
 import { Card } from "@/components/ui/card";
 import { fmtMoney, fmtPct } from "@/lib/format";
+import { Rich } from "@/lib/ui/copy";
+import { cc } from "@/lib/ui/copy-c";
 
 import type { FundingSummary } from "./funding";
-import { MeterBar, MeterLegend, type MeterSegment } from "./meter-bar";
-import { SC } from "./tokens";
 
+const m = (n: number) => fmtMoney(n, { compact: true });
+
+/**
+ * "What Northgate owes Canada" (docs/ux-simplification.md §5.3).
+ *
+ * No layout jump after funding: the percentage sits in the same place before and after, and
+ * the rows that only fill in after funding (scale labels, green chips, the training caveat)
+ * keep a fixed minimum height at all times, so nothing below them reflows either.
+ */
 export function ObligationMeter({
   ledger,
   funding,
@@ -17,101 +29,131 @@ export function ObligationMeter({
   funding: FundingSummary | null;
 }) {
   const current = ledger.obligation_met_pct;
-  const base = funding?.baseline?.obligation_met_pct;
-  const hasJump = base !== undefined && current - base > 0.00005;
-
-  const segments: MeterSegment[] = hasJump
-    ? [
-        { value: base, color: SC.ink, label: `Before funding: ${fmtPct(base)}` },
-        {
-          value: current - base,
-          color: SC.funded,
-          label: `Added by funded training: +${fmtPct(current - base)}`,
-        },
-      ]
-    : [{ value: current, color: SC.ink, label: `Credit so far: ${fmtPct(current)}` }];
+  const obligation = m(ledger.obligation_cad);
+  const baseline = funding?.baseline ?? null;
+  const hasJump = !!baseline && current - baseline.obligation_met_pct > 0.00005;
+  const before = hasJump && baseline ? baseline.obligation_met_pct : current;
 
   return (
-    <Card className="gap-5 px-6 py-6 [--card-spacing:--spacing(6)]">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="text-sm font-medium text-slate-600">
-            ITB credit earned toward the obligation
+    <Card className="gap-4 px-6 py-6 [--card-spacing:--spacing(6)]" data-testid="obligation-meter">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
+        <div className="min-w-0">
+          <div className="text-sm font-medium text-slate-600">{cc("score.meter.label")}</div>
+          <div
+            className="mt-1 text-3xl tracking-tight text-slate-500 tabular-nums sm:text-4xl [&_strong]:text-5xl [&_strong]:font-semibold [&_strong]:text-slate-900 sm:[&_strong]:text-6xl"
+            title={fmtMoney(ledger.credit_total_cad)}
+          >
+            <Rich text={cc("score.meter.value", { credit: m(ledger.credit_total_cad), obligation })} />
           </div>
-          <div className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span
-              className="text-5xl font-semibold tracking-tight text-slate-900"
-              title={fmtMoney(ledger.credit_total_cad)}
-            >
-              {fmtMoney(ledger.credit_total_cad, { compact: true })}
-            </span>
-            <span className="text-lg text-slate-500">
-              of {fmtMoney(ledger.obligation_cad, { compact: true })} obligation
-            </span>
-          </div>
-          {funding ? <FundingChips funding={funding} /> : null}
         </div>
-        <div className="text-right">
-          <div className="text-4xl font-semibold tracking-tight text-slate-900">
+        <div className="shrink-0 text-right">
+          <div
+            className="text-4xl font-semibold tracking-tight text-slate-900 tabular-nums sm:text-5xl"
+            data-testid="obligation-pct"
+          >
             {fmtPct(current)}
           </div>
-          <div className="text-sm text-slate-500">of obligation met</div>
+          <div className="ml-auto max-w-[6.5rem] text-sm leading-snug text-slate-500 sm:max-w-none">{cc("score.meter.pct.sub")}</div>
         </div>
       </div>
 
-      <div className="space-y-2">
-        <MeterBar
-          ariaLabel="Share of the ITB obligation met"
-          segments={segments}
-          valueLabel={fmtPct(current)}
-          height="h-5"
+      <div>
+        <BeforeAfterBar
+          before={before}
+          after={current}
+          height={24}
+          ariaLabel={cc("score.meter.aria", { pct: fmtPct(current), obligation })}
         />
-        {hasJump ? (
-          <MeterLegend
-            items={[
-              { color: SC.ink, label: `Before funding (${fmtPct(base)})` },
-              { color: SC.funded, label: `Added after funding training (+${fmtPct(current - base)})` },
-            ]}
-          />
-        ) : null}
+        {/* One fixed-height label row: the 0–100% scale before funding, before/after once funded. */}
+        <div className="mt-1.5 grid min-h-[2lh] grid-cols-[1fr_auto_1fr] items-start gap-2 text-xs text-slate-600 tabular-nums sm:min-h-[1lh] sm:text-sm">
+          {hasJump && baseline ? (
+            <>
+              <span className="min-w-0 text-left">
+                {cc("score.meter.before", { credit: m(baseline.credit_total_cad), pct: fmtPct(before) })}
+              </span>
+              <span className="text-center font-semibold text-assigned">
+                {cc("score.meter.delta", { delta: m(ledger.credit_total_cad - baseline.credit_total_cad) })}
+              </span>
+              <span className="min-w-0 text-right font-medium text-slate-900">
+                {cc("score.meter.after", { credit: m(ledger.credit_total_cad), pct: fmtPct(current) })}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="text-left">{cc("score.meter.scale.start")}</span>
+              <span />
+              <span className="text-right">{cc("score.meter.scale.end", { obligation })}</span>
+            </>
+          )}
+        </div>
       </div>
 
-      <p className="text-sm text-slate-500">
-        Credit counts toward the 100% obligation; excess can be banked (up to 10 years).
-      </p>
+      {/* Reserved at all times (min-h): the chip row and the caveat under it never reflow the page. */}
+      <div className="flex min-h-[7.5rem] flex-col gap-2 sm:min-h-[3.75rem]" data-testid="funding-chips">
+        {funding ? <FundingChips funding={funding} /> : <PendingChip />}
+      </div>
+
+      <p className="text-sm text-slate-600">{cc("score.meter.caption")}</p>
     </Card>
   );
 }
 
-function FundingChips({ funding }: { funding: FundingSummary }) {
+const CHIP =
+  "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-semibold";
+
+function PendingChip() {
   return (
-    <div className="mt-3 flex flex-wrap gap-2">
-      {funding.training.map((t) => (
-        <span
-          key={t.packageId}
-          className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-sm font-semibold text-emerald-800 ring-1 ring-emerald-600/20"
-          title={`${t.packageId}: ${fmtMoney(t.costCad)} training × ${t.multiplier} = ${fmtMoney(t.creditCad)} credit`}
-        >
-          <ArrowUpRight className="size-4" aria-hidden />+{fmtMoney(t.creditCad, { compact: true })} from
-          training ({t.multiplier}x)
-        </span>
-      ))}
-      {funding.jobsCreditCad > 0 ? (
-        <span
-          className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-sm font-semibold text-emerald-800 ring-1 ring-emerald-600/20"
-          title={`${fmtMoney(funding.jobsCreditCad)} credit from jobs that were blocked and are now assigned`}
-        >
-          <ArrowUpRight className="size-4" aria-hidden />+{fmtMoney(funding.jobsCreditCad, { compact: true })}{" "}
-          from {funding.unblockedJobs} unblocked {funding.unblockedJobs === 1 ? "job" : "jobs"}
-        </span>
-      ) : null}
-      <p className="flex w-full flex-wrap items-center gap-1.5 text-[13px] text-slate-600" data-testid="training-caveat">
-        <AssumptionTag note="Training cost is an estimate for the demo, not a quote" />
-        Training cost is an assumption
-        {funding.training.some((t) => t.multiplier === 10)
-          ? " · 10x Indigenous workforce credit needs Defence Investment Agency confirmation"
-          : ""}
-      </p>
+    <div className="flex flex-wrap gap-2">
+      <span className={`${CHIP} border border-dashed border-slate-300 font-medium text-slate-500`}>
+        {cc("score.meter.pending")}
+      </span>
     </div>
+  );
+}
+
+function FundingChips({ funding }: { funding: FundingSummary }) {
+  const jobsValue = funding.funded.reduce(
+    (a, f) => a + (f.unblocked_jobs ?? []).reduce((s, j) => s + (j.value_cad ?? 0), 0),
+    0,
+  );
+  const green = `${CHIP} bg-emerald-50 text-emerald-800 ring-1 ring-emerald-600/20`;
+  return (
+    <>
+      <div className="flex flex-wrap gap-2">
+        {funding.training.map((t) => (
+          <span
+            key={t.packageId}
+            className={green}
+            title={cc("score.chip.training.title", {
+              id: t.packageId,
+              cost: fmtMoney(t.costCad),
+              mult: `${t.multiplier}×`,
+              credit: fmtMoney(t.creditCad),
+            })}
+          >
+            <ArrowUpRight className="size-4" aria-hidden />
+            {cc("score.chip.training", { training: m(t.creditCad) }).replace("5×", `${t.multiplier}×`)}
+          </span>
+        ))}
+        {funding.jobsCreditCad > 0 ? (
+          <span
+            className={green}
+            title={cc("score.chip.jobs.title", { credit: fmtMoney(funding.jobsCreditCad), value: fmtMoney(jobsValue) })}
+          >
+            <ArrowUpRight className="size-4" aria-hidden />
+            {cc("score.chip.jobs", {
+              jobsCredit: m(funding.jobsCreditCad),
+              n: funding.unblockedJobs,
+              jobsValue: m(jobsValue),
+            })}
+          </span>
+        ) : null}
+      </div>
+      <p className="flex flex-wrap items-center gap-1.5 text-[13px] text-slate-600" data-testid="training-caveat">
+        <AssumptionTag note={cc("score.meter.caveat.note")} />
+        {cc("score.meter.caveat")}
+        {funding.training.some((t) => t.multiplier === 10) ? cc("score.meter.caveat.indigenous") : ""}
+      </p>
+    </>
   );
 }

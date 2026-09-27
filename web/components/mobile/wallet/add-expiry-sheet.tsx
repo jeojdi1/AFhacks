@@ -7,7 +7,7 @@ import { Info, XIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { t } from "@/lib/app/strings"
 import { addDays, appToday, toISODate } from "@/lib/app/today"
-import { certShortName } from "@/lib/app/renewals"
+import { certPlain } from "@/lib/ui/plain"
 import { CERT_NUMBER_MAX, type CertDeclaration } from "@/lib/app/types"
 import "./wallet-strings"
 
@@ -52,7 +52,8 @@ export function AddExpirySheet({
   const today = appToday()
   const min = toISODate(today)
   const max = toISODate(addDays(today, 3652))
-  const name = certShortName(certType)
+  // Plain label, never a bare acronym: "Cyber-security self-check (CPCSC L1)".
+  const name = certPlain(certType).first
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()

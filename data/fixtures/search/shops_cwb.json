@@ -1,0 +1,604 @@
+{
+  "engine": "memory",
+  "query": {
+    "q": null,
+    "process": [],
+    "cert": [
+      "CWB_W47.1"
+    ],
+    "near": null,
+    "near_lat": null,
+    "near_lon": null,
+    "radius_km": null,
+    "source": "all",
+    "dnd_history": null,
+    "match": "all",
+    "limit": 25
+  },
+  "counts": {
+    "total": 16,
+    "synthetic": 2,
+    "public": 14
+  },
+  "results": [
+    {
+      "shop_id": "syn-008",
+      "name": "Anvilbrook Structural Welding Ltd.",
+      "source": "synthetic",
+      "label": "Synthetic",
+      "onboarding": "onboarded",
+      "routable": true,
+      "city": "Cambridge",
+      "lat": 43.344,
+      "lon": -80.308,
+      "distance_km": null,
+      "is_sme": true,
+      "processes": [
+        "sheet_metal",
+        "welding",
+        "painting"
+      ],
+      "certs": [
+        {
+          "type": "ISO9001",
+          "status": "declared",
+          "source_url": null
+        },
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": null
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CWB W47.1 (declared)"
+        ],
+        "missing": []
+      },
+      "score": 0.8
+    },
+    {
+      "shop_id": "syn-026",
+      "name": "Keelbar Heavy Fabrication Ltd.",
+      "source": "synthetic",
+      "label": "Synthetic",
+      "onboarding": "onboarded",
+      "routable": true,
+      "city": "Hamilton",
+      "lat": 43.253,
+      "lon": -79.795,
+      "distance_km": null,
+      "is_sme": true,
+      "processes": [
+        "sheet_metal",
+        "welding",
+        "painting"
+      ],
+      "certs": [
+        {
+          "type": "ISO9001",
+          "status": "declared",
+          "source_url": null
+        },
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": null
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CWB W47.1 (declared)"
+        ],
+        "missing": []
+      },
+      "score": 0.8
+    },
+    {
+      "shop_id": "pub-048",
+      "name": "ADJ Industries Inc.",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "London",
+      "lat": 43.02412,
+      "lon": -81.16848,
+      "distance_km": null,
+      "is_sme": true,
+      "processes": [
+        "cnc_milling",
+        "five_axis_milling",
+        "welding",
+        "painting"
+      ],
+      "certs": [
+        {
+          "type": "CGP",
+          "status": "declared",
+          "source_url": "http://www.adjindustries.com/industries-defense.html"
+        },
+        {
+          "type": "ISO9001",
+          "status": "declared",
+          "source_url": "https://adjindustries.com/"
+        },
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": "https://adjindustries.com/"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CWB W47.1 (declared)"
+        ],
+        "missing": []
+      },
+      "score": 0.7
+    },
+    {
+      "shop_id": "pub-025",
+      "name": "Advanced Steel Fabrication Ltd.",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "Hamilton",
+      "lat": 43.23981,
+      "lon": -79.75541,
+      "distance_km": null,
+      "is_sme": true,
+      "processes": [
+        "welding",
+        "painting"
+      ],
+      "certs": [
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": "https://advsteelfab.ca/"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CWB W47.1 (declared)"
+        ],
+        "missing": []
+      },
+      "score": 0.7
+    },
+    {
+      "shop_id": "pub-004",
+      "name": "Arrow Engineered Products (Arrow Machine and Fabrication Group)",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "Cambridge",
+      "lat": 43.41596,
+      "lon": -80.3759,
+      "distance_km": null,
+      "is_sme": true,
+      "processes": [
+        "cnc_milling",
+        "sheet_metal",
+        "welding",
+        "painting"
+      ],
+      "certs": [
+        {
+          "type": "CGP",
+          "status": "declared",
+          "source_url": "https://arrowmfgep.com/about-engineered-products/"
+        },
+        {
+          "type": "ISO9001",
+          "status": "declared",
+          "source_url": "https://arrowmfgep.com/about-engineered-products/"
+        },
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": "https://arrowmfgep.com/about-engineered-products/"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CWB W47.1 (declared)"
+        ],
+        "missing": []
+      },
+      "score": 0.7
+    },
+    {
+      "shop_id": "pub-052",
+      "name": "Diversified Metal Fabrication Inc.",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "London",
+      "lat": 42.93204,
+      "lon": -81.21183,
+      "distance_km": null,
+      "is_sme": true,
+      "processes": [
+        "sheet_metal",
+        "welding"
+      ],
+      "certs": [
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": "https://diversifiedmetalfabrication.com/"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CWB W47.1 (declared)"
+        ],
+        "missing": []
+      },
+      "score": 0.7
+    },
+    {
+      "shop_id": "pub-021",
+      "name": "Engineered Lifting Systems & Equipment Inc. (ELS)",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "Elmira",
+      "lat": 43.57822,
+      "lon": -80.55753,
+      "distance_km": null,
+      "is_sme": true,
+      "processes": [
+        "sheet_metal",
+        "welding"
+      ],
+      "certs": [
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": "https://www.cwbgroup.org/directory/certified-companies/723964c8-bd69-e811-a964-000d3af3d26c"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CWB W47.1 (declared)"
+        ],
+        "missing": []
+      },
+      "score": 0.7
+    },
+    {
+      "shop_id": "pub-027",
+      "name": "F.C. Welding Inc.",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "Hamilton",
+      "lat": 43.23188,
+      "lon": -79.72693,
+      "distance_km": null,
+      "is_sme": true,
+      "processes": [
+        "welding"
+      ],
+      "certs": [
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": "https://www.fcweldinginc.ca/"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CWB W47.1 (declared)"
+        ],
+        "missing": []
+      },
+      "score": 0.7
+    },
+    {
+      "shop_id": "pub-029",
+      "name": "Hamilton Specialized Welding Inc.",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "Hamilton",
+      "lat": 43.19192,
+      "lon": -79.8409,
+      "distance_km": null,
+      "is_sme": true,
+      "processes": [
+        "welding",
+        "painting"
+      ],
+      "certs": [
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": "https://www.cwbgroup.org/directory/certified-companies/3f3098b2-1612-eb11-a813-000d3a848606"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CWB W47.1 (declared)"
+        ],
+        "missing": []
+      },
+      "score": 0.7
+    },
+    {
+      "shop_id": "pub-078",
+      "name": "Harvan Manufacturing Ltd.",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "Woodstock",
+      "lat": 43.11233,
+      "lon": -80.7196,
+      "distance_km": null,
+      "is_sme": true,
+      "processes": [
+        "cnc_milling",
+        "cnc_turning",
+        "sheet_metal",
+        "welding",
+        "wire_harness"
+      ],
+      "certs": [
+        {
+          "type": "CGP",
+          "status": "declared",
+          "source_url": "https://www.harvan.com/welding-fabrication/"
+        },
+        {
+          "type": "ISO9001",
+          "status": "declared",
+          "source_url": "https://www.harvan.com/parts-manufacturing-for-defense-and-military-vehicles-equipment-industry/"
+        },
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": "https://www.harvan.com/parts-manufacturing-for-defense-and-military-vehicles-equipment-industry/"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CWB W47.1 (declared)"
+        ],
+        "missing": []
+      },
+      "score": 0.7
+    },
+    {
+      "shop_id": "pub-042",
+      "name": "Marcon Custom Metals Inc.",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "Kitchener",
+      "lat": 43.41687,
+      "lon": -80.44147,
+      "distance_km": null,
+      "is_sme": true,
+      "processes": [
+        "sheet_metal",
+        "welding"
+      ],
+      "certs": [
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": "https://marconmetals.com/engineering-quality/"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CWB W47.1 (declared)"
+        ],
+        "missing": []
+      },
+      "score": 0.7
+    },
+    {
+      "shop_id": "pub-074",
+      "name": "Seaborn Manufacturing",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "Waterloo",
+      "lat": 43.50759,
+      "lon": -80.54097,
+      "distance_km": null,
+      "is_sme": true,
+      "processes": [
+        "cnc_milling",
+        "sheet_metal",
+        "welding",
+        "painting"
+      ],
+      "certs": [
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": "https://seabornmfg.com/steel-fabrication/"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CWB W47.1 (declared)"
+        ],
+        "missing": []
+      },
+      "score": 0.7
+    },
+    {
+      "shop_id": "pub-023",
+      "name": "TASK Custom Metal Fabricators",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "Elmira",
+      "lat": 43.57909,
+      "lon": -80.56126,
+      "distance_km": null,
+      "is_sme": true,
+      "processes": [
+        "sheet_metal",
+        "welding"
+      ],
+      "certs": [
+        {
+          "type": "ISO9001",
+          "status": "declared",
+          "source_url": "https://www.taskcustommetal.ca/"
+        },
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": "https://www.taskcustommetal.ca/"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CWB W47.1 (declared)"
+        ],
+        "missing": []
+      },
+      "score": 0.7
+    },
+    {
+      "shop_id": "pub-019",
+      "name": "Trade-Mark Industrial Inc.",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "Cambridge",
+      "lat": 43.41588,
+      "lon": -80.35433,
+      "distance_km": null,
+      "is_sme": true,
+      "processes": [
+        "sheet_metal",
+        "welding",
+        "painting"
+      ],
+      "certs": [
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": "https://tmi.ca/trade-services/view/fabrication"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CWB W47.1 (declared)"
+        ],
+        "missing": []
+      },
+      "score": 0.7
+    },
+    {
+      "shop_id": "pub-024",
+      "name": "Trylon (Trylon TSF Inc.)",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "Elmira",
+      "lat": 43.583,
+      "lon": -80.5583,
+      "distance_km": null,
+      "is_sme": false,
+      "processes": [
+        "sheet_metal",
+        "welding",
+        "painting"
+      ],
+      "certs": [
+        {
+          "type": "ISO9001",
+          "status": "declared",
+          "source_url": "https://www.trylon.com/"
+        },
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": "https://www.trylon.com/"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CWB W47.1 (declared)"
+        ],
+        "missing": []
+      },
+      "score": 0.7
+    },
+    {
+      "shop_id": "pub-060",
+      "name": "Wolfram Group Inc.",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "London",
+      "lat": 42.93195,
+      "lon": -81.21343,
+      "distance_km": null,
+      "is_sme": true,
+      "processes": [
+        "sheet_metal",
+        "welding"
+      ],
+      "certs": [
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": "https://wolframgroup.ca/"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CWB W47.1 (declared)"
+        ],
+        "missing": []
+      },
+      "score": 0.7
+    }
+  ],
+  "notes": [
+    "Synthetic shops are Muster's fictional demo shops.",
+    "Public shops: Public data — unverified — not affiliated. Discovered, not onboarded: never offered work.",
+    "Certifications count when verified, declared or pending training (Simplified ITB rules for demo)."
+  ]
+}

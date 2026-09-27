@@ -80,10 +80,14 @@ export function GlanceCard({
                 {fmtMoney(ledger.credit_total_cad, { compact: true })} {t("prime.glance.metOf", { obligation: fmtMoney(ledger.obligation_cad, { compact: true }) })}
               </span>
             </div>
-            <p className="text-3xl leading-tight font-bold tracking-tight tabular-nums" data-testid="glance-met">
-              {pct1(ledger.obligation_met_pct)}
+            <p className="flex items-baseline gap-2">
+              <span className="text-3xl leading-tight font-bold tracking-tight tabular-nums" data-testid="glance-met">
+                {pct1(ledger.obligation_met_pct)}
+              </span>
+              <span className="text-sm text-muted-foreground">{t("prime.glance.metPct")}</span>
             </p>
-            <Bar value={ledger.obligation_met_pct} className="bg-brand" label={t("prime.glance.met")} />
+            {/* Progress, not an alarm: green meter (the brand red reads as "something is wrong"). */}
+            <Bar value={ledger.obligation_met_pct} className="bg-assigned" label={t("prime.glance.met")} />
           </div>
 
           <div className="mt-3 grid grid-cols-2 gap-3">
@@ -93,7 +97,7 @@ export function GlanceCard({
                 <AssumptionTag note={t("prime.glance.smbNote")} className={TAG_HIT} />
               </span>
               <p className="text-xl font-semibold tabular-nums">{pct0(ledger.smb.progress_pct)}</p>
-              <Bar value={ledger.smb.progress_pct} className="bg-assigned" label={t("prime.glance.smb")} />
+              <Bar value={ledger.smb.progress_pct} className="bg-slate-500" label={t("prime.glance.smb")} />
               <p className="mt-1 text-xs text-muted-foreground">
                 {t("prime.glance.smbOf", {
                   pct: fmtMoney(ledger.smb.achieved_cad, { compact: true }),

@@ -219,7 +219,7 @@ Every internal link built by these components **preserves `?mode=` and `?story=`
 **"Why now" strip (optional, P2; below the fold, each fact with a source link)**
 - "$81.8B more for defence over five years" (Budget 2025)
 - "70% of defence buying to go to Canadian firms by 2035" (Defence Industrial Strategy, Feb 2026)
-- "National Defence signed 59,102 contracts over $10K worth $82.9B, Jan 2021–Jun 2026" (Proactive Publication, open.canada.ca, OGL). The figures come from `data/processed/national/dnd_contracts_summary.json`: `headline.contracts`, `headline.total_value` and `as_of`.
+- "National Defence signed 58,965 contracts over $10K worth $82.9B, Jan 2021–Jun 2026" (Proactive Publication, open.canada.ca, OGL). The figures come from `data/processed/national/dnd_contracts_summary.json`: `headline.contracts`, `headline.total_value` and `as_of`.
 - **Do not** cite the Job Bank welder outlook here. "Very limited" describes job prospects for welders, not a shortage (demo-script wording rule).
 
 **"Start the demo" behaviour** (`RunDemoButton`, §9 Agent A)

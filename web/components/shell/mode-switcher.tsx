@@ -3,19 +3,21 @@
 import { Check, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/lib/data/store"
+import { useAppActions } from "@/lib/app/actions-store"
+import { c } from "@/lib/ui/copy"
 import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from "@/components/ui/popover"
 
 const OPTIONS = [
   {
     mode: "live" as const,
-    title: "Live API",
-    body: "Calls the Muster engine (FastAPI) for every step.",
+    title: c("mode.live"),
+    body: "Uses the running engine for every step.",
     dot: "bg-assigned",
   },
   {
     mode: "fixtures" as const,
-    title: "Demo mode · fixtures",
-    body: "Replays checked-in engine responses. Works offline.",
+    title: c("mode.demo"),
+    body: "Replays saved answers. Works offline.",
     dot: "bg-amber-500",
   },
 ]
@@ -23,27 +25,43 @@ const OPTIONS = [
 /** Header badge showing where data comes from; click to switch. */
 export function ModeSwitcher() {
   const { mode, ready, setMode, apiUrl, busy } = useDemo()
+  const { online } = useAppActions()
   const current = OPTIONS.find((o) => o.mode === mode) ?? OPTIONS[1]
+  // Live, but the engine polls are failing: say so instead of a green "Live".
+  const offline = ready && mode === "live" && !online
+  const title = offline ? c("mode.offline") : current.title
 
   return (
     <Popover>
       <PopoverTrigger
         className={cn(
           "inline-flex h-8 items-center gap-2 rounded-full border border-border bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-muted aria-expanded:bg-muted",
-          !ready && "opacity-70"
+          !ready && "opacity-70",
+          offline && "border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100"
         )}
-        aria-label={`Data source: ${current.title}. Click to switch.`}
+        aria-label={`Data source: ${title}. Click to switch.`}
+        title={offline ? c("mode.offline.tip") : undefined}
+        data-testid="mode-switcher"
+        data-state={offline ? "offline" : ready ? mode : "detecting"}
       >
-        <span className={cn("size-2 rounded-full", ready ? current.dot : "animate-pulse bg-slate-400")} aria-hidden />
-        <span className="hidden sm:inline">{ready ? current.title : "Detecting API…"}</span>
-        <span className="sm:hidden">{ready ? (mode === "live" ? "Live" : "Demo") : "…"}</span>
+        <span
+          className={cn("size-2 rounded-full", !ready ? "animate-pulse bg-slate-400" : offline ? "animate-pulse bg-amber-500" : current.dot)}
+          aria-hidden
+        />
+        <span className="hidden sm:inline">{ready ? title : c("mode.detecting")}</span>
+        <span className="sm:hidden">{ready ? (offline ? c("mode.offline.short") : mode === "live" ? c("mode.live") : "Demo") : "…"}</span>
         <ChevronDown className="size-3.5 text-muted-foreground" aria-hidden />
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 gap-3 p-3">
         <PopoverHeader>
-          <PopoverTitle>Data source</PopoverTitle>
-          <PopoverDescription>Demo mode keeps your place. Switching to Live API resets the engine and the demo flow.</PopoverDescription>
+          <PopoverTitle>{c("mode.title")}</PopoverTitle>
+          <PopoverDescription>{c("mode.body")}</PopoverDescription>
         </PopoverHeader>
+        {offline ? (
+          <p role="status" className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-xs text-amber-900">
+            {c("mode.offline.tip")}
+          </p>
+        ) : null}
         <div className="flex flex-col gap-1.5">
           {OPTIONS.map((o) => {
             const active = o.mode === mode
@@ -69,7 +87,6 @@ export function ModeSwitcher() {
                   <span className="block text-sm font-medium">{o.title}</span>
                   <span className="block text-xs text-muted-foreground">
                     {o.body}
-                    {o.mode === "live" ? <span className="mt-0.5 block font-mono text-[11px]">{apiUrl}</span> : null}
                   </span>
                 </span>
                 {active ? <Check className="mt-1 size-4 shrink-0 text-foreground" aria-hidden /> : null}
@@ -77,9 +94,13 @@ export function ModeSwitcher() {
             )
           })}
         </div>
-        <p className="truncate border-t border-border pt-2 font-mono text-[11px] text-muted-foreground" title={apiUrl}>
-          API: {apiUrl}
-        </p>
+        <details className="border-t border-border pt-2 text-[11px] text-muted-foreground">
+          <summary className="cursor-pointer text-xs font-medium select-none hover:text-foreground">{c("mode.advanced")}</summary>
+          <p className="mt-1.5">Demo data keeps your place. {c("mode.live.note")}</p>
+          <p className="mt-1 truncate font-mono" title={apiUrl}>
+            API: {apiUrl}
+          </p>
+        </details>
       </PopoverContent>
     </Popover>
   )

@@ -58,6 +58,12 @@ function Step({ step, index, last }: { step: ReadinessStepDef; index: number; la
   )
 }
 
+/** No grow item for this link: a lower-case key is a process (more hours if the shop has it, else a new process). */
+function guessKind(req: string, processes: readonly string[] | undefined): "capacity" | "process" | "cert" {
+  if (!/^[a-z]/.test(req)) return "cert"
+  return processes?.includes(req as never) ? "capacity" : "process"
+}
+
 /** /m/shops/[id]/grow/[req]: what a requirement takes, who pays, and "Ask Northgate to fund this". */
 export function ReadinessStepper({ shopId, requirement }: { shopId: string; requirement: string }) {
   const { stage, gaps, fundResults, fundedIds, ready } = useDemo()
@@ -95,7 +101,7 @@ export function ReadinessStepper({ shopId, requirement }: { shopId: string; requ
           {item?.funding === "requested" ? <FundingChip item={item} /> : null}
         </div>
         <h2 className="mt-2 text-xl leading-snug font-semibold tracking-tight">
-          {growTitle(requirement, item?.kind ?? (/^[a-z]/.test(requirement) ? "capacity" : "cert"))}
+          {growTitle(requirement, item?.kind ?? guessKind(requirement, bundle.shop?.processes))}
         </h2>
         {def ? (
           <p className="mt-0.5 text-sm font-medium text-muted-foreground">{def.title}</p>

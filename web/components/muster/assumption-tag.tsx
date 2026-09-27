@@ -19,7 +19,7 @@ export function AssumptionTag({
         render={<span />}
         tabIndex={0}
         className={cn(
-          "inline-flex h-5 cursor-help items-center rounded-full border border-dashed border-slate-400 px-2 text-[11px] font-medium tracking-wide text-slate-600 lowercase select-none",
+          "inline-flex h-5 cursor-help items-center rounded-full border border-dashed border-slate-400 px-2 text-[13px] font-medium tracking-wide text-slate-600 lowercase select-none",
           className
         )}
       >

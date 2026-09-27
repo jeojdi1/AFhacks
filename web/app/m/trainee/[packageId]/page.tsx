@@ -18,6 +18,8 @@ export default async function TraineeSeatPage({
   const { packageId } = await params
   const sp = await searchParams
   const raw = Array.isArray(sp.seat) ? sp.seat[0] : sp.seat
-  const n = Number.parseInt(raw ?? "", 10)
-  return <SeatCard packageId={decodeParam(packageId)} seat={Number.isFinite(n) && n > 0 ? n : 1} />
+  // No ?seat= means seat 1. A seat that is not a whole number from 1 up (0, abc, 1.5) is passed
+  // as null so the card says the seat does not exist instead of quietly showing another seat.
+  const seat = raw === undefined || raw === "" ? 1 : /^\d+$/.test(raw.trim()) && Number(raw) > 0 ? Number(raw) : null
+  return <SeatCard packageId={decodeParam(packageId)} seat={seat} />
 }

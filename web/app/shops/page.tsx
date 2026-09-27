@@ -15,7 +15,7 @@ export default function ShopsIndexPage() {
   }, [demoShopId, router])
 
   return (
-    <div className="mx-auto w-full max-w-[1280px] px-6 py-8">
+    <div className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 sm:py-8">
       {demoShopId ? (
         <p className="text-sm text-zinc-500">Opening the demo shop…</p>
       ) : (

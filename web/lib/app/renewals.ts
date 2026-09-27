@@ -24,6 +24,7 @@
 
 import type { Assignment, CertWithDates, Job, Renewal, RenewalRule, RenewalStage } from "./types"
 import { addDays, daysBetween, parseAppDate, toISODate } from "./today"
+import { certIsHeld } from "../format"
 import rulesFile from "../../../data/rules/renewals.json"
 
 // ---------------------------------------------------------------------------
@@ -130,8 +131,9 @@ export function renewalFor(
   const rule = ruleFor(cert.type)
   const expiry = parseAppDate(cert.expires_at)
   const expiresAt = expiry ? toISODate(expiry) : null
-  // "Not held" never shows a stage, unless the shop itself declared a date.
-  const held = cert.status !== "unknown" || !!cert.declaration
+  // "Not held" never shows a stage, unless the shop itself declared a date. A certificate whose
+  // welders are still in training (pending_training) is not held yet, so it never gets a renewal stage.
+  const held = certIsHeld(cert.status) || !!cert.declaration
   const actByDays = rule.act_by_days ?? 0
   const remindDays = rule.remind_days ?? FILE.defaults.remind_days
   const actBy = held && expiresAt ? toISODate(addDays(expiresAt, -actByDays)) : null
@@ -263,6 +265,7 @@ export function renewalSummary(r: Renewal, today?: Date, prime = "Northgate"): s
   const risk = riskLine(r, prime)
   let when: string
   if (r.stage === "lapsed") when = `lapsed ${shortDate(r.expires_at, today)}`
+  else if (r.act_by && typeof r.days_left === "number" && r.days_left < 0) when = `overdue since ${shortDate(r.act_by, today)} · act now`
   else if (r.act_by) when = `${renewalVerb(r.cert_type)} by ${shortDate(r.act_by, today)}`
   else when = "date unknown"
   return risk ? `${name} · ${when} · ${risk} at risk` : `${name} · ${when}`

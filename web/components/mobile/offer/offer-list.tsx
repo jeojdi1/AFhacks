@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { toast } from "sonner"
 import { ShieldCheck } from "lucide-react"
 import { useDemo } from "@/lib/data/store"
 import { fmtMoney } from "@/lib/format"
@@ -13,13 +14,15 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { EmptyState } from "@/components/muster/empty-state"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
+import type { ReasonCode } from "@/lib/app/types"
 import { OfferListCard } from "./offer-list-card"
+import { DeclineSheet } from "./decline-sheet"
 import { needsReply, offerState, replyByFrom, routedAtFrom, useNewOfferIds, type OfferView } from "./shared"
 import "./strings"
 
 /** /m/shops/[id]/offers: unanswered first (new ones on top), then answered ones, muted. */
 export function OfferList({ shopId }: { shopId: string }) {
-  const { stage, ready } = useDemo()
+  const { stage, ready, mode } = useDemo()
   const { unreachable } = useConnection()
   const b = useShopBundle(shopId)
   const newIds = useNewOfferIds(b.certs, b.jobsById, b.offers)
@@ -49,10 +52,64 @@ export function OfferList({ shopId }: { shopId: string }) {
     return vs
   }, [b.offers, b.actions.decisions, b.jobsById, newIds])
 
+  // Inline answers (Accept / Decline on each row), same flow and toasts as the offer card.
+  const [busyId, setBusyId] = React.useState<string | null>(null)
+  const [declineFor, setDeclineFor] = React.useState<string | null>(null)
+  const decide = b.actions.decide
+  const prime = b.offers[0]?.prime_name?.split(" ")[0] || "Northgate"
+
+  const undo = React.useCallback(
+    async (jobId: string) => {
+      const r = await decide(jobId, { decision: "undo" })
+      if (r && !r.pending) toast.message(t("o.toast.undone"), { description: t("o.toast.undoneBody", { job: jobId }) })
+    },
+    [decide]
+  )
+
+  const accept = React.useCallback(
+    async (jobId: string) => {
+      setBusyId(jobId)
+      try {
+        const r = await decide(jobId, { decision: "accepted" })
+        if (!r || r.pending) return
+        toast.success(`${t("o.toast.accepted")} · ${jobId}`, {
+          description: t("o.toast.acceptedBody", { prime }),
+          duration: UNDO_MS,
+          action: { label: t("decision.undo"), onClick: () => void undo(jobId) },
+        })
+      } finally {
+        setBusyId(null)
+      }
+    },
+    [decide, prime, undo]
+  )
+
+  const decline = React.useCallback(
+    async (reason: ReasonCode, note: string | null) => {
+      const jobId = declineFor
+      if (!jobId) return
+      setBusyId(jobId)
+      try {
+        const r = await decide(jobId, { decision: "declined", reason_code: reason, note })
+        if (!r) return
+        setDeclineFor(null)
+        if (r.pending) return
+        toast.message(`${t("o.toast.declined", { reason: t(`reason.${reason}`).toLowerCase() })} · ${jobId}`, {
+          description: t("o.toast.declinedBody", { prime }),
+          duration: UNDO_MS,
+          action: { label: t("decision.undo"), onClick: () => void undo(jobId) },
+        })
+      } finally {
+        setBusyId(null)
+      }
+    },
+    [declineFor, decide, prime, undo]
+  )
+
   const routed = stage === "routed" || stage === "funded"
   if (ready && !routed && unreachable) return <UnreachableNotice className="mt-4" />
   if (ready && !routed) {
-    return <EmptyState className="mt-4" title={t("empty.notRouted")} body={t("empty.notRoutedBody")} />
+    return <EmptyState className="mt-4" title={t("empty.notRouted")} body={t(mode === "fixtures" ? "empty.notRoutedBodyFixtures" : "empty.notRoutedBody")} />
   }
   if (b.loading && !b.detail) return <ListSkeleton />
   if (b.error && !b.detail) {
@@ -73,8 +130,10 @@ export function OfferList({ shopId }: { shopId: string }) {
 
   const open = views.filter((v) => needsReply(v.state))
   const answered = views.filter((v) => !needsReply(v.state))
-  const total = views.reduce((s, v) => s + v.offer.value_cad, 0)
-  const hours = views.reduce((s, v) => s + v.offer.hours_week, 0)
+  // Declined offers are no longer on the table: leave them out of the value and hours (matches the desk).
+  const live = views.filter((v) => v.state !== "declined")
+  const total = live.reduce((s, v) => s + v.offer.value_cad, 0)
+  const hours = live.reduce((s, v) => s + v.offer.hours_week, 0)
 
   return (
     <div className="flex flex-col gap-4 pt-2">
@@ -101,7 +160,14 @@ export function OfferList({ shopId }: { shopId: string }) {
         <ul className="flex flex-col gap-3" aria-label={t("o.list.needReply", { count: open.length })}>
           {open.map((v) => (
             <li key={v.offer.job_id}>
-              <OfferListCard shopId={shopId} view={v} replyBy={replyBy} />
+              <OfferListCard
+                shopId={shopId}
+                view={v}
+                replyBy={replyBy}
+                busy={busyId === v.offer.job_id}
+                onAccept={() => void accept(v.offer.job_id)}
+                onDecline={() => setDeclineFor(v.offer.job_id)}
+              />
             </li>
           ))}
         </ul>
@@ -121,9 +187,22 @@ export function OfferList({ shopId }: { shopId: string }) {
           </ul>
         </section>
       ) : null}
+
+      <DeclineSheet
+        open={declineFor !== null}
+        onOpenChange={(o) => {
+          if (!o) setDeclineFor(null)
+        }}
+        jobId={declineFor ?? ""}
+        primeName={prime}
+        busy={busyId !== null}
+        onSubmit={(reason, note) => void decline(reason, note)}
+      />
     </div>
   )
 }
+
+const UNDO_MS = 10_000
 
 function ListSkeleton() {
   return (

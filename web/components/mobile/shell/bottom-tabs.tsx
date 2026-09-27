@@ -3,12 +3,13 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { House, Inbox, ShieldCheck, Sprout } from "lucide-react"
+import { ClipboardList, GraduationCap, House, Inbox, ListChecks, Repeat, ShieldCheck, Sprout, UserRound } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useShopBundle } from "@/lib/app/shop-bundle"
 import { openOffers } from "@/lib/app/attention"
 import { t } from "@/lib/app/strings"
 import { TAB_SECTIONS, parseMRoute, shopHref } from "./route"
+import { useFromPrime } from "./use-from-prime"
 
 const TABS = [
   { section: "today", label: "tabs.today", Icon: House },
@@ -28,15 +29,78 @@ export function useOffersNeedingReply(shopId: string): number {
   return React.useMemo(() => openOffers({ offers }).length, [offers])
 }
 
+type RoleTab = { id: string; href: string; label: string; Icon: typeof House }
+
+const SWITCH: RoleTab = { id: "switch", href: "/m", label: "tabs.switchRole", Icon: Repeat }
+
+/** Tabs for the non-shop roles. The first tab is that role's home. */
+const ROLE_TABS: Record<"prime" | "college" | "trainee", RoleTab[]> = {
+  prime: [
+    { id: "prime", href: "/m/prime", label: "tabs.prime.todo", Icon: ListChecks },
+    { id: "college", href: "/m/college", label: "tabs.prime.training", Icon: GraduationCap },
+    SWITCH,
+  ],
+  college: [
+    { id: "college", href: "/m/college", label: "tabs.college.plans", Icon: ClipboardList },
+    { id: "trainee", href: "/m/trainee/TP-01?seat=3", label: "tabs.college.seat", Icon: UserRound },
+    SWITCH,
+  ],
+  trainee: [{ id: "trainee", href: "/m/trainee/TP-01?seat=3", label: "tabs.trainee.seat", Icon: GraduationCap }, SWITCH],
+}
+
 /**
- * Sticky bottom tab bar for shop routes: Today · Offers · Certs · Grow.
- * Hidden on prime/trainee routes and on detail screens (an offer, a grow item).
+ * Sticky bottom tab bar, per role:
+ *   shop routes     Today · Offers · Certs · Grow (hidden on detail screens: an offer, a grow item)
+ *   defence company To do · Training · Switch role
+ *   training partner Plans · Seat 3 · Switch role
+ *   trainee         My seat · Switch role
+ * A shop screen opened from the prime's feed (?from=prime) keeps the prime's tabs.
+ * The role picker (/m) has none.
  */
 export function BottomTabs() {
   const pathname = usePathname()
   const r = parseMRoute(pathname)
-  if (r.kind !== "shop" || !TAB_SECTIONS.includes(r.section)) return null
-  return <ShopTabBar shopId={r.shopId} section={r.section} />
+  const fromPrime = useFromPrime()
+  // The defence company looking at a supplier's screen from its feed keeps its own tabs.
+  if (r.kind === "shop" && fromPrime) return <RoleTabBar tabs={ROLE_TABS.prime} current="" />
+  if (r.kind === "shop") return TAB_SECTIONS.includes(r.section) ? <ShopTabBar shopId={r.shopId} section={r.section} /> : null
+  if (r.kind === "prime" || r.kind === "college" || r.kind === "trainee") {
+    // The prime's and college's own tabs point at the other screens they use; the
+    // current screen's tab is the one with the same id as the route kind.
+    return <RoleTabBar tabs={ROLE_TABS[r.kind]} current={r.kind} />
+  }
+  return null
+}
+
+function RoleTabBar({ tabs, current }: { tabs: RoleTab[]; current: string }) {
+  return (
+    <nav
+      aria-label={t("tabs.roleLabel")}
+      className="sticky bottom-0 z-30 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur supports-backdrop-filter:bg-background/90"
+    >
+      <ul className={cn("grid", tabs.length === 2 ? "grid-cols-2" : "grid-cols-3")}>
+        {tabs.map(({ id, href, label, Icon }) => {
+          const active = id === current
+          return (
+            <li key={id}>
+              <Link
+                href={href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "relative flex min-h-16 flex-col items-center justify-center gap-1 text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset",
+                  active ? "text-brand" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {active ? <span aria-hidden className="absolute inset-x-5 top-0 h-[3px] rounded-b-full bg-brand" /> : null}
+                <Icon className="size-6" strokeWidth={active ? 2.25 : 1.75} aria-hidden />
+                {t(label)}
+              </Link>
+            </li>
+          )
+        })}
+      </ul>
+    </nav>
+  )
 }
 
 function ShopTabBar({ shopId, section: current }: { shopId: string; section: string }) {
@@ -67,7 +131,7 @@ function ShopTabBar({ shopId, section: current }: { shopId: string; section: str
                   {showBadge ? (
                     <span
                       aria-hidden
-                      className="absolute -top-1.5 -right-2.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand px-1 text-[11px] leading-none font-semibold text-white"
+                      className="absolute -top-2 -right-3 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-[13px] leading-none font-semibold text-white"
                     >
                       {count}
                     </span>

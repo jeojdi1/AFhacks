@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 import { fmtTime } from "@/lib/app/today"
 import type { FeedItem, FeedTone } from "@/lib/app/feed"
+import { SimulatedChip } from "@/components/mobile/shell/simulation"
 
 const TONE: Record<FeedTone, string> = {
   success: "bg-assigned-soft text-assigned",
@@ -89,6 +90,7 @@ export function ActivityItem({ item, fresh = false }: { item: FeedItem; fresh?: 
               <NoBreakIds text={item.detail} />
             </p>
           ) : null}
+          {item.simulated ? <SimulatedChip className="mt-1.5" /> : null}
         </div>
         {item.ts ? (
           <time dateTime={item.ts} className="shrink-0 pt-0.5 text-sm text-muted-foreground tabular-nums">

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
 import { ScorecardView } from "@/components/scorecard/scorecard-view";
+import { cc } from "@/lib/ui/copy-c";
 
 export const metadata: Metadata = {
-  title: "ITB Scorecard · Muster",
-  description:
-    "Live ITB ledger: credit earned toward the 100% obligation, the SMB target, direct vs indirect credit and the multiplier breakdown.",
+  title: cc("score.meta.title"),
+  description: cc("score.meta.description"),
 };
 
 export default function ScorecardPage() {

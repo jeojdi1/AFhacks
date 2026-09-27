@@ -78,6 +78,13 @@ OGL = (
     "Open Government Licence - Canada "
     "(https://open.canada.ca/en/open-government-licence-canada)"
 )
+# ITB rows are parsed from an ISED web page, not an open-data release: they are used
+# under the Government of Canada website terms, not the Open Government Licence.
+GC_TERMS = (
+    "Government of Canada website terms and conditions "
+    "(https://www.canada.ca/en/transparency/terms.html) - content reproduced from "
+    "an ISED web page; not the Open Government Licence"
+)
 SGC_ER_URL = "https://www.statcan.gc.ca/en/subjects/standard/sgc/2021/er-additionalinfo"
 SGC_ER_TORONTO_URL = (
     "https://www23.statcan.gc.ca/imdb/p3VD.pl?Function=getVD&TVD=131938&CVD=138863"
@@ -414,12 +421,10 @@ def load_dnd_universe() -> tuple[list[dict], dict]:
     """All DND vendors with contracts dated 2021+ (N2 method), person names dropped."""
     contracts, _ = dnd.read_contracts()
     agg: dict[str, dict] = {}
-    person: dict[str, bool] = {}
+    person = dnd.person_filter(r["vendor_name"] for r in contracts.values())
     dropped: set[str] = set()
     for (_pid, vkey), r in contracts.items():
         raw = r["vendor_name"]
-        if raw not in person:
-            person[raw] = dnd.looks_like_person(raw)
         if person[raw]:
             dropped.add(vkey)
             continue
@@ -433,6 +438,7 @@ def load_dnd_universe() -> tuple[list[dict], dict]:
                 "last": "",
                 "fsa": Counter(),
                 "prov": Counter(),
+                "country": Counter(),
             },
         )
         a["names"][raw] += 1
@@ -445,6 +451,8 @@ def load_dnd_universe() -> tuple[list[dict], dict]:
         if dnd.FSA_RE.match(fsa):
             a["fsa"][fsa] += 1
         a["prov"][dnd.province_of(fsa, r["country_of_vendor"])] += 1
+        if r["country_of_vendor"]:
+            a["country"][r["country_of_vendor"].upper()] += 1
     out = []
     for vkey, a in agg.items():
         out.append(
@@ -455,7 +463,7 @@ def load_dnd_universe() -> tuple[list[dict], dict]:
                 "contracts": a["count"],
                 "first_date": a["first"],
                 "last_date": a["last"],
-                "province": a["prov"].most_common(1)[0][0],
+                "province": dnd.vendor_province(a["prov"], a["country"]),
                 "provinces": sorted(a["prov"]),
                 "fsa": a["fsa"].most_common(1)[0][0] if a["fsa"] else None,
                 "fsas": sorted(a["fsa"]),
@@ -819,8 +827,9 @@ def main() -> int:
         | {ODBUS_URL, SGC_ER_URL, SGC_ER_TORONTO_URL}
     )
     licence = (
-        f"{OGL} for ODBus, DND contracts, Job Bank and ISED data; Statistics Canada "
-        "Open Licence for JVWS; shops_public.json facts come from company websites "
+        f"{OGL} for ODBus, DND contracts and Job Bank data; Statistics Canada "
+        f"Open Licence for JVWS; ISED ITB rows: {GC_TERMS}; shops_public.json facts "
+        "come from company websites "
         "(facts only, labelled 'Public data - unverified - not affiliated'); "
         "synthetic shops are Muster's own."
     )
@@ -1059,6 +1068,7 @@ def main() -> int:
             contract_award_year=r.get("contract_award_year"),
             estimated_timeframe=r.get("estimated_timeframe"),
             source_url=r.get("source_url"),
+            licence=GC_TERMS,
         )
         edge(
             "PRIME_HAS_ITB_OBLIGATION",

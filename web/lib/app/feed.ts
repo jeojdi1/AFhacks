@@ -9,27 +9,30 @@
 
 import type { LedgerResponse, TrainingPackage } from "@/lib/api/types"
 import { CERT_LABEL, PROCESS_LABEL, fmtMoney } from "@/lib/format"
+import { certPlain } from "@/lib/ui/plain"
 import { extendStrings, t } from "./strings"
 import { fmtDay } from "./today"
 import type { AppEvent, EventKind, Renewal, RenewalStage } from "./types"
+import { isSimulatedEvent } from "./sim-flag"
 
 extendStrings("en", {
   // --- /m/prime page -------------------------------------------------------
-  "prime.glance.title": "Northgate ITB obligation",
-  "prime.glance.met": "Obligation met",
-  "prime.glance.metOf": "of {obligation}",
-  "prime.glance.smb": "Small-business (SME) work",
-  "prime.glance.smbOf": "{pct} of the {target} target",
+  "prime.glance.title": "What Northgate owes Canada",
+  "prime.glance.met": "Credit so far",
+  "prime.glance.metOf": "of {obligation} owed",
+  "prime.glance.metPct": "of what's owed",
+  "prime.glance.smb": "Work to small businesses",
+  "prime.glance.smbOf": "{pct} of the {target} small-business target",
   "prime.glance.training": "Training credit",
   "prime.glance.trainingNone": "No training funded yet",
-  "prime.glance.trainingSome": "{count} packages funded",
-  "prime.glance.trainingSome_one": "1 package funded",
+  "prime.glance.trainingSome": "{count} training plans funded",
+  "prime.glance.trainingSome_one": "1 training plan funded",
   "prime.glance.replies": "{waiting} awaiting reply · {accepted} accepted · {declined} declined",
   "prime.glance.risk": "{count} supplier renewals put {credit} credit at risk",
   "prime.glance.risk_one": "1 supplier renewal puts {credit} credit at risk",
-  "prime.glance.smbNote": "SMB progress uses the CCV of SME work before multipliers (assumption)",
-  "prime.glance.empty": "Nothing routed yet",
-  "prime.glance.emptyBody": "Route the Northgate parts list on the laptop to start the ledger.",
+  "prime.glance.smbNote": "Small-business progress counts the Canadian content of small-business work before multipliers (assumption)",
+  "prime.glance.empty": "No work matched yet",
+  "prime.glance.emptyBody": "Send the Northgate parts list to shops on the laptop to start counting credit.",
   "prime.activity.title": "Activity",
   "prime.activity.empty": "No activity yet",
   "prime.activity.emptyBody": "Shops' answers appear here within seconds: accepts, declines with a reason, questions and funding requests.",
@@ -37,49 +40,53 @@ extendStrings("en", {
   "prime.activity.count": "{count} updates",
   "prime.activity.count_one": "1 update",
   "prime.supplier.title": "Supplier status",
-  "prime.supplier.subtitle": "Certifications that put routed work at risk if they lapse.",
+  "prime.supplier.subtitle": "Certificates that put matched work at risk if they lapse.",
   "prime.supplier.empty": "No renewals due",
-  "prime.supplier.emptyBody": "No assigned shop has a certification in its renewal window.",
-  "prime.supplier.notRouted": "Supplier status appears once jobs are assigned.",
-  "prime.supplier.loading": "Checking supplier certifications…",
+  "prime.supplier.emptyBody": "No matched shop has a certificate in its renewal window.",
+  "prime.supplier.notRouted": "Supplier status appears once jobs are matched to shops.",
+  "prime.supplier.loading": "Checking supplier certificates…",
   "prime.supplier.dates": "Dates for synthetic shops are illustrative; shop-entered dates are shop-declared.",
 
   // --- feed rows ---------------------------------------------------------------
-  "feed.routed": "{prime} routed {count} jobs",
-  "feed.routed.detail": "{shops} shops · {blocked} blocked",
-  "feed.routed.detailNoShops": "{blocked} blocked",
+  "feed.routed": "{prime} matched {count} jobs to shops",
+  "feed.routed.detail": "{shops} shops · {blocked} stuck",
+  "feed.routed.detailNoShops": "{blocked} stuck",
   "feed.accepted": "{shop} accepted {job}",
-  "feed.accepted.detail": "+{credit} credit",
+  "feed.accepted.detail": "Worth {credit} credit (already counted)",
   "feed.declined": "{shop} declined {job}: {reason}",
-  "feed.declined.detail": "Counted as routed until re-routed (demo)",
-  "feed.question": "{shop} asked about {question} on {job}",
+  "feed.declined.detail": "Still counted as placed until you send it to another shop (demo)",
+  "feed.question": "{shop} asked a question on {job}: “{text}”",
+  "feed.question.topic": "About: {question}",
   "feed.undo": "{shop} withdrew its answer on {job}",
   "feed.undo.detail": "Offer is open again",
-  "feed.funding": "{shop} asked you to fund {requirement}",
+  "feed.funding": "{shop} asked you to fund {requirement} training",
   "feed.funding.detail": "{cost} → {credit} credit",
   "feed.funded": "{package} funded → {count} jobs unblocked",
   "feed.funded_one": "{package} funded → 1 job unblocked",
-  "feed.funded.detail": "+{credit} credit",
-  "feed.capacity": "{shop}: {hours} h/wk free",
-  "feed.capacity.detail": "Accepted {accepted} h/wk",
-  "feed.capacity.over": "Accepted {accepted} h/wk · over by {over} h",
+  "feed.funded.detail": "+{credit} total credit (training + jobs)",
+  "feed.capacity": "{shop} has {hours} hrs/wk free",
+  "feed.capacity.detail": "{accepted} hrs/wk already taken by accepted jobs",
+  "feed.capacity.detailNone": "No accepted jobs yet",
+  "feed.capacity.over": "{accepted} hrs/wk taken by accepted jobs · {over} hrs over",
   "feed.cert": "{shop} added a {cert} expiry date",
   "feed.cert.detail": "{date} · shop-declared",
-  "feed.pctOfObligation": "{pct} of obligation",
+  "feed.pctOfObligation": "{pct} of what's owed",
   "feed.renewal": "{shop} · {cert} renewal due {date}",
+  "feed.renewal.overdue": "{shop} · {cert} renewal overdue since {date} · act now",
   "feed.renewal.lapsed": "{shop} · {cert} lapsed {date}",
   "feed.renewal.detail": "{jobs} · {credit} credit at risk",
   "feed.renewal.detailNoJobs": "No assigned work depends on it",
 
   // --- actions -----------------------------------------------------------------
   "feed.action.view": "View",
-  "feed.action.reroute": "Re-route",
+  "feed.action.reroute": "Find another shop",
   "feed.action.rerouteSoon": "coming soon",
   "feed.action.reply": "Reply by email",
   "feed.action.noEmail": "No contact on file",
   "feed.action.review": "Review in Gaps",
-  "feed.action.wallet": "See wallet",
-  "feed.action.certs": "See wallet",
+  "feed.action.funded": "Funded",
+  "feed.action.wallet": "See certificates",
+  "feed.action.certs": "See certificates",
   "feed.replySubject": "{prime}: your question on {job} ({question})",
 
   // --- desktop bell ------------------------------------------------------------
@@ -89,12 +96,11 @@ extendStrings("en", {
   "bell.empty": "No activity yet. Shops' answers from the phone app appear here.",
   "bell.markRead": "Mark all read",
   "bell.openPhone": "Open the phone feed",
-  "bell.toast.accepted": "{shop} accepted {job} (+{credit} credit)",
+  "bell.toast.accepted": "{shop} accepted {job} (worth {credit} credit, already counted)",
   "bell.toast.declined": "{shop} declined {job}: {reason}",
-  "bell.toast.question": "{shop} asked about {question} on {job}",
   "bell.toast.undo": "{shop} withdrew its answer on {job}",
-  "bell.toast.funding": "{shop} asked you to fund {requirement} ({cost} → {credit} credit)",
-  "bell.toast.capacity": "{shop}: {hours} h/wk free for the next {weeks} weeks",
+  "bell.toast.funding": "{shop} asked you to fund {requirement} training ({cost} → {credit} credit)",
+  "bell.toast.capacity": "{shop} has {hours} hrs/wk free for the next {weeks} weeks",
   "bell.toast.cert": "{shop} added a {cert} expiry date: {date} (shop-declared)",
   "header.phoneView": "Phone view",
 })
@@ -141,6 +147,8 @@ export interface FeedItem {
   stage?: RenewalStage
   /** Supplier rows: date basis label ("illustrative", "shop-declared", "registry"). */
   date_basis?: string
+  /** Written by the demo simulator (shows a "Simulated" chip). */
+  simulated?: boolean
 }
 
 /** One assigned shop's renewal (from renewalFor), with the shop it belongs to. */
@@ -158,6 +166,8 @@ export interface FeedContext {
   packages?: TrainingPackage[]
   /** Role-based contact email for a shop (shops.json contact_role_email). */
   shopEmail?: (shopId: string) => string | null
+  /** Package ids already funded (from package_funded events or package status); filled by feedItems. */
+  fundedPackages?: ReadonlySet<string>
 }
 
 // ---------------------------------------------------------------------------
@@ -185,16 +195,26 @@ const GENERIC_TAIL = new Set([
   "shop",
 ])
 
+/** Words that only make sense with the trade word after them ("Sheet Metal", "Structural Welding"). */
+const DANGLING = new Set(["sheet", "structural", "surface", "thermal", "contract", "electronics", "heat", "machine"])
+
 /**
- * Short shop name for phone rows: "Tallowfield Fabricating Ltd." → "Tallowfield",
- * "Tessellate Precision Machining Inc." → "Tessellate Precision".
+ * Short shop name for phone rows. Corporate suffixes go; generic trade words at the end go
+ * only while more than two words remain, so a two-word name stays whole:
+ * "Tessellate Precision Machining Inc." → "Tessellate Precision",
+ * "Keelbar Heavy Industries Ltd." → "Keelbar Heavy", "Tallowfield Fabricating Ltd." → "Tallowfield Fabricating".
  */
 export function shortShopName(name: string | null | undefined): string {
   if (!name) return ""
   let s = name.trim()
   for (let i = 0; i < 2; i++) s = s.replace(CORP_SUFFIX, "").trim()
   const words = s.split(/\s+/)
-  while (words.length > 1 && GENERIC_TAIL.has(words[words.length - 1].toLowerCase().replace(/[^a-zé]/g, ""))) words.pop()
+  while (words.length > 2 && GENERIC_TAIL.has(words[words.length - 1].toLowerCase().replace(/[^a-zé]/g, ""))) {
+    // Never leave a dangling modifier or "&": "Lanternfield Sheet Metal", "Forkline Weld & Machine" stay whole.
+    const before = words[words.length - 2].toLowerCase()
+    if (before === "&" || before === "and" || DANGLING.has(before)) break
+    words.pop()
+  }
   return words.join(" ") || name
 }
 
@@ -202,6 +222,34 @@ export function shortShopName(name: string | null | undefined): string {
 export function certShort(type: string): string {
   if (type === "CGP") return "CGP"
   return CERT_LABEL[type] ?? PROCESS_LABEL[type] ?? type.replace(/_/g, " ")
+}
+
+/**
+ * What a shop asked to have funded, worded to sit mid-sentence before "training":
+ * a process is lower-cased ("welding"), a certificate uses its plain label
+ * ("welding certification (CWB W47.1)").
+ */
+export function fundingNeed(requirement: string): string {
+  if (!requirement) return "the"
+  if (PROCESS_LABEL[requirement]) return lower(PROCESS_LABEL[requirement])
+  const p = certPlain(requirement)
+  return p.first !== p.label ? `${lower(p.label)} (${certShort(requirement)})` : certShort(requirement)
+}
+
+/**
+ * A shop question as one grammatical row: "Circuitry Row asked a question on NG-023: “Can delivery start
+ * in November?”". With no note, the question topic is the quoted text. The topic goes in the detail when
+ * the note is shown.
+ */
+export function questionRow(q: { shop: string; job: string; code?: unknown; note?: unknown }): { title: string; detail: string | null } {
+  const code = str(q.code)
+  const note = str(q.note)
+  const topic = code ? t(`question.${code}`) : null
+  const text = note ?? topic ?? t("reason.other")
+  return {
+    title: t("feed.question", { shop: q.shop, job: q.job, text }),
+    detail: note && topic ? t("feed.question.topic", { question: lower(topic) }) : null,
+  }
 }
 
 const money = (n: number | null | undefined) => (typeof n === "number" && Number.isFinite(n) ? fmtMoney(n, { compact: true }) : "—")
@@ -231,6 +279,16 @@ function pct(n: number): string {
   return `${v < 0.1 && v > 0 ? v.toFixed(2) : v.toFixed(1)}%`
 }
 
+/**
+ * Adds ?from=prime to an in-app /m link (before any #hash). The prime feed's shop links carry it so
+ * the phone shell keeps the defence company's tabs, back arrow and desktop link (useFromPrime).
+ */
+export function withFromPrime(href: string): string {
+  const [path, hash] = href.split("#")
+  const sep = path.includes("?") ? "&" : "?"
+  return `${path}${sep}from=prime${hash !== undefined ? `#${hash}` : ""}`
+}
+
 export const shopOfferHref = (shopId: string, jobId: string) =>
   `/m/shops/${encodeURIComponent(shopId)}/offers/${encodeURIComponent(jobId)}`
 export const shopCertHref = (shopId: string, certType: string) =>
@@ -238,6 +296,11 @@ export const shopCertHref = (shopId: string, certType: string) =>
 
 function mailto(to: string, subject: string): string {
   return `mailto:${to}?subject=${encodeURIComponent(subject)}`
+}
+
+function capacityDetail(accepted: number, over: number): string {
+  if (over > 0) return t("feed.capacity.over", { accepted, over })
+  return accepted > 0 ? t("feed.capacity.detail", { accepted }) : t("feed.capacity.detailNone")
 }
 
 // ---------------------------------------------------------------------------
@@ -260,6 +323,7 @@ export function eventItem(e: AppEvent, ledger: LedgerResponse | null, ctx: FeedC
     package_id: e.package_id,
     credit_cad: e.credit_cad,
     href: null,
+    simulated: isSimulatedEvent(e),
   }
   const creditPct = (c: number | null) => (c && obligation > 0 ? t("feed.pctOfObligation", { pct: pct(c / obligation) }) : null)
   const join = (...parts: (string | null)[]) => parts.filter(Boolean).join(" · ") || null
@@ -282,7 +346,7 @@ export function eventItem(e: AppEvent, ledger: LedgerResponse | null, ctx: FeedC
         tone: "success",
         title: t("feed.accepted", { shop, job: e.job_id ?? "" }),
         detail: join(t("feed.accepted.detail", { credit: fmtCredit(e.credit_cad) }), creditPct(e.credit_cad)),
-        action: e.shop_id && e.job_id ? { label: t("feed.action.view"), href: shopOfferHref(e.shop_id, e.job_id) } : null,
+        action: e.shop_id && e.job_id ? { label: t("feed.action.view"), href: withFromPrime(shopOfferHref(e.shop_id, e.job_id)) } : null,
       }
     case "offer_declined":
       return {
@@ -295,11 +359,12 @@ export function eventItem(e: AppEvent, ledger: LedgerResponse | null, ctx: FeedC
     case "offer_question": {
       const email = e.shop_id ? (ctx.shopEmail?.(e.shop_id) ?? null) : null
       const question = questionText(p.question_code)
+      const row = questionRow({ shop, job: e.job_id ?? "", code: p.question_code, note: p.note })
       return {
         ...base,
         tone: "action",
-        title: t("feed.question", { shop, job: e.job_id ?? "", question }),
-        detail: str(p.note),
+        title: row.title,
+        detail: row.detail,
         action: email
           ? {
               label: t("feed.action.reply"),
@@ -315,7 +380,7 @@ export function eventItem(e: AppEvent, ledger: LedgerResponse | null, ctx: FeedC
         tone: "info",
         title: t("feed.undo", { shop, job: e.job_id ?? "" }),
         detail: t("feed.undo.detail"),
-        action: e.shop_id && e.job_id ? { label: t("feed.action.view"), href: shopOfferHref(e.shop_id, e.job_id) } : null,
+        action: e.shop_id && e.job_id ? { label: t("feed.action.view"), href: withFromPrime(shopOfferHref(e.shop_id, e.job_id)) } : null,
       }
     case "funding_requested": {
       const pkg = e.package_id ? ctx.packages?.find((x) => x.id === e.package_id) : undefined
@@ -324,9 +389,12 @@ export function eventItem(e: AppEvent, ledger: LedgerResponse | null, ctx: FeedC
       return {
         ...base,
         tone: "action",
-        title: t("feed.funding", { shop, requirement: certShort(requirement) }),
+        title: t("feed.funding", { shop, requirement: fundingNeed(requirement) }),
         detail: t("feed.funding.detail", { cost: money(cost), credit: money(e.credit_cad ?? pkg?.est_credit_cad ?? null) }),
-        action: { label: t("feed.action.review"), href: "/gaps" },
+        action:
+          e.package_id && (ctx.fundedPackages?.has(e.package_id) || pkg?.status === "funded")
+            ? { label: t("feed.action.funded"), href: null, disabled: true }
+            : { label: t("feed.action.review"), href: e.package_id ? `/gaps#${encodeURIComponent(e.package_id)}` : "/gaps" },
       }
     }
     case "package_funded": {
@@ -347,7 +415,7 @@ export function eventItem(e: AppEvent, ledger: LedgerResponse | null, ctx: FeedC
         ...base,
         tone: over > 0 ? "warn" : "info",
         title: t("feed.capacity", { shop, hours }),
-        detail: over > 0 ? t("feed.capacity.over", { accepted, over }) : t("feed.capacity.detail", { accepted }),
+        detail: capacityDetail(accepted, over),
         action: null,
       }
     }
@@ -358,7 +426,7 @@ export function eventItem(e: AppEvent, ledger: LedgerResponse | null, ctx: FeedC
         tone: "info",
         title: t("feed.cert", { shop, cert: certShort(cert) }),
         detail: t("feed.cert.detail", { date: str(p.expires_at) ?? "—" }),
-        action: e.shop_id && cert ? { label: t("feed.action.certs"), href: shopCertHref(e.shop_id, cert) } : null,
+        action: e.shop_id && cert ? { label: t("feed.action.certs"), href: withFromPrime(shopCertHref(e.shop_id, cert)) } : null,
       }
     }
     default:
@@ -379,6 +447,8 @@ export function supplierItem(r: SupplierRenewal): FeedItem | null {
   const label = r.shop_source === "synthetic" ? ` (${t("label.synthetic").toLowerCase()})` : ""
   const shop = `${shortShopName(r.shop_name) || r.shop_id}${label}`
   const lapsed = rn.stage === "lapsed"
+  // A past act-by date is never "due": it reads "overdue since …" (the shop's wallet says "N days past act-by").
+  const overdue = !lapsed && typeof rn.days_left === "number" && rn.days_left < 0
   const date = fmtDay(lapsed ? rn.expires_at : (rn.act_by ?? rn.expires_at))
   return {
     id: `sup-${r.shop_id}-${rn.cert_type}`,
@@ -387,7 +457,7 @@ export function supplierItem(r: SupplierRenewal): FeedItem | null {
     ts: null,
     kind: "renewal_risk",
     tone: lapsed || rn.stage === "urgent" ? "danger" : "warn",
-    title: t(lapsed ? "feed.renewal.lapsed" : "feed.renewal", { shop, cert: certShort(rn.cert_type), date }),
+    title: t(lapsed ? "feed.renewal.lapsed" : overdue ? "feed.renewal.overdue" : "feed.renewal", { shop, cert: certShort(rn.cert_type), date }),
     detail: rn.jobs_at_risk.length
       ? t("feed.renewal.detail", { jobs: rn.jobs_at_risk.join(" · "), credit: fmtCredit(rn.credit_at_risk_cad) })
       : t("feed.renewal.detailNoJobs"),
@@ -396,7 +466,7 @@ export function supplierItem(r: SupplierRenewal): FeedItem | null {
     package_id: null,
     credit_cad: rn.credit_at_risk_cad,
     action: null,
-    href: shopCertHref(r.shop_id, rn.cert_type),
+    href: withFromPrime(shopCertHref(r.shop_id, rn.cert_type)),
     stage: rn.stage,
     date_basis: rn.date_basis,
   }
@@ -412,9 +482,13 @@ export function feedItems(
   supplierRenewals: SupplierRenewal[],
   ctx: FeedContext = {}
 ): FeedItem[] {
+  const funded = new Set<string>(ctx.fundedPackages ?? [])
+  for (const e of events) if (e.kind === "package_funded" && e.package_id) funded.add(e.package_id)
+  for (const p of ctx.packages ?? []) if (p.status === "funded") funded.add(p.id)
+  const fctx: FeedContext = { ...ctx, fundedPackages: funded }
   const activity = [...events]
     .sort((a, b) => b.seq - a.seq)
-    .map((e) => eventItem(e, ledger, ctx))
+    .map((e) => eventItem(e, ledger, fctx))
     .filter((x): x is FeedItem => x !== null)
   const supplier = supplierRenewals
     .filter((r) => RISK_STAGES.includes(r.renewal.stage) && r.renewal.status !== "unknown")
@@ -458,8 +532,10 @@ export function eventToast(e: AppEvent, ctx: FeedContext = {}): { title: string;
       return { title: t("bell.toast.accepted", { shop, job, credit: fmtCredit(e.credit_cad) }), description: null, tone: "success" }
     case "offer_declined":
       return { title: t("bell.toast.declined", { shop, job, reason: reasonText(p.reason_code) }), description: t("feed.declined.detail"), tone: "danger" }
-    case "offer_question":
-      return { title: t("bell.toast.question", { shop, job, question: questionText(p.question_code) }), description: str(p.note), tone: "action" }
+    case "offer_question": {
+      const row = questionRow({ shop, job, code: p.question_code, note: p.note })
+      return { title: row.title, description: row.detail, tone: "action" }
+    }
     case "offer_undo":
       return { title: t("bell.toast.undo", { shop, job }), description: t("feed.undo.detail"), tone: "info" }
     case "funding_requested": {
@@ -468,7 +544,7 @@ export function eventToast(e: AppEvent, ctx: FeedContext = {}): { title: string;
       return {
         title: t("bell.toast.funding", {
           shop,
-          requirement: certShort(requirement),
+          requirement: fundingNeed(requirement),
           cost: money(num(p.est_cost_cad) ?? pkg?.est_cost_cad ?? null),
           credit: money(e.credit_cad ?? pkg?.est_credit_cad ?? null),
         }),
@@ -482,7 +558,7 @@ export function eventToast(e: AppEvent, ctx: FeedContext = {}): { title: string;
       const over = num(p.over_by_hours) ?? Math.max(0, accepted - hours)
       return {
         title: t("bell.toast.capacity", { shop, hours, weeks: num(p.horizon_weeks) ?? 4 }),
-        description: over > 0 ? t("feed.capacity.over", { accepted, over }) : t("feed.capacity.detail", { accepted }),
+        description: capacityDetail(accepted, over),
         tone: over > 0 ? "warn" : "info",
       }
     }

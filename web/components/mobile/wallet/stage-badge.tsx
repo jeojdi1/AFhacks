@@ -1,5 +1,5 @@
 import type * as React from "react"
-import { CircleCheck, CircleDashed, CircleHelp, CircleX, Clock, FileCheck, GraduationCap, ShieldCheck, TriangleAlert } from "lucide-react"
+import { CircleCheck, CircleDashed, CircleHelp, CircleX, Clock, FileCheck, ShieldCheck, TriangleAlert } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { t } from "@/lib/app/strings"
 import type { RenewalStage } from "@/lib/app/types"
@@ -49,7 +49,7 @@ export function StageBadge({ stage, held = true, className }: { stage: RenewalSt
 const STATUS: Record<CertStatus, { cls: string; Icon: Icon }> = {
   verified: { cls: "border-assigned/30 text-assigned", Icon: ShieldCheck },
   declared: { cls: "border-slate-300 text-slate-700", Icon: FileCheck },
-  pending_training: { cls: "border-funded/30 text-funded", Icon: GraduationCap },
+  pending_training: { cls: "border-amber-300 bg-amber-50 text-amber-800", Icon: Clock },
   unknown: { cls: "border-slate-300 text-slate-500", Icon: CircleDashed },
 }
 

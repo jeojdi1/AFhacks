@@ -19,7 +19,7 @@ const FIELD_LABEL: Record<string, string> = {
   capacity_hours_week: "Capacity",
   lead_time_days: "Lead time",
   employee_band: "Employees",
-  naics: "NAICS",
+  naics: "Industry code",
   name: "Name",
   city: "Location",
 }
@@ -49,14 +49,14 @@ export function CapabilitiesCard({ shop }: { shop: ShopT }) {
 
   return (
     <section className="rounded-xl border border-zinc-200 bg-white">
-      <header className="border-b border-zinc-100 px-6 py-5">
+      <header className="border-b border-zinc-100 px-5 py-5 sm:px-6">
         <h2 className="text-lg font-semibold tracking-tight text-zinc-900">Capabilities</h2>
         <p className="mt-0.5 text-sm text-zinc-500">
-          What Muster matches jobs against: processes, envelope, capacity and lead time.
+          What Muster matches jobs against: processes, part size, weekly hours and lead time.
         </p>
       </header>
 
-      <div className="grid gap-6 px-6 py-5 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid gap-6 px-5 py-5 sm:px-6 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-5">
           <div>
             <div className="text-xs font-medium uppercase tracking-wide text-zinc-500">Processes</div>
@@ -99,13 +99,13 @@ export function CapabilitiesCard({ shop }: { shop: ShopT }) {
 
         <div className="grid grid-cols-2 gap-3 self-start">
           <Fact
-            label="Capacity"
-            value={`${shop.capacity_hours_week} h`}
-            sub="per week, all processes"
+            label="Weekly hours"
+            value={`${shop.capacity_hours_week}`}
+            sub="hours a week, all processes"
           />
           <Fact label="Lead time" value={`${shop.lead_time_days} days`} />
           <Fact
-            label="Max envelope"
+            label="Largest part"
             value={env ? `${env.join(" × ")}` : "—"}
             sub={env ? "mm (x × y × z)" : undefined}
           />
@@ -116,12 +116,12 @@ export function CapabilitiesCard({ shop }: { shop: ShopT }) {
         </div>
       </div>
 
-      <footer className="border-t border-zinc-100 bg-zinc-50/60 px-6 py-3 text-xs text-zinc-500">
+      <footer className="border-t border-zinc-100 bg-zinc-50/60 px-5 py-3 text-xs text-zinc-500 sm:px-6">
         <span className="font-medium text-zinc-600">Provenance: </span>
         {synthetic ? (
           <>Synthetic shop: every field is illustrative and generated for the demo.</>
         ) : provenance.length === 0 ? (
-          <>Public data (Statistics Canada ODBus, OGL) — unverified, not affiliated.</>
+          <>Public data (Statistics Canada ODBus, Open Government Licence) — unverified, not affiliated.</>
         ) : (
           <span className="inline-flex flex-wrap gap-x-3 gap-y-1">
             {provenance.map((p, i) => (

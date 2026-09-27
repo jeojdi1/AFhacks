@@ -223,6 +223,13 @@ _GIVEN_NAMES_TEXT = """
     thomas tim timothy tina todd tom tommy tony tracy travis trevor troy tyler
     valerie vanessa victor victoria vincent virginie vladimir walter wanda wayne
     wendy william yan yannick yves zachary
+    edgar edmond edouard emile ernest gaston gerry gilberte guylaine huguette
+    jean-francois jean-guy jean-luc jean-marc jean-paul jean-pierre jeannine
+    lise lucien marcelle maurice micheal nadia normand reginald rejean
+    remi robert-andre roch rodrigue sylvio yvan yvon yvette
+    abdel ahmad amir ana anil arjun ayman carlos chloe devin fatma gurpreet
+    hamed harjinder hassan ibrahim kacey kaveh kristin kyla meghan mourad
+    nabil nevena randall rajesh reza sana taimoor tasha terence vikram
 """
 GIVEN_NAMES = set(_GIVEN_NAMES_TEXT.split())
 HONORIFIC_RE = re.compile(
@@ -283,7 +290,84 @@ NOT_PERSON = {
     "ROLLS ROYCE",
     "DONNA CON",
     "RUSSELL HENDRIX",
+    "ANTON PAAR",
+    "HELLY HANSEN",
+    "PERKIN ELMER",
+    "KORN FERRY",
+    "SPIRAX SARCO",
+    "MALVERN PANALYTICAL",
+    "HITACHI VANTARA",
+    "NAMMO RAUFOSS",
+    "FAIRMONT EMPRESS",
+    "CHRISTIE INNOMED",
+    "MOLLY MAID",
+    "SENIOR FLEXONICS",
+    "SILLS ARGO",
+    "TAPLIN WEIR",
+    "BACKMAN VI",
+    "GIN COR",
+    "HULLY GULLY",
+    "BOXCAR WOODY",
+    "MAKTOUM",
+    "JOLDEN",
+    "NORTHWOOD INTOUCH",
+    "HEY HUMANTIS",
+    "SAMES KERMLIN",
+    "KATZ GASTRO",
+    "ARGOS INGEGNERIA",
+    "HISPANA IDIOMAS",
+    "ASSOCIACION",
+    "FRIEDA BANQUETES",
+    "MISCELANEA",
+    "ORIGINLAB",
+    "HYPERCOAT",
+    "J D IRVING",
+    "S A VITEC",
+    "S C A",
+    "J G RIVE",
+    "G E SALLOWS",
+    "ANDREW SHERET",
+    "ROBERT ALLAN",
+    "IAN MARTIN",
+    "LEE VALLEY",
+    "SAMUEL SON",
+    "TOM LEE MUSIC",
+    "KARL SENNER",
+    "MARCEL BOSCHUNG",
+    "CHARLES AUGUSTE FORTIER",
+    "MARTIN DEERLINE",
+    "SCOTT TOOLS",
+    "GLEN ORO",
+    "NORMAND CA",
+    "CHESSWOOD",
+    "DIVERS DEN",
+    "JOHN BROOKS COMPANY",
+    "WILLIAM S HEIN",
+    "JD IRVING",
 }
+# Trade words that sole proprietors put in front of their own name
+# ("Garage Jean-Pierre Tremblay", "Excavation J.P. Roy").
+TRADE_PREFIX_RE = re.compile(
+    r"^(garage|atelier|entreprises?|transport|excavation|services?)\s+", re.IGNORECASE
+)
+# Backstop: stems that mark a two-word Title-Case name as a business even when
+# BUSINESS_RE misses it (incl. common misspellings seen in the source).
+BUSINESS_STEM_RE = re.compile(
+    r"\b(indust|indrust|indut|solut|sollut|machin|distrib|disturb|corpor|incorp|incop|"
+    r"technol|tecnol|electron|scientif|engineer|supplier|diagnost|recruit|janitor|"
+    r"clean|nurser|pallet|semicond|photon|device|garment|strateg|landscap|poultry|"
+    r"tractor|audiovis|racing|welds?\b|forklift|automobil|skis\b|shutter|holiday|"
+    r"clothes|clothing|pub\b|bakery|cycles|laundr|informati|acoustic|alignment|"
+    r"tarps\b|scuba|underwater|stainless|caterers?\b|catering|cateir|canoe|peaks\b|"
+    r"spotlight|universe|powerwash|ergonom|accuracy|litho\b|promotion|powertrain|"
+    r"remorquage|emballage|chalets?\b|oxygene|laboratoire|cabanons|consortium|"
+    r"lignes\b|abri\b|produits?\b|enquete|cafeteria|rooms?\b|workers|perspective|"
+    r"speaking|palace|ramada|hilton|resouraces|furnature|systen|ltda|puregas|"
+    r"circuits|fighter|strengths|intouch|cdn\b|unicorp|millipore|waterjet|"
+    r"conferences?\b|agencies|cordage)",
+    re.IGNORECASE,
+)
+_TITLE_TOK = re.compile(r"[A-Z][a-z'\-]+")
 
 
 def _ascii(s: str) -> str:
@@ -291,7 +375,7 @@ def _ascii(s: str) -> str:
 
 
 LEGAL_RE = re.compile(
-    r"\b(inc|incorporated|ltd|ltee|limited|limitee|llc|llp|ulc|corp|corporation|co|"
+    r"\b(inc|incorporated|ltd|ltee|lte|limited|limitee|llc|llp|ulc|corp|corporation|co|"
     r"company|gmbh|ag|sa|sas|srl|bv|ab|plc|pty|oy|kg|nv)\b\.?",
     re.IGNORECASE,
 )
@@ -304,8 +388,25 @@ def looks_like_person(raw: str) -> bool:
     up = " ".join(re.sub(r"[^A-Z ]", " ", name.upper()).split())
     if any(up.startswith(k) for k in NOT_PERSON):
         return False
-    has_biz = bool(BUSINESS_RE.search(name))
-    tokens = [t.strip(".").lower() for t in re.split(r"[\s,]+", name) if t.strip(".")]
+    has_biz = bool(BUSINESS_RE.search(name) or BUSINESS_STEM_RE.search(name))
+    # split on "." too, so "J.R. BRISSON" -> j, r, brisson
+    tokens = [t.lower() for t in re.split(r"[\s,.]+", name) if t]
+    # "Garage Jean-Pierre Tremblay", "GARAGE JP TREMBLAY": trade word + person name
+    tm = TRADE_PREFIX_RE.match(name)
+    if tm:
+        rest = name[tm.end() :]
+        rt = [t.lower() for t in re.split(r"[\s,.]+", rest) if t]
+        if (
+            2 <= len(rt) <= 3
+            and all(re.fullmatch(r"[a-z'\-]+", t) for t in rt)
+            and (rt[0].split("-")[0] in GIVEN_NAMES or len(rt[0]) <= 2)
+            and all(len(t) <= 2 or t in GIVEN_NAMES for t in rt[1:-1])
+            and len(rt[-1]) >= 3
+            and not BUSINESS_RE.search(rest)
+            and not SOLE_PROP_RE.search(rest)
+            and not BUSINESS_STEM_RE.search(rest)
+        ):
+            return True
     # Honorifics: "Mr Tom Smith", "Dr. Jane Doe", "Dr. Doe, University of X".
     # Bare "MS"/"MRS"/"M" (often initials of a company) need a given name after them.
     hm = HONORIFIC_RE.match(name)
@@ -334,6 +435,7 @@ def looks_like_person(raw: str) -> bool:
             and all(re.fullmatch(r"[a-z'\-]+", t) for t in ct)
             and ct[0].split("-")[0] in GIVEN_NAMES
             and not BUSINESS_RE.search(core)
+            and not BUSINESS_STEM_RE.search(core)
             and not SOLE_PROP_RE.search(core)
             and all(len(t) == 1 or t in GIVEN_NAMES for t in ct[1:-1])
         ):
@@ -375,6 +477,40 @@ def looks_like_person(raw: str) -> bool:
         return name.isupper() and len(tokens) == 2 and tokens[1] in GIVEN_NAMES
     # "John Smith Consulting" (given name + surname + trade word, nothing else)
     return (first in GIVEN_NAMES or initial) and 3 <= len(tokens) <= 4
+
+
+def business_vocab(names) -> Counter:
+    """Lower-case tokens counted over names that clearly are businesses."""
+    voc: Counter = Counter()
+    for n in names:
+        a = _ascii(n)
+        if BUSINESS_RE.search(a) or LEGAL_RE.search(a) or re.search(r"\d", a):
+            voc.update(set(re.findall(r"[a-z]+", a.lower())))
+    return voc
+
+
+def backstop_person(raw: str, vocab: Counter) -> bool:
+    """Two Title-Case words, no business word, not a known company, and neither
+    word used in other business names ("Nake Sela", "Edgar Blondeau")."""
+    name = _ascii(raw).strip()
+    t = name.split()
+    if len(t) != 2 or not all(_TITLE_TOK.fullmatch(x) for x in t):
+        return False
+    up = " ".join(re.sub(r"[^A-Z ]", " ", name.upper()).split())
+    if any(up.startswith(k) for k in NOT_PERSON):
+        return False
+    if BUSINESS_RE.search(name) or SOLE_PROP_RE.search(name):
+        return False
+    if BUSINESS_STEM_RE.search(name):
+        return False
+    return all(vocab[x.lower()] < 2 for x in t)
+
+
+def person_filter(names) -> dict[str, bool]:
+    """Per raw vendor name: True when it looks like an individual (dropped)."""
+    names = set(names)
+    vocab = business_vocab(names)
+    return {n: looks_like_person(n) or backstop_person(n, vocab) for n in names}
 
 
 # --------------------------------------------------------------------------------------
@@ -563,13 +699,30 @@ def read_contracts() -> tuple[dict[tuple[str, str], dict], dict]:
     return latest, stats
 
 
+OUTSIDE = "outside Canada"
+PROV_UNKNOWN = "Canada (province unknown)"
+
+
 def province_of(fsa: str, country: str) -> str:
     fsa = fsa.upper().replace(" ", "")[:3]
     if FSA_RE.match(fsa):
         return PROVINCE_BY_FSA_LETTER[fsa[0]]
-    if fsa == "NA" or (country and country.upper() != "CA"):
-        return "outside Canada"
-    return "unknown"
+    # No valid FSA: only a non-CA vendor country means "outside Canada". A missing
+    # or "NA" postal code with country CA (or blank) is still a Canadian vendor.
+    if country and country.strip().upper() not in ("CA", "CAN", "CANADA"):
+        return OUTSIDE
+    return PROV_UNKNOWN
+
+
+def vendor_province(prov: Counter, country: Counter) -> str:
+    """Most common province among rows with a valid FSA; only when no row has one,
+    the country-based label ('outside Canada' / 'Canada (province unknown)')."""
+    fsa_prov = Counter(
+        {p: n for p, n in prov.items() if p not in (OUTSIDE, PROV_UNKNOWN)}
+    )
+    if fsa_prov:
+        return fsa_prov.most_common(1)[0][0]
+    return province_of("", country.most_common(1)[0][0] if country else "")
 
 
 _STOP_TEXT = """
@@ -593,15 +746,13 @@ def main() -> None:
     contracts, stats = read_contracts()
 
     # ---- person filter ------------------------------------------------------------
-    person_cache: dict[str, bool] = {}
+    person_cache = person_filter(r["vendor_name"] for r in contracts.values())
     dropped_vendors: set[str] = set()
     dropped_value = 0.0
     dropped_contracts = 0
     kept: list[dict] = []
     for (_pid, vnorm), r in contracts.items():
         raw = r["vendor_name"]
-        if raw not in person_cache:
-            person_cache[raw] = looks_like_person(raw)
         if person_cache[raw] or not vnorm:
             dropped_vendors.add(vnorm or "<blank>")
             dropped_contracts += 1
@@ -688,10 +839,11 @@ def main() -> None:
         if r["solicitation_procedure"] in ("TN", "AC"):  # non-competitive / ACAN
             a["sole_source"] += 1
 
-    # vendor-level province = most common across its contracts
     records = []
     for vnorm, a in vendors.items():
-        prov = a["prov"].most_common(1)[0][0]
+        # vendor-level province = most common among rows with a valid FSA; only
+        # when no row has one, fall back to the country-based label
+        prov = vendor_province(a["prov"], a["country"])
         fsa = a["fsa"].most_common(1)[0][0] if a["fsa"] else None
         flags = {
             k: {"value": round(x[0], 2), "contracts": x[1]}
@@ -786,7 +938,10 @@ def main() -> None:
         ),
         (
             "Province from vendor_postal_code (first 3 characters, FSA) as published by "
-            "DND; 'outside Canada' where postal code is NA or vendor country is not CA. "
+            "DND. Vendor-level province = most common province among the vendor's rows "
+            "with a valid FSA. With no valid FSA on any row: 'outside Canada' only when "
+            "the vendor country is not CA; otherwise 'Canada (province unknown)'. "
+            "Canadian value (for Ontario share) includes 'Canada (province unknown)'. "
             "Postal code is the vendor's address in DND's system, not where work is done."
         ),
         (
@@ -811,9 +966,7 @@ def main() -> None:
 
     on_value = by_prov.get("ON", {"value": 0.0})["value"]
     on_vendors = len(by_prov.get("ON", {"vendors": set()})["vendors"])
-    canada_value = sum(
-        x["value"] for k, x in by_prov.items() if k not in ("outside Canada", "unknown")
-    )
+    canada_value = sum(x["value"] for k, x in by_prov.items() if k != OUTSIDE)
     summary = {
         **meta,
         "headline": {

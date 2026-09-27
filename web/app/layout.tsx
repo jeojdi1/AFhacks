@@ -4,6 +4,8 @@ import "leaflet/dist/leaflet.css"
 import "./globals.css"
 import { DemoProvider } from "@/lib/data/store"
 import { AppActionsProvider } from "@/lib/app/actions-store"
+import { StoryModeProvider } from "@/lib/ui/story-mode"
+import { COPY } from "@/lib/ui/copy"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { AppToaster, ChromeGate } from "@/components/shell/chrome-gate"
 
@@ -18,9 +20,9 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Muster — defence work and workers for small Canadian factories",
-  description:
-    "Muster routes defence contract work to qualified small Canadian shops, tracks ITB credit live, and funds the training that unblocks the rest.",
+  title: COPY["app.title"],
+  // The one plain-language sentence the whole app repeats (docs/ux-simplification.md §1).
+  description: COPY["app.sentence"],
   applicationName: "Muster",
   appleWebApp: { capable: true, title: "Muster", statusBarStyle: "default" },
 }
@@ -34,17 +36,19 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html lang="en" data-story="on" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <DemoProvider>
-          <AppActionsProvider>
-            <TooltipProvider delay={150}>
-              {/* Desktop header, program bar and footer; skipped under /m (phone chrome in app/m/layout.tsx). */}
-              <ChromeGate>{children}</ChromeGate>
-              {/* Desktop toasts bottom-right; phone-app (/m) toasts below the sticky header. See AppToaster. */}
-              <AppToaster />
-            </TooltipProvider>
-          </AppActionsProvider>
+          <StoryModeProvider>
+            <AppActionsProvider>
+              <TooltipProvider delay={150}>
+                {/* Desktop header, story bar and footer; skipped under /m (phone chrome in app/m/layout.tsx). */}
+                <ChromeGate>{children}</ChromeGate>
+                {/* Desktop toasts bottom-right; phone-app (/m) toasts below the sticky header. See AppToaster. */}
+                <AppToaster />
+              </TooltipProvider>
+            </AppActionsProvider>
+          </StoryModeProvider>
         </DemoProvider>
       </body>
     </html>

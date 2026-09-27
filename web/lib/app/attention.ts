@@ -23,6 +23,9 @@ extendStrings("en", {
 
   "today.renewal.title": "{cert} · {verb} by {date}",
   "today.renewal.titleLapsed": "{cert} · lapsed {date}",
+  "today.renewal.titleOverdue": "{cert} · overdue since {date} · act now",
+  "today.renewal.bigOverdue": "days overdue",
+  "today.renewal.bigOverdue_one": "day overdue",
   "today.renewal.atRisk": "{risk} at risk",
   "today.renewal.noRisk": "{stage} · no assigned work depends on it yet",
   "today.renewal.big": "days left",
@@ -150,13 +153,23 @@ export interface TodayStats {
   capacity_hours: number
   /** Confirmed free hours from the last check-in, if any. */
   confirmed_free_hours: number | null
+  /** Certificates counting for matching (verified, declared or pending_training). */
   certs_counting: number
+  /** Held now (verified or declared). */
+  certs_in_place: number
+  /** pending_training: counts for matching (CLAUDE.md §1.1 decision 4) but welders are still in training. */
+  certs_in_training: number
   certs_total: number
+  /** Weekly hours funded training adds to the profile capacity once trainees qualify (already in capacity_hours). */
+  training_hours: number
 }
 
 /** The 3 compact stats under the cards. */
-export function todayStats(b: Pick<ShopBundle, "offers" | "shop" | "certs" | "actions">): TodayStats {
+export function todayStats(b: Pick<ShopBundle, "offers" | "shop" | "certs" | "actions"> & Partial<Pick<ShopBundle, "detail">>): TodayStats {
   const live = b.offers.filter((o) => o.status !== "declined")
+  const trainingHours = (b.detail?.training ?? [])
+    .filter((tr) => tr.status === "funded")
+    .reduce((s, tr) => s + Object.values(tr.capacity_unlock ?? {}).reduce((a, h) => a + (typeof h === "number" && h > 0 ? h : 0), 0), 0)
   return {
     offers_value_cad: live.reduce((s, o) => s + o.value_cad, 0),
     offers_count: live.length,
@@ -164,7 +177,10 @@ export function todayStats(b: Pick<ShopBundle, "offers" | "shop" | "certs" | "ac
     capacity_hours: b.shop?.capacity_hours_week ?? 0,
     confirmed_free_hours: b.actions.capacity?.hours_week ?? null,
     certs_counting: b.certs.filter((c) => COUNTING_CERT_STATUSES.includes(c.status)).length,
+    certs_in_place: b.certs.filter((c) => COUNTING_CERT_STATUSES.includes(c.status) && c.status !== "pending_training").length,
+    certs_in_training: b.certs.filter((c) => c.status === "pending_training").length,
     certs_total: b.certs.length,
+    training_hours: trainingHours,
   }
 }
 
@@ -228,20 +244,24 @@ export function buildAttention(
     const actBy = r.act_by ?? r.expires_at
     const days = r.days_left ?? (lapsed ? daysBetween(today, r.expires_at ?? today) : daysBetween(today, actBy ?? today))
     const shown = Number.isFinite(days) ? Math.abs(days) : null
+    // A past act-by date is never "renew by …" / "days left": it is overdue.
+    const overdue = !lapsed && Number.isFinite(days) && days < 0
     const risk = riskLine(r)
     out.push({
       kind: "renewal",
       ref_id: r.cert_type,
       title: lapsed
         ? t("today.renewal.titleLapsed", { cert, date: fmtDay(r.expires_at) })
-        : t("today.renewal.title", { cert, verb: renewalVerb(r.cert_type) || "renew", date: fmtDay(actBy) }),
+        : overdue
+          ? t("today.renewal.titleOverdue", { cert, date: fmtDay(actBy) })
+          : t("today.renewal.title", { cert, verb: renewalVerb(r.cert_type) || "renew", date: fmtDay(actBy) }),
       detail: risk ? t("today.renewal.atRisk", { risk }) : t("today.renewal.noRisk", { stage: t(`stage.${r.stage}`) }),
       due_at: lapsed ? r.expires_at : actBy,
       value_cad: r.credit_at_risk_cad || null,
       href: `${base}/certs#${encodeURIComponent(r.cert_type)}`,
       tone: r.stage === "window_open" ? "warn" : "danger",
       big: shown === null ? "—" : String(shown),
-      big_label: t(lapsed ? "today.renewal.bigLapsed" : "today.renewal.big", { count: shown ?? 0 }),
+      big_label: t(lapsed ? "today.renewal.bigLapsed" : overdue ? "today.renewal.bigOverdue" : "today.renewal.big", { count: shown ?? 0 }),
       verb: t("today.renewal.verb"),
       assumption: null,
       stage: r.stage,

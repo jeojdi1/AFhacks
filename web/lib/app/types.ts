@@ -116,6 +116,8 @@ export interface AppEvent {
   credit_cad: number | null
   message: string
   payload: Record<string, unknown>
+  /** Written by the demo simulator (POST /demo/simulate/tick). Optional, additive. */
+  simulated?: boolean
 }
 
 /** GET /programs/{program_id}/events?since=&limit= */

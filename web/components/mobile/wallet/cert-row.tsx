@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
 import { CERT_LABEL, GLOSSARY } from "@/lib/format"
+import { certPlain } from "@/lib/ui/plain"
 import { t } from "@/lib/app/strings"
 import { fmtDay, fmtLongDate, toISODate, addDays } from "@/lib/app/today"
 import { certShortName, fmtCredit, fmtWork, ruleFor } from "@/lib/app/renewals"
@@ -55,7 +56,8 @@ export function CertRow({
   const rule = ruleFor(cert.type)
   const held = cert.status !== "unknown" || !!cert.declaration
   const dated = held && !!renewal.expires_at
-  const name = CERT_LABEL[cert.type] ?? certShortName(cert.type)
+  // Plain label first ("Welding certification (CWB W47.1)"); the acronym never stands alone.
+  const name = certPlain(cert.type).first || CERT_LABEL[cert.type] || certShortName(cert.type)
   // Plain-language expansion for the acronym owners and judges may not know.
   const gloss = GLOSSARY[cert.type.split(/[_:]/)[0]] ?? null
   const panelId = `cert-panel-${certAnchor(cert.type)}`

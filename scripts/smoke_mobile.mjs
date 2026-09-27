@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // /m smoke check (docs/app-spec.md §2.10).
 //
-// Visits every phone route in headless Chrome at 390x844 and checks, on each:
+// Visits every phone route (plus the /phone QR page) in headless Chrome at 390x844 and checks, on each:
 //   - 0 console errors (and 0 uncaught page errors)
 //   - no horizontal page scroll (scrollWidth <= innerWidth)
 //   - every visible `button` and `a[role=button]` is at least 44x44 px
@@ -47,9 +47,16 @@ const ROUTES = [
   "/m/shops/syn-012/grow",
   "/m/shops/syn-012/grow/CWB_W47.1",
   "/m/prime",
+  "/m/college",
   "/m/trainee/TP-01?seat=3",
   "/m/shops/syn-001/certs",
+  // Desktop QR page, opened from the shop desk's "Open on your phone"; must also work at phone width.
+  "/phone?to=%2Fm%2Fshops%2Fsyn-012",
 ]
+
+// Desktop pages in ROUTES: checked for console errors and sideways scroll only. Their header
+// controls are desktop-sized (36 px), so the 44 px phone tap-target rule does not apply.
+const DESKTOP = new Set(["/phone?to=%2Fm%2Fshops%2Fsyn-012"])
 
 function loadPlaywright() {
   const req = createRequire(import.meta.url)
@@ -128,7 +135,7 @@ async function visitAll(ctx, phase, results) {
     const fails = []
     if (errors.length) fails.push(`${errors.length} console error(s): ${errors.join(" | ")}`)
     if (m.sw > m.iw) fails.push(`horizontal scroll: scrollWidth ${m.sw} > innerWidth ${m.iw}`)
-    if (m.small.length) fails.push(`${m.small.length} tap target(s) < ${MIN}px: ${m.small.join(", ")}`)
+    if (m.small.length && !DESKTOP.has(route)) fails.push(`${m.small.length} tap target(s) < ${MIN}px: ${m.small.join(", ")}`)
     results.push({ phase, route, ok: fails.length === 0, fails })
     console.log(`${fails.length ? "FAIL" : "PASS"} [${MODE}/${phase}] ${route}${fails.length ? "\n     " + fails.join("\n     ") : ""}`)
   }
@@ -167,16 +174,16 @@ try {
     const desk = await ctx.newPage()
     await desk.setViewportSize({ width: 1280, height: 800 })
     await desk.goto(withQuery("/program"), { waitUntil: "networkidle" })
-    await desk.getByRole("button", { name: /Load Northgate demo parts list/ }).click()
+    await desk.getByRole("button", { name: /Load Northgate(?: demo|.s) parts list/ }).first().click()
     await desk.waitForFunction(
       () => {
-        const b = [...document.querySelectorAll("button")].find((x) => /Route jobs/.test(x.textContent || ""))
+        const b = [...document.querySelectorAll("button")].find((x) => /Route jobs|Match jobs to shops/.test(x.textContent || ""))
         return b && !b.disabled
       },
       null,
       { timeout: 20000 },
     )
-    await desk.getByRole("button", { name: "Route jobs" }).click()
+    await desk.getByRole("button", { name: /Route jobs|Match jobs to shops/ }).first().click()
     await desk.waitForTimeout(1500)
     await desk.close()
   }

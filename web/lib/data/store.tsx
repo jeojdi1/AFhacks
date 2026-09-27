@@ -29,6 +29,7 @@ import type {
 } from "@/lib/api/types"
 import { CERT_LABEL, fmtMoney } from "@/lib/format"
 import { demoIds, fx } from "./fixture-source"
+import { c } from "@/lib/ui/copy"
 
 // ---------------------------------------------------------------------------
 // Public types
@@ -158,10 +159,14 @@ const IDS = demoIds()
 
 export const BUSY = {
   connecting: "Connecting to engine…",
-  reset: "Resetting demo…",
-  upload: (n?: number) => (n ? `Tagging ${n} lines…` : "Tagging parts list…"),
-  route: "Routing jobs…",
-  fund: "Funding training…",
+  reset: c("busy.reset"),
+  // Callers still pass the line count; the §8.1 label no longer shows it.
+  upload: (n?: number): string => {
+    void n
+    return c("busy.upload")
+  },
+  route: c("busy.route"),
+  fund: c("busy.fund"),
   mode: "Switching mode…",
 } as const
 
@@ -300,7 +305,7 @@ async function probeLive(): Promise<boolean> {
 // ---------------------------------------------------------------------------
 // Pure helpers
 
-/** "Claude (cached) 40 · keyword rules 0 · 1 line needs review" from an upload response. */
+/** "Claude read all 40 lines" (or "Claude read 38 lines · 2 read by keyword rules") plus "· 1 line needs review". */
 function taggerSummary(res: PartsUploadResponse): string {
   const t = (res.tagger ?? {}) as Record<string, number>
   const counts = res.jobs.reduce<Record<string, number>>((m, j) => {
@@ -309,9 +314,12 @@ function taggerSummary(res: PartsUploadResponse): string {
   }, {})
   const src = (k: string) => (typeof t[k] === "number" ? t[k] : (counts[k] ?? 0))
   const parts: string[] = []
-  if (src("llm") > 0) parts.push(`Claude ${src("llm")}`)
-  if (src("cache") > 0 || src("llm") === 0) parts.push(`Claude (cached) ${src("cache")}`)
-  parts.push(`keyword rules ${src("rules")}`)
+  const claude = src("llm") + src("cache")
+  parts.push(
+    src("rules") > 0
+      ? c("program.toast.taggedMixed", { llm: claude, rules: src("rules") })
+      : c("program.toast.tagged", { n: claude })
+  )
   const review = res.jobs.filter((j) => j.tag_warning).length
   if (review > 0) parts.push(`${review} line${review === 1 ? "" : "s"} need${review === 1 ? "s" : ""} review`)
   return parts.join(" · ")
@@ -947,6 +955,34 @@ function applyOfferStatus(d: ShopDetailResponse, status: Record<string, OfferDec
 }
 
 // ---------------------------------------------------------------------------
+// Live: what the engine holds, in words, and a fingerprint to spot changes made elsewhere
+
+/** One plain line for the "Connected to the live engine" toast. */
+function liveSummary(flow: FlowData): string {
+  if (flow.stage === "empty") return "No parts list on the engine yet."
+  if (flow.stage === "uploaded") return `${flow.jobs.length} parts lines read, not matched yet.`
+  const funded = flow.fundedIds.length ? ` · ${flow.fundedIds.join(", ")} funded` : ""
+  return `${flow.assignments.length} jobs matched · ${flow.blocked.length} stuck${funded}`
+}
+
+/** Everything the laptop draws from the engine flow; equal fingerprints mean nothing to redraw. */
+function flowFingerprint(f: Pick<FlowData, "stage" | "jobs" | "assignments" | "blocked" | "fundedIds" | "ledger">): string {
+  return JSON.stringify([
+    f.stage,
+    f.jobs.length,
+    f.assignments.map((a) => `${a.job_id}>${a.shop_id}`).sort(),
+    f.blocked.map((b) => b.job_id).sort(),
+    [...f.fundedIds].sort(),
+    f.ledger ? Math.round(f.ledger.credit_total_cad) : null,
+  ])
+}
+
+/** Event kinds that change the program flow (the rest are shop answers, handled by the actions store). */
+const FLOW_EVENT_KINDS = new Set(["routed", "package_funded"])
+/** How often the laptop checks whether another screen reset, reseeded or funded on the shared engine. */
+const ENGINE_WATCH_MS = 4000
+
+// ---------------------------------------------------------------------------
 // Provider
 
 function flowOf(s: DemoState): FlowData {
@@ -1127,6 +1163,94 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
   }, [state.ready, state.mode, state.stage, state.solver, state.fundResults, state.fundedIds])
 
 
+  // Live: another client (a phone's "Fill with demo activity", a script, another laptop)
+  // can reset, reseed, re-route or fund the shared engine. Every few seconds, while the tab
+  // is visible and no step is running, read the program state and the new events. When the
+  // engine's stage or counts differ from the page, the event log restarted (reset/upload),
+  // or a routed/funded event arrived, reload the flow exactly as on mount. The page only
+  // redraws when the reloaded flow differs, so this tab's own steps never cause a toast.
+  const seqRef = React.useRef<number | null>(null)
+  React.useEffect(() => {
+    if (!state.ready || state.mode !== "live") {
+      seqRef.current = null
+      return
+    }
+    let stopped = false
+    let running = false
+    const check = async () => {
+      if (stopped || running || document.visibilityState !== "visible") return
+      const s0 = stateRef.current
+      if (s0.busy || s0.mode !== "live") return
+      running = true
+      const gen = genRef.current
+      try {
+        const since = seqRef.current
+        const [prog, ev] = await Promise.all([
+          http<ProgramResponse>("GET", `/programs/${PID}`, { timeoutMs: 3000 }),
+          http<{ last_seq?: number; has_more?: boolean; events?: { kind?: string }[] }>(
+            "GET",
+            `/programs/${PID}/events?since=${since ?? 0}&limit=100`,
+            { timeoutMs: 3000 }
+          ).catch(() => null),
+        ])
+        if (stopped || gen !== genRef.current) return
+        const lastSeq = typeof ev?.last_seq === "number" ? ev.last_seq : null
+        const engineReset = since !== null && lastSeq !== null && lastSeq < since
+        const flowEvent =
+          since !== null && (!!ev?.has_more || (ev?.events ?? []).some((e) => FLOW_EVENT_KINDS.has(String(e?.kind))))
+        const cur = stateRef.current
+        const routedLike = prog.state === "routed" || prog.state === "funded"
+        const countsDiffer =
+          prog.state !== cur.stage ||
+          (prog.counts?.jobs ?? cur.jobs.length) !== cur.jobs.length ||
+          (routedLike &&
+            ((prog.counts?.assigned ?? cur.assignments.length) !== cur.assignments.length ||
+              (prog.counts?.blocked ?? cur.blocked.length) !== cur.blocked.length))
+        if (!engineReset && !flowEvent && !countsDiffer) {
+          if (lastSeq !== null) seqRef.current = lastSeq
+          return
+        }
+        const flow = await loadLive()
+        const now = stateRef.current
+        // A step started meanwhile: leave the watermark so the next check looks again.
+        if (stopped || gen !== genRef.current || now.busy || now.mode !== "live") return
+        if (lastSeq !== null) seqRef.current = lastSeq
+        const changed = flowFingerprint(flow) !== flowFingerprint(now)
+        if (!changed) {
+          // Same flow, but the engine restarted its log: old offer answers no longer apply
+          // (the actions store mirrors the engine's current answers back in).
+          if (engineReset && Object.keys(now.offerStatus).length) patch({ offerStatus: {} })
+          return
+        }
+        patch((c2) => ({
+          ...flow,
+          error: null,
+          offerStatus: engineReset || flow.stage === "empty" ? {} : c2.offerStatus,
+          fileName: flow.stage === "empty" ? null : c2.fileName,
+        }))
+        toast.info("Updated from the live engine", {
+          id: "engine-sync",
+          description: `Another screen changed the demo. ${liveSummary(flow)}`,
+        })
+      } catch {
+        /* engine unreachable: the header pill shows "Engine offline"; try again next tick */
+      } finally {
+        running = false
+      }
+    }
+    void check()
+    const id = window.setInterval(() => void check(), ENGINE_WATCH_MS)
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void check()
+    }
+    document.addEventListener("visibilitychange", onVisible)
+    return () => {
+      stopped = true
+      window.clearInterval(id)
+      document.removeEventListener("visibilitychange", onVisible)
+    }
+  }, [state.ready, state.mode, patch])
+
   // ---- actions -----------------------------------------------------------
 
   const reset = React.useCallback(async () => {
@@ -1181,7 +1305,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
             offerStatus: {},
             busy: null,
           }))
-          toast.success(`Tagged ${res.count} parts lines`, {
+          toast.success(`Parts list loaded: ${res.count} lines`, {
             description: `${fileName ?? "Northgate demo parts list"} · ${taggerSummary(res)}`,
           })
         } else {
@@ -1193,7 +1317,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
           if (gen !== genRef.current) return
           const flow = fxUpload(flowOf(stateRef.current))
           patch({ ...flow, fileName, offerStatus: {}, busy: null })
-          toast.success(`Tagged ${flow.jobs.length} parts lines`, {
+          toast.success(`Parts list loaded: ${flow.jobs.length} lines`, {
             description: `${fileName ? `${fileName} (demo mode uses the Northgate list)` : "Northgate demo parts list"}${
               up ? ` · ${taggerSummary(up)}` : ""
             }`,
@@ -1211,7 +1335,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
   const route = React.useCallback(async () => {
     const s = stateRef.current
     const gen = genRef.current
-    patch({ busy: s.jobs.length ? `Routing ${s.jobs.length} jobs…` : BUSY.route, error: null })
+    patch({ busy: BUSY.route, error: null })
     try {
       if (s.mode === "live") {
         const r = await http<RouteResponse>("POST", `/programs/${PID}/route`, { timeoutMs: 10000 })
@@ -1357,18 +1481,30 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
         toast.success("Demo mode", { description: "Using checked-in fixtures; your place in the demo is kept." })
         return
       }
-      // Live: the engine is reset so its state matches the (empty) flow shown.
-      patch({ ...emptyFlow(cur.program), mode: m, offerStatus: {}, fileName: null, error: null, busy: BUSY.mode })
+      // Live: load what the shared engine has now. Never reset it here: phones and other
+      // laptops read the same engine, and switching the data source must not wipe them.
+      // The page keeps showing demo data (busy) until the engine answers.
+      patch({ error: null, busy: BUSY.mode })
       void (async () => {
         try {
-          await http("POST", "/demo/reset", { timeoutMs: 5000 })
-          const prog = await http<ProgramResponse>("GET", `/programs/${PID}`)
+          const flow = await loadLive()
           if (gen !== genRef.current) return
-          patch({ program: prog.program, busy: null })
-          toast.success("Connected to the live engine", { description: apiBase })
+          patch((now) => ({
+            ...flow,
+            mode: m,
+            // Offer answers come from the engine (mirrored by the actions store), not demo data.
+            offerStatus: {},
+            fileName: flow.stage === "empty" ? null : now.fileName,
+            error: null,
+            busy: null,
+          }))
+          toast.success("Connected to the live engine", { description: liveSummary(flow) })
         } catch (e) {
           if (gen !== genRef.current) return
-          handleError(e, "Could not reach the live engine")
+          // Stay on demo data (the flow on screen never changed).
+          modeOverrideRef.current = "fixtures"
+          if (modeOverridden) sessionSet(SESSION_MODE_KEY, "fixtures")
+          handleError(e, "Could not reach the live engine", "Still on demo data.")
         }
       })()
     },

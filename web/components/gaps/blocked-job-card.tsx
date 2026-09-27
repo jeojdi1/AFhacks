@@ -1,196 +1,102 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CircleCheck, TriangleAlert, ArrowRight, Clock, Store } from "lucide-react";
+import { CircleCheck, GraduationCap, TriangleAlert } from "lucide-react";
 import { cn } from "cn";
 
 import type { Assignment, BlockedJob } from "@/lib/api/types";
-import { CERT_LABEL, PROCESS_LABEL, fmtMoney, label } from "@/lib/format";
-import { StatusBadge } from "@/components/muster/status-badge";
-import { FILTER_LABEL, FILTER_ORDER } from "./labels";
+import { fmtMoney } from "@/lib/format";
+import { multiplierPlain } from "@/lib/ui/plain";
+import { cd } from "@/lib/ui/copy-d";
+import { Details } from "@/components/muster/details";
+import { plainReason, shortDescription, whyNoShop } from "./labels";
 
 export interface BlockedJobCardProps {
-  /** The job as it was blocked (front face). */
+  /** The job as it was stuck (front face). */
   blocked?: BlockedJob;
   /** The assignment after training was funded (back face). */
   resolved?: Assignment;
-  /** Fallback tags when only the assignment is known. */
-  processTags?: string[];
-  requiredCerts?: string[];
-  /** Show the resolved (emerald) face. Toggling it flips the card. */
+  /** Show the resolved (green) face. Toggling it flips the row. */
   showResolved: boolean;
   /** CSS transition delay for the flip, ms. */
   flipDelayMs?: number;
-  /** Package id that unblocked this job. */
+  /** Training plan that unstuck this job (after funding). */
   unblockedBy?: string;
+  /** The hero plan's id: rows it fixes get the "Unsticks with {id}" chip. */
+  heroId?: string;
   reducedMotion?: boolean;
 }
 
-function Chips({ processTags, requiredCerts }: { processTags: string[]; requiredCerts: string[] }) {
-  if (!processTags.length && !requiredCerts.length) return null;
+/**
+ * One compact row per stuck job (docs/ux-simplification.md §5.4):
+ * "NG-031 · Hull side stowage bin weldment · $1.7M · Stuck: both certified welding shops are full (…)".
+ * The "shops failing each check" counts sit behind "Why no shop can take it", in words.
+ */
+function FrontFace({ b, heroId }: { b: BlockedJob; heroId?: string }) {
+  const fixes = heroId && b.suggestion_ids.includes(heroId);
+  const why = whyNoShop(b.failing_filters);
   return (
-    <div className="flex flex-wrap gap-1.5">
-      {processTags.map((p) => (
-        <span
-          key={p}
-          className="inline-flex h-6 items-center rounded-md border border-zinc-200 bg-white px-2 text-[13px] text-zinc-700"
-        >
-          {label(PROCESS_LABEL, p)}
-        </span>
-      ))}
-      {requiredCerts.map((c) => (
-        <span
-          key={c}
-          className="inline-flex h-6 items-center rounded-md border border-zinc-300 bg-zinc-100 px-2 text-[13px] font-medium text-zinc-800"
-        >
-          {label(CERT_LABEL, c)}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function FailingFilters({ filters }: { filters: BlockedJob["failing_filters"] }) {
-  const f = filters as unknown as Record<string, number>;
-  return (
-    <div>
-      <div className="mb-1 text-xs font-medium tracking-wide text-zinc-500 uppercase">
-        Shops failing each check
-      </div>
-      <div className="grid grid-cols-6 overflow-hidden rounded-md border border-amber-200/80 bg-white">
-        {FILTER_ORDER.map((k) => {
-          const n = f[k] ?? 0;
-          return (
-            <div
-              key={k}
-              className="flex flex-col items-center border-r border-amber-100 px-1 py-1.5 last:border-r-0"
-              title={`${n} shop${n === 1 ? "" : "s"} fail the ${FILTER_LABEL[k].toLowerCase()} check`}
-            >
-              <span
-                className={cn(
-                  "text-base leading-none font-semibold tabular-nums",
-                  n > 0 ? "text-amber-800" : "text-zinc-500",
-                )}
-              >
-                {n}
-              </span>
-              <span className={cn("mt-1 text-[11px] leading-none", n > 0 ? "text-zinc-700" : "text-zinc-600")}>
-                {FILTER_LABEL[k]}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function FrontFace({ b }: { b: BlockedJob }) {
-  const n = b.eligible_shop_count;
-  const eligibleText =
-    b.reason_code === "capacity"
-      ? `${n} qualified shop${n === 1 ? "" : "s"}, all at capacity`
-      : `${n} shop${n === 1 ? "" : "s"} pass every check except capacity`;
-  return (
-    <div className="flex h-full flex-col gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="font-mono text-[13px] font-medium text-amber-900">{b.part_no}</div>
-          <div className="mt-0.5 text-[15px] leading-snug font-medium text-zinc-900">{b.description}</div>
-        </div>
-        <StatusBadge kind="blocked" />
-      </div>
-      <Chips processTags={b.process_tags} requiredCerts={b.required_certs} />
-      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-sm text-zinc-700">
-        <span title={fmtMoney(b.value_cad)}>
-          <span className="text-lg font-semibold text-zinc-900 tabular-nums">
+    <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3" data-job-row={b.job_id} data-face-kind="stuck">
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1.5">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 text-[15px] leading-snug text-zinc-900">
+          <TriangleAlert className="size-4 shrink-0 translate-y-0.5 self-start text-amber-600" aria-hidden />
+          <span className="font-mono text-[13px] font-semibold text-amber-900">{b.job_id}</span>
+          <span aria-hidden className="text-zinc-400">·</span>
+          <span className="min-w-0 font-medium">{shortDescription(b.description)}</span>
+          <span aria-hidden className="text-zinc-400">·</span>
+          <span className="font-semibold tabular-nums" title={fmtMoney(b.value_cad)}>
             {fmtMoney(b.value_cad, { compact: true })}
-          </span>{" "}
-          value
-        </span>
-        <span className="inline-flex items-center gap-1 tabular-nums">
-          <Clock className="size-3.5 text-zinc-400" />
-          {b.hours_week} h/week
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <Store className="size-3.5 text-zinc-400" />
-          {eligibleText}
-        </span>
-      </div>
-      <div className="flex gap-2 rounded-lg bg-amber-100/70 px-3 py-2 text-sm leading-snug text-amber-950">
-        <TriangleAlert className="mt-0.5 size-4 shrink-0 text-amber-600" />
-        <span>{b.reason}</span>
-      </div>
-      <FailingFilters filters={b.failing_filters} />
-      {b.suggestion_ids.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-zinc-500">Fix:</span>
-          {b.suggestion_ids.map((id) => (
-            <a
-              key={id}
-              href={`#${id}`}
-              className="inline-flex items-center gap-1 font-medium text-zinc-900 underline-offset-4 hover:underline"
-            >
-              Training package {id}
-              <ArrowRight className="size-3.5" />
-            </a>
-          ))}
+          </span>
         </div>
-      )}
+        {fixes ? (
+          <span
+            className="inline-flex h-6 shrink-0 items-center gap-1 rounded-full border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-700"
+            title={cd("gaps.list.fixChip.tip", { id: heroId })}
+          >
+            <GraduationCap className="size-3.5" aria-hidden />
+            {cd("gaps.list.fixChip", { id: heroId })}
+          </span>
+        ) : null}
+      </div>
+      <p className="mt-1 pl-6 text-sm leading-snug text-amber-950">
+        <span className="font-semibold">{cd("gaps.list.stuck", { reason: plainReason(b) })}</span>
+      </p>
+      {why ? (
+        <Details summary={cd("gaps.list.why")} className="mt-1 pl-5" contentClassName="pl-1.5 text-sm leading-snug text-zinc-700">
+          {why}
+        </Details>
+      ) : null}
     </div>
   );
 }
 
-function BackFace({
-  a,
-  fallbackTitle,
-  processTags,
-  requiredCerts,
-  unblockedBy,
-}: {
-  a: Assignment;
-  fallbackTitle?: string;
-  processTags: string[];
-  requiredCerts: string[];
-  unblockedBy?: string;
-}) {
+function BackFace({ a, fallbackTitle, unblockedBy }: { a: Assignment; fallbackTitle?: string; unblockedBy?: string }) {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-emerald-300 bg-emerald-50 p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="font-mono text-[13px] font-medium text-emerald-900">{a.part_no}</div>
-          <div className="mt-0.5 text-[15px] leading-snug font-medium text-zinc-900">
-            {a.description || fallbackTitle}
-          </div>
-        </div>
-        <StatusBadge kind="assigned" />
-      </div>
-      <Chips processTags={processTags} requiredCerts={requiredCerts} />
-      <div className="flex items-center gap-2.5 rounded-lg bg-emerald-100/80 px-3 py-2.5 text-emerald-950">
-        <CircleCheck className="size-6 shrink-0 text-emerald-600" />
-        <div className="text-[15px] leading-snug">
-          Assigned to <span className="font-semibold">{a.shop_name}</span>
-          {a.shop_city ? <span className="text-emerald-800"> ({a.shop_city})</span> : null}
-        </div>
-      </div>
-      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-sm text-zinc-700">
-        <span title={fmtMoney(a.value_cad)}>
-          <span className="text-lg font-semibold text-zinc-900 tabular-nums">
-            {fmtMoney(a.value_cad, { compact: true })}
-          </span>{" "}
-          value
+    <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3" data-job-row={a.job_id} data-face-kind="matched">
+      <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5 text-[15px] leading-snug text-zinc-900">
+        <CircleCheck className="size-4 shrink-0 translate-y-0.5 self-start text-emerald-600" aria-hidden />
+        <span className="font-mono text-[13px] font-semibold text-emerald-900">{a.job_id}</span>
+        <span aria-hidden className="text-zinc-400">·</span>
+        <span className="min-w-0 font-medium">{shortDescription(a.description || fallbackTitle)}</span>
+        <span aria-hidden className="text-zinc-400">·</span>
+        <span className="font-semibold tabular-nums" title={fmtMoney(a.value_cad)}>
+          {fmtMoney(a.value_cad, { compact: true })}
         </span>
-        <span title={fmtMoney(a.credit_cad)}>
-          <span className="font-semibold text-emerald-700 tabular-nums">
-            +{fmtMoney(a.credit_cad, { compact: true })}
-          </span>{" "}
-          credit ({a.multiplier}x)
-        </span>
-        <span className="tabular-nums">{a.hours_week} h/week</span>
       </div>
-      {unblockedBy && (
-        <div className="text-[13px] text-emerald-800">Unblocked by funding training package {unblockedBy}</div>
-      )}
+      <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 pl-6 text-sm leading-snug text-emerald-950">
+        <span className="font-semibold">
+          {cd("gaps.list.matched", { shop: a.shop_name, town: a.shop_city || "Ontario" })}
+        </span>
+        <span className="text-emerald-800 tabular-nums" title={fmtMoney(a.credit_cad)}>
+          {cd("gaps.list.matched.credit", {
+            credit: fmtMoney(a.credit_cad, { compact: true }),
+            m: multiplierPlain(a.multiplier),
+          })}
+        </span>
+      </p>
+      {unblockedBy ? (
+        <p className="mt-0.5 pl-6 text-[13px] text-emerald-800">{cd("gaps.list.unstuckBy", { id: unblockedBy })}</p>
+      ) : null}
     </div>
   );
 }
@@ -198,20 +104,16 @@ function BackFace({
 export function BlockedJobCard({
   blocked,
   resolved,
-  processTags,
-  requiredCerts,
   showResolved,
   flipDelayMs = 0,
   unblockedBy,
+  heroId,
   reducedMotion,
 }: BlockedJobCardProps) {
-  const tags = blocked?.process_tags ?? processTags ?? [];
-  const certs = blocked?.required_certs ?? requiredCerts ?? [];
   const flipped = showResolved;
   const bothFaces = Boolean(blocked && resolved);
-  // sawFront: this card was shown blocked-side-up with both faces known, so a
-  // flip is (or was) on screen. settled: that flip finished, so the card can
-  // drop the hidden blocked face and shrink to the green content.
+  // sawFront: this row was shown stuck-side-up with both faces known, so a flip is (or was)
+  // on screen. settled: that flip finished, so the row can drop the hidden stuck face.
   const [sawFront, setSawFront] = useState(false);
   const [settled, setSettled] = useState(false);
   if (bothFaces && !flipped && !sawFront) setSawFront(true);
@@ -226,20 +128,11 @@ export function BlockedJobCard({
   }, [flipping, flipDelayMs]);
 
   if (!resolved) {
-    return blocked ? <FrontFace b={blocked} /> : null;
+    return blocked ? <FrontFace b={blocked} heroId={heroId} /> : null;
   }
-  const back = (
-    <BackFace
-      a={resolved}
-      fallbackTitle={blocked?.description}
-      processTags={tags}
-      requiredCerts={certs}
-      unblockedBy={unblockedBy}
-    />
-  );
+  const back = <BackFace a={resolved} fallbackTitle={blocked?.description} unblockedBy={unblockedBy} />;
   if (!blocked) return back;
-  // Already resolved when first seen, reduced motion, or the flip finished:
-  // show the green face alone so the card is only as tall as its content.
+  // Already resolved when first seen, reduced motion, or the flip finished: the green face alone.
   if (flipped && !flipping) {
     return (
       <div id={`job-${resolved.job_id}`} data-face="resolved">
@@ -248,8 +141,8 @@ export function BlockedJobCard({
     );
   }
 
-  // Both faces known: a 3D flip card. The faces share one grid cell so the
-  // card is as tall as the taller face while it turns.
+  // Both faces known: a 3D flip. The faces share one grid cell so the row is as tall as the
+  // taller face while it turns.
   return (
     <div style={{ perspective: "1600px" }} id={`job-${resolved.job_id}`} data-face={flipped ? "flipping" : "blocked"}>
       <div
@@ -271,7 +164,7 @@ export function BlockedJobCard({
           style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" }}
           aria-hidden={flipped}
         >
-          <FrontFace b={blocked} />
+          <FrontFace b={blocked} heroId={heroId} />
         </div>
         <div
           className="[grid-area:1/1]"

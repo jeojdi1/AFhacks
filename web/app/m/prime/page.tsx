@@ -1,6 +1,8 @@
 "use client"
 
 // /m/prime: Northgate's supplier-development lead on a shop floor (T6 §2.6).
+//   0. "What you can do now": fund training, reply to questions, approve funding
+//      requests, re-place declined jobs (PrimeActions)
 //   1. GlanceCard from the ledger
 //   2. Activity from useAppActions().events, newest first
 //   3. Supplier status: certifications in their renewal window, with credit at risk
@@ -25,6 +27,7 @@ import { Button } from "@/components/ui/button"
 import { GlanceCard } from "@/components/mobile/prime/glance-card"
 import { ActivityItem } from "@/components/mobile/prime/activity-item"
 import { SupplierStatus, useSupplierRenewals } from "@/components/mobile/prime/supplier-status"
+import { PrimeActions } from "@/components/mobile/prime/prime-actions"
 
 const PAGE = 12
 
@@ -154,6 +157,7 @@ export default function PrimeFeedPage() {
   return (
     <div className="flex flex-col gap-6 pt-2">
       {unreachable ? <UnreachableNotice stale={routed} /> : null}
+      {unreachable && !routed ? null : <PrimeActions />}
       {unreachable && !routed ? null : loading ? (
         <div className="h-56 animate-pulse rounded-2xl bg-muted motion-reduce:animate-none" aria-hidden />
       ) : (

@@ -9,7 +9,7 @@
   "https://www150.statcan.gc.ca/t1/tbl1/en/tv.action?pid=1410044401",
   "https://www23.statcan.gc.ca/imdb/p3VD.pl?Function=getVD&TVD=131938&CVD=138863&CPV=3530&CST=01012006&CLV=2&MLV=4"
  ],
- "licence": "Open Government Licence - Canada (https://open.canada.ca/en/open-government-licence-canada) for ODBus, DND contracts, Job Bank and ISED data; Statistics Canada Open Licence for JVWS; shops_public.json facts come from company websites (facts only, labelled 'Public data - unverified - not affiliated'); synthetic shops are Muster's own.",
+ "licence": "Open Government Licence - Canada (https://open.canada.ca/en/open-government-licence-canada) for ODBus, DND contracts and Job Bank data; Statistics Canada Open Licence for JVWS; ISED ITB rows: Government of Canada website terms and conditions (https://www.canada.ca/en/transparency/terms.html) - content reproduced from an ISED web page; not the Open Government Licence; shops_public.json facts come from company websites (facts only, labelled 'Public data - unverified - not affiliated'); synthetic shops are Muster's own.",
  "retrieved": "2026-09-26",
  "as_of": {
   "shops_public": "2026-09-26",
@@ -56,14 +56,14 @@
    "any": 59,
    "of_total": 2946
   },
-  "odbus_dnd_link_rows": 77,
-  "odbus_dnd_distinct_vendors": 75,
-  "odbus_dnd_matched_vendor_value_cad": 470085723.72,
+  "odbus_dnd_link_rows": 78,
+  "odbus_dnd_distinct_vendors": 76,
+  "odbus_dnd_matched_vendor_value_cad": 470335383.72,
   "itb_primes": 52,
   "itb_primes_matching_dnd_vendor": 22,
   "dnd_vendor_universe": {
-   "vendors_matchable": 16167,
-   "person_like_vendor_keys_dropped": 302
+   "vendors_matchable": 16097,
+   "person_like_vendor_keys_dropped": 372
   },
   "odbus_raw_scan": {
    "shop_city_rows": 5294,
@@ -7982,7 +7982,7 @@
    "odbus_id": "9355b34c7754620810c6",
    "name": "Titus Steel Co. Ltd.",
    "municipality": "Mississauga",
-   "province": "unknown",
+   "province": "ON",
    "naics4": "3311",
    "vendor": "titus steel co ltd",
    "vendor_key": "TITUS STEEL",
@@ -8026,7 +8026,7 @@
    "odbus_id": "d163bd0957a9436f939c",
    "name": "CREST CIRCUIT INC.",
    "municipality": "Markham",
-   "province": "unknown",
+   "province": "ON",
    "naics4": "3344",
    "vendor": "Crest Circuit Inc",
    "vendor_key": "CREST CIRCUIT",
@@ -8645,6 +8645,27 @@
    "in_n2_vendor_file": false
   },
   {
+   "odbus_id": "87b8a809d3480d28fea8",
+   "name": "FELIX TECHNOLOGY INC.",
+   "municipality": "Vaughan",
+   "province": "ON",
+   "naics4": "3345",
+   "vendor": "FELIX TECNOLOGY INC",
+   "vendor_key": "FELIX TECNOLOGY",
+   "confidence": "medium",
+   "method": "fuzzy",
+   "score": 0.968,
+   "location_agreement": "city_fsa",
+   "contracts": 1,
+   "total_value": 249660.0,
+   "first_date": "2025-09-11",
+   "last_date": "2025-09-11",
+   "fsa": "L4K",
+   "mfg_relevant": false,
+   "mfg_flags": [],
+   "in_n2_vendor_file": false
+  },
+  {
    "odbus_id": "b45f2c196f7b953460ab",
    "name": "BDI CANADA INC.",
    "municipality": "Brampton",
@@ -8713,7 +8734,7 @@
    "odbus_id": "33524e504eb7b1ca3c95",
    "name": "PerkinElmer Health Sciences Canada, Inc.",
    "municipality": "Caledon",
-   "province": "unknown",
+   "province": "ON",
    "naics4": "3345",
    "vendor": "Perkinelmer Health Sciences Canada Inc",
    "vendor_key": "PERKINELMER HEALTH SCIENCES CANADA",
@@ -8860,7 +8881,7 @@
    "odbus_id": "6d0bdb404f754e41a182",
    "name": "LIFTOW",
    "municipality": "Brampton",
-   "province": "unknown",
+   "province": "ON",
    "naics4": "3339",
    "vendor": "Liftow",
    "vendor_key": "LIFTOW",
@@ -9294,7 +9315,7 @@
    "contracts": 4,
    "total_value": 4125667771.32,
    "last_date": "2026-02-13",
-   "province": "outside Canada"
+   "province": "Canada (province unknown)"
   },
   {
    "prime": "Arcfield Canada",
@@ -9371,7 +9392,7 @@
    "contracts": 8,
    "total_value": 1539621.64,
    "last_date": "2026-01-29",
-   "province": "outside Canada"
+   "province": "ON"
   },
   {
    "prime": "Irving Shipbuilding",

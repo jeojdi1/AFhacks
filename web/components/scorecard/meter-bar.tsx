@@ -71,7 +71,7 @@ export function MeterBar({
               key={s.label}
               title={s.label}
               className={cn(
-                "h-full transition-[width] duration-700 ease-out",
+                "h-full transition-[width] duration-300 ease-out motion-reduce:transition-none",
                 i === 0 ? "rounded-l-full" : "",
                 i === clamped.length - 1 ? "rounded-r-full" : "",
               )}

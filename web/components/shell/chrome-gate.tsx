@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation"
 import { AppHeader } from "@/components/shell/app-header"
 import { ProgramContextBar } from "@/components/shell/program-context-bar"
 import { AppFooter } from "@/components/shell/app-footer"
+import { useSession } from "@/lib/auth/session"
 import { Toaster } from "@/components/ui/sonner"
 
 /** True for the phone app routes (/m and below), which bring their own chrome. */
@@ -12,18 +13,30 @@ export function isPhoneRoute(pathname: string | null): boolean {
   return pathname === "/m" || (pathname ?? "").startsWith("/m/")
 }
 
+/** The shop's own desk (/shop, /shop/work): Tallowfield's pages, not Northgate's story. */
+export function isShopDeskRoute(pathname: string | null): boolean {
+  return pathname === "/shop" || (pathname ?? "").startsWith("/shop/")
+}
+
 /**
- * Desktop chrome (header, program bar, footer) everywhere except under /m,
- * where web/app/m/layout.tsx renders the phone header, tabs and footer.
- * Desktop markup is unchanged.
+ * Desktop chrome everywhere except under /m, where web/app/m/layout.tsx renders the
+ * phone header, tabs and footer (the phone app's chrome is untouched):
+ *   row 1 AppHeader (logo, Story mode, directory, phone, bell, data source, Start over, account)
+ *   row 2 ProgramContextBar, the story bar (5 numbered steps + promise meter); not on the
+ *         shop desk (/shop, /shop/*) unless a prime is signed in
+ *   then the page, then AppFooter. docs/ux-simplification.md §3.1.
  */
 export function ChromeGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const { session, hydrated } = useSession()
   if (isPhoneRoute(pathname)) return <>{children}</>
+  // Northgate's steps and "Credit so far" strip are the prime's story. On the shop desk they
+  // show only to a signed-in prime (hidden until the session is known, so a shop never sees a flash).
+  const storyBar = !isShopDeskRoute(pathname) || (hydrated && session?.role === "prime")
   return (
     <>
       <AppHeader />
-      <ProgramContextBar />
+      {storyBar ? <ProgramContextBar /> : null}
       <main className="flex w-full flex-1 flex-col">{children}</main>
       <AppFooter />
     </>
@@ -42,9 +55,12 @@ export function AppToaster() {
   return (
     <Toaster
       theme="light"
-      position={phone ? "top-right" : "bottom-right"}
-      closeButton
-      mobileOffset={phone ? { top: "calc(env(safe-area-inset-top) + 64px)" } : undefined}
+      // Phone (/m): bottom centre, about 80 px above the tab bar, so a toast never covers the
+      // header's back arrow. No close button there (it was 32 px; toasts time out and swipe away).
+      position={phone ? "bottom-center" : "bottom-right"}
+      closeButton={!phone}
+      offset={phone ? { bottom: "calc(env(safe-area-inset-bottom) + 80px)" } : undefined}
+      mobileOffset={phone ? { bottom: "calc(env(safe-area-inset-bottom) + 80px)" } : undefined}
       toastOptions={{
         classNames: {
           toast: "cn-toast",

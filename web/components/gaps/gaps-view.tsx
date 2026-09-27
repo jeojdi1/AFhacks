@@ -1,30 +1,28 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CircleCheck, TriangleAlert } from "lucide-react";
 
 import type { Assignment, BlockedJob, TrainingPackage } from "@/lib/api/types";
 import { useDemo } from "@/lib/data/store";
 import { useAppActions } from "@/lib/app/actions-store";
+import { shortShopName } from "@/lib/app/copy";
 import { fmtMoney } from "@/lib/format";
+import { Rich } from "@/lib/ui/copy";
+import { cd } from "@/lib/ui/copy-d";
+import { Details } from "@/components/muster/details";
 import { EmptyState } from "@/components/muster/empty-state";
-import { SectionHeader } from "@/components/muster/section-header";
+import { AutoNextStep, NextStep } from "@/components/muster/next-step";
 import { StatCard } from "@/components/muster/stat-card";
-import { Term } from "@/components/muster/term";
+import { StoryBanner } from "@/components/muster/story-banner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSession } from "@/lib/auth";
+import { scrollToFund } from "@/lib/ui/steps";
 import { BlockedJobCard } from "./blocked-job-card";
 import { FundMoment, MOMENT } from "./fund-moment";
-import { SuggestionCard } from "./suggestion-card";
+import { sc } from "./story-copy";
+import { SuggestionCard, type FundRole } from "./suggestion-card";
 import { useArmed, usePrefersReducedMotion } from "./motion";
-
-const PAGE_TITLE = "Gaps & Training";
-const PAGE_SUBTITLE = (
-  <>
-    Some jobs have no qualified shop with capacity — here, because of a shortage of Canadian Welding Bureau (
-    <Term abbr="CWB" />) certified welders. Muster proposes <Term abbr="ITB" />-eligible training the prime can fund.
-    Funding it earns 5x credit (10x for Indigenous workforce development) and unblocks the work.
-  </>
-);
 
 interface Row {
   id: string;
@@ -33,6 +31,18 @@ interface Row {
   pkgId?: string;
 }
 
+const PAGE = "mx-auto flex w-full max-w-[1280px] flex-col px-4 py-5 sm:px-6";
+
+/** Smaller H1 under the banner (§5.0: the page title stays, the banner leads). */
+function PageTitle() {
+  return <h1 className="mb-4 text-xl font-semibold tracking-tight text-foreground">{cd("gaps.h1")}</h1>;
+}
+
+/**
+ * /gaps, step 4 "Fix the welder gap" (docs/ux-simplification.md §5.4).
+ * Order before funding: banner → training hero card (Fund button above the fold at 1280×720)
+ * → stuck jobs list → "Another option". After funding the Fund moment leads.
+ */
 export function GapsView() {
   const demo = useDemo();
   const reduced = usePrefersReducedMotion();
@@ -40,21 +50,49 @@ export function GapsView() {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [animatingId, setAnimatingId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  // Blocked jobs as they looked before a fund click, so the cards can flip
-  // even after the store swaps in the post-fund gaps.
+  // Stuck jobs as they looked before a fund click, so the rows can flip even after the store
+  // swaps in the post-fund gaps.
   const [preFund, setPreFund] = useState<Record<string, BlockedJob>>({});
 
   const routed = demo.stage === "routed" || demo.stage === "funded";
   const blockedNow: BlockedJob[] = useMemo(() => demo.gaps?.blocked ?? demo.blocked ?? [], [demo.gaps, demo.blocked]);
   const { fundingRequests } = useAppActions();
-  // Packages the shop asked Northgate to fund (phone app, §2.5) sort first; order is otherwise unchanged.
-  const suggestions: TrainingPackage[] = useMemo(() => {
+  const { session, hydrated } = useSession();
+  // Only the defence company funds training (or anyone in the signed-out demo). A signed-in
+  // shop gets "Ask Northgate to fund this"; the college and trainee get a note.
+  const fundRole: FundRole = !hydrated || !session || session.role === "prime" ? "prime" : session.role === "shop" ? "shop" : "other";
+  const shopAccountId = session?.role === "shop" ? session.accountId : null;
+
+  // The hero is the package that unsticks the most jobs, else the engine's order: TP-01 in the
+  // demo, always, so the presenter's Fund click (and "↓ Fund the training below") hits TP-01.
+  // A shop's funding request (phone app §2.5) is shown as a badge on its card and never
+  // re-orders the hero; the simulator's requests would otherwise take it over (QA Q2).
+  const { hero, others } = useMemo(() => {
     const list = demo.gaps?.suggestions ?? [];
-    return list
-      .map((p, i) => ({ p, i, r: fundingRequests[p.id] ? 0 : 1 }))
-      .sort((a, b) => a.r - b.r || a.i - b.i)
+    const sorted = list
+      .map((p, i) => ({ p, i }))
+      .sort((a, b) => b.p.blocked_job_ids.length - a.p.blocked_job_ids.length || a.i - b.i)
       .map((x) => x.p);
-  }, [demo.gaps, fundingRequests]);
+    return { hero: sorted[0] as TrainingPackage | undefined, others: sorted.slice(1) };
+  }, [demo.gaps]);
+
+  // Deep links such as /gaps#TP-02 (phone "Review in Gaps"): the cards render after the data
+  // loads, so the browser's own hash scroll has already missed them. Scroll once they exist.
+  const [hashId, setHashId] = useState<string | null>(null);
+  useEffect(() => {
+    const read = () => setHashId(decodeURIComponent(window.location.hash.replace(/^#/, "")) || null);
+    read();
+    window.addEventListener("hashchange", read);
+    return () => window.removeEventListener("hashchange", read);
+  }, []);
+  const hashPkg = hashId && (demo.gaps?.suggestions ?? []).some((p) => p.id === hashId) ? hashId : null;
+  useEffect(() => {
+    if (!hashPkg) return;
+    const t = window.setTimeout(() => {
+      document.getElementById(hashPkg)?.scrollIntoView({ block: "start", behavior: "auto" });
+    }, 50);
+    return () => window.clearTimeout(t);
+  }, [hashPkg]);
 
   // job_id → assignment created by funding a package
   const resolved = useMemo(() => {
@@ -69,7 +107,7 @@ export function GapsView() {
     const byId = new Map<string, Row>();
     for (const b of blockedNow) byId.set(b.job_id, { id: b.job_id, blocked: b });
     for (const [id, r] of resolved) {
-      // Keep the pre-fund blocked data (if we saw it) so the card can flip.
+      // Keep the pre-fund stuck data (if we saw it) so the row can flip.
       const before = byId.get(id)?.blocked ?? preFund[id];
       byId.set(id, { id, blocked: before, resolved: r.a, pkgId: r.pkgId });
     }
@@ -77,28 +115,37 @@ export function GapsView() {
   }, [preFund, blockedNow, resolved]);
 
   const jobsById = useMemo(() => new Map((demo.jobs ?? []).map((j) => [j.id, j])), [demo.jobs]);
-  const partNoById = useMemo(() => {
-    const m: Record<string, string> = {};
-    for (const j of demo.jobs ?? []) m[j.id] = j.part_no;
-    for (const b of blockedNow) m[b.job_id] ??= b.part_no;
-    return m;
-  }, [demo.jobs, blockedNow]);
 
   const stillBlocked = rows.filter((r) => !r.resolved && r.blocked);
   const stillBlockedValue = stillBlocked.reduce((s, r) => s + (r.blocked?.value_cad ?? 0), 0);
-  const unblockedCount = resolved.size;
+  const unstuck = rows.filter((r) => r.resolved);
+  const unstuckValue = unstuck.reduce((s, r) => s + (r.resolved?.value_cad ?? 0), 0);
   const creditFromFunding = Object.values(demo.fundResults ?? {}).reduce((s, fr) => s + (fr?.credit_added ?? 0), 0);
-  const totalJobs = demo.routeStats?.jobs ?? demo.jobs?.length ?? 0;
 
   const isFunded = (pkg: TrainingPackage) => pkg.status === "funded" || Boolean(demo.fundResults?.[pkg.id]);
 
-  // Flip the list cards for the package that was just funded.
+  // Hero tile 3: credit the unstuck jobs earn. After funding, the engine's number. Before, the
+  // same formula the engine uses (value × Canadian content × the shop's multiplier, read from
+  // one of that shop's existing matches); omitted if the shop has no match to read it from.
+  const heroJobsCredit = useMemo(() => {
+    if (!hero) return null;
+    const fr = demo.fundResults?.[hero.id];
+    if (fr) return fr.credit_added_breakdown.jobs_cad;
+    const mult = demo.assignments.find((a) => a.shop_id === hero.shop_id)?.multiplier;
+    if (!mult) return null;
+    let total = 0;
+    for (const id of hero.blocked_job_ids) {
+      const j = jobsById.get(id);
+      if (!j) return null;
+      total += j.est_value_cad * j.ccv_pct * mult;
+    }
+    return total;
+  }, [hero, demo.fundResults, demo.assignments, jobsById]);
+
+  // Flip the list rows for the package that was just funded.
   const runKey = animatingId && !reduced && demo.fundResults?.[animatingId] ? animatingId : null;
   const listArmed = useArmed(runKey, MOMENT.start);
-  // Stagger order for the cards of the just-funded package.
-  const flipOrder = new Map(
-    rows.filter((r) => r.resolved && r.pkgId === runKey).map((r, i) => [r.id, i] as const),
-  );
+  const flipOrder = new Map(rows.filter((r) => r.resolved && r.pkgId === runKey).map((r, i) => [r.id, i] as const));
 
   async function handleFund(pkg: TrainingPackage) {
     setErrors((e) => ({ ...e, [pkg.id]: "" }));
@@ -110,172 +157,233 @@ export function GapsView() {
     setAnimatingId(pkg.id);
     setPendingId(pkg.id);
     try {
-      // On failure the store sets demo.error (shown in the banner above).
+      // On failure the store sets demo.error (shown above).
       await demo.fund(pkg.id);
     } catch (err) {
       setErrors((e) => ({
         ...e,
-        [pkg.id]: err instanceof Error ? err.message : "Could not fund this package. Please try again.",
+        [pkg.id]: err instanceof Error ? err.message : "Could not fund this training. Please try again.",
       }));
     } finally {
       setPendingId(null);
     }
   }
 
-  const header = <SectionHeader size="page" title={PAGE_TITLE} subtitle={PAGE_SUBTITLE} />;
-
   if (!demo.ready) {
     return (
-      <div className="mx-auto w-full max-w-[1280px] px-6 py-8">
-        {header}
-        <Skeleton className="h-28 rounded-xl" />
+      <div className={PAGE}>
+        <Skeleton className="mb-6 h-28 rounded-xl" />
+        <PageTitle />
+        <Skeleton className="h-72 rounded-xl" />
       </div>
     );
   }
 
   if (!routed) {
     return (
-      <div className="mx-auto w-full max-w-[1280px] px-6 py-8">
-        {header}
-        <EmptyState
-          title="Route the parts list first"
-          body="Gaps appear once Muster has tried to place every job. Upload Northgate's parts list and run routing on the Program page."
-          action={{ label: "Go to Program", href: "/program" }}
-        />
+      <div className={PAGE}>
+        <StoryBanner step={4} summary={cd("gaps.empty.title")} />
+        <PageTitle />
+        <EmptyState title={cd("gaps.empty.title")} body={cd("gaps.empty.body")} run={{ label: cd("run.loadAndMatch") }} />
       </div>
     );
   }
 
   const loading = !demo.gaps && blockedNow.length === 0 && resolved.size === 0;
-  const topReason = stillBlocked.length === 0 ? "None" : demo.gaps?.summary.top_reason ?? stillBlocked[0]?.blocked?.reason_code ?? "—";
+  const funded = demo.stage === "funded" || unstuck.length > 0;
+
+  const fundedSeats = (demo.gaps?.suggestions ?? []).filter(isFunded).reduce((s, p) => s + p.trainees, 0);
+  const summary = funded
+    ? stillBlocked.length === 0
+      ? cd("gaps.b.funded.none")
+      : sc("gaps.b.funded.n", {
+          what: fundedSeats > 0 ? sc("gaps.b.funded.seats", { seats: fundedSeats }) : sc("gaps.b.funded.training"),
+          k: unstuck.length,
+          jobsWord: unstuck.length === 1 ? "job" : "jobs",
+          jobsValue: fmtMoney(unstuckValue, { compact: true }),
+          left: stillBlocked.length,
+          isAre: stillBlocked.length === 1 ? "is" : "are",
+        })
+    : stillBlocked.length === 0 && !loading
+      ? cd("gaps.b.clear")
+      : cd("gaps.b", {
+          n: stillBlocked.length,
+          value: fmtMoney(stillBlockedValue, { compact: true }),
+          shop: hero ? shortShopName(hero.shop_name) : "a nearby shop",
+          k: hero?.blocked_job_ids.length ?? 0,
+        });
+
+  const heroCard = hero ? (
+    <SuggestionCard
+      variant="hero"
+      pkg={hero}
+      funded={isFunded(hero)}
+      pending={pendingId === hero.id}
+      disabled={pendingId !== null || demo.busy !== null}
+      error={errors[hero.id] || null}
+      onFund={handleFund}
+      jobsCreditCad={heroJobsCredit}
+      fundRole={fundRole}
+      shopAccountId={shopAccountId}
+    />
+  ) : null;
+
+  const othersRequested = others.some((p) => fundingRequests[p.id] && !isFunded(p));
+  const othersOpen = funded || othersRequested || others.some(isFunded) || (hashPkg !== null && others.some((p) => p.id === hashPkg));
+  const otherCards = others.map((pkg) => (
+    <SuggestionCard
+      key={pkg.id}
+      variant="option"
+      pkg={pkg}
+      funded={isFunded(pkg)}
+      pending={pendingId === pkg.id}
+      disabled={pendingId !== null || demo.busy !== null}
+      error={errors[pkg.id] || null}
+      onFund={handleFund}
+      fundRole={fundRole}
+      shopAccountId={shopAccountId}
+    />
+  ));
+
+  // Before funding, the Fund button on the hero card is the page's one primary action, so the
+  // banner's "↓ Fund the training below" is a quieter outline button (QA Q34: no two red buttons).
+  const heroFundable = Boolean(hero && !isFunded(hero) && fundRole === "prime" && !loading && rows.length > 0);
+  const bannerNext = !funded && heroFundable ? (
+    // text-foreground: <Button> keeps its default white text under the outline variant.
+    <NextStep label={cd("gaps.next.fund")} variant="secondary" onClick={() => void scrollToFund()} className="text-foreground" />
+  ) : (
+    <AutoNextStep />
+  );
 
   return (
-    <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-8 px-6 py-8">
-      {/* Header sits directly in the gap-8 column so its own margin is not added on top. */}
-      <SectionHeader size="page" title={PAGE_TITLE} subtitle={PAGE_SUBTITLE} className="-mb-2" />
+    <div className={PAGE}>
+      <StoryBanner
+        step={4}
+        summary={<Rich text={summary} />}
+        lookAt={funded ? cd("gaps.b.funded.look") : cd("gaps.b.look")}
+        next={bannerNext}
+      />
+      <PageTitle />
+
       {demo.error ? (
-        <div className="-mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-          <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+        <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
           {demo.error}
         </div>
       ) : null}
 
-      {/* Summary strip */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard
-          label="Blocked jobs"
-          value={loading ? "…" : stillBlocked.length}
-          sub={totalJobs ? `of ${totalJobs} jobs in the parts list` : undefined}
-          tone={stillBlocked.length ? "warning" : "success"}
-        />
-        <StatCard
-          label="Blocked value"
-          value={<span title={fmtMoney(stillBlockedValue)}>{fmtMoney(stillBlockedValue, { compact: true })}</span>}
-          sub="Work that cannot be placed yet"
-          tone={stillBlocked.length ? "warning" : "success"}
-        />
-        <StatCard
-          label="Top reason"
-          value={<span className="block text-lg leading-snug font-semibold">{topReason}</span>}
-          sub="Most common failing check"
-          tone="default"
-        />
-        <StatCard
-          label="Unblocked by training"
-          value={unblockedCount}
-          sub={
-            unblockedCount ? (
-              <span className="inline-flex items-center gap-1 text-emerald-700">
-                <CircleCheck className="size-3.5" />+{fmtMoney(creditFromFunding, { compact: true })} credit added
-              </span>
-            ) : (
-              "Fund a package below"
-            )
-          }
-          tone={unblockedCount ? "success" : "muted"}
-        />
+      <div className="flex flex-col gap-8">
+        {/* THE MOMENT */}
+        {demo.lastFund ? (
+          <FundMoment
+            key={demo.lastFund.package_id}
+            result={demo.lastFund}
+            animate={animatingId === demo.lastFund.package_id}
+            reducedMotion={reduced}
+          />
+        ) : null}
+
+        {loading ? (
+          <Skeleton className="h-72 rounded-xl" />
+        ) : rows.length === 0 ? (
+          <EmptyState title={cd("gaps.allPlaced.title")} body={cd("gaps.allPlaced.body")} />
+        ) : (
+          <>
+            {/* 1. The fix */}
+            {heroCard}
+
+            {/* 2. Stuck jobs, compact */}
+            <section aria-labelledby="stuck-title" className="grid items-start gap-5 lg:grid-cols-12">
+              <div className="lg:col-span-8">
+                <h2 id="stuck-title" className="mb-3 text-lg font-semibold tracking-tight text-foreground">
+                  {unstuck.length > 0
+                    ? cd("gaps.list.title.funded", { fixed: unstuck.length, left: stillBlocked.length })
+                    : stillBlocked.length === 1
+                      ? sc("gaps.list.title.one")
+                      : cd("gaps.list.title", { n: stillBlocked.length })}
+                </h2>
+                <div className="flex flex-col gap-2.5">
+                  {rows.map((r) => {
+                    const order = flipOrder.get(r.id);
+                    const justFunded = order !== undefined;
+                    const delay = justFunded ? MOMENT.flipBase + order * MOMENT.flipStagger : 0;
+                    return (
+                      <BlockedJobCard
+                        key={r.id}
+                        blocked={r.blocked}
+                        resolved={r.resolved}
+                        showResolved={justFunded ? listArmed : true}
+                        flipDelayMs={delay}
+                        unblockedBy={r.pkgId}
+                        heroId={hero?.id}
+                        reducedMotion={reduced}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 lg:col-span-4 lg:mt-10 lg:grid-cols-1">
+                <StatCard
+                  label={cd("gaps.stat.stuck")}
+                  value={stillBlocked.length}
+                  sub={
+                    <span title={fmtMoney(stillBlockedValue)}>
+                      {cd("gaps.stat.stuck.sub", { value: fmtMoney(stillBlockedValue, { compact: true }) })}
+                    </span>
+                  }
+                  tone={stillBlocked.length ? "warning" : "success"}
+                />
+                <StatCard
+                  label={cd("gaps.stat.unstuck")}
+                  value={unstuck.length}
+                  sub={
+                    unstuck.length ? (
+                      <span className="inline-flex items-center gap-1 text-emerald-700" title={fmtMoney(creditFromFunding)}>
+                        <CircleCheck className="size-3.5" aria-hidden />
+                        {cd("gaps.stat.unstuck.sub", { credit: fmtMoney(creditFromFunding, { compact: true }) })}
+                      </span>
+                    ) : (
+                      cd("gaps.stat.unstuck.sub.none")
+                    )
+                  }
+                  tone={unstuck.length ? "success" : "muted"}
+                />
+              </div>
+            </section>
+
+            {/* 3. Another option. Collapsed in Story mode until it matters: after the fund moment,
+                when a shop asked for one of these packages, or when a link points at one. */}
+            {others.length > 0 ? (
+              <section aria-label={cd("gaps.other.title")} data-other-options>
+                {othersOpen ? (
+                  <>
+                    <h2 className="mb-1 text-lg font-semibold tracking-tight text-foreground">
+                      {othersRequested ? sc("gaps.other.title.requested") : cd("gaps.other.title")}
+                    </h2>
+                    <div className="flex flex-col gap-4">
+                      <p className="text-sm text-muted-foreground">{cd("gaps.other.sub")}</p>
+                      {otherCards}
+                    </div>
+                  </>
+                ) : (
+                  <Details summary={cd("gaps.other.title")} contentClassName="flex flex-col gap-4">
+                    <p className="text-sm text-muted-foreground">{cd("gaps.other.sub")}</p>
+                    {otherCards}
+                  </Details>
+                )}
+              </section>
+            ) : null}
+          </>
+        )}
+
+        {/* Next step, repeated at the bottom (§3.3). Before funding the banner's "↓ Fund the
+            training below" points down at the hero card, so it is not repeated under it. */}
+        {funded ? (
+          <div className="flex justify-end border-t border-border pt-5">
+            <AutoNextStep />
+          </div>
+        ) : null}
       </div>
-
-      {/* THE MOMENT */}
-      {demo.lastFund ? (
-        <FundMoment
-          key={demo.lastFund.package_id}
-          result={demo.lastFund}
-          animate={animatingId === demo.lastFund.package_id}
-          reducedMotion={reduced}
-          partNoById={partNoById}
-        />
-      ) : null}
-
-      {loading ? (
-        <div className="grid gap-6 lg:grid-cols-12">
-          <Skeleton className="h-80 rounded-xl lg:col-span-5" />
-          <Skeleton className="h-80 rounded-xl lg:col-span-7" />
-        </div>
-      ) : rows.length === 0 ? (
-        <EmptyState title="Every job is placed" body="Routing found a qualified shop with capacity for every job. No training is needed." />
-      ) : (
-        <div className="grid items-start gap-8 lg:grid-cols-12">
-          <section className="lg:col-span-5">
-            {unblockedCount > 0 ? (
-              <SectionHeader
-                title="Blocked and unblocked jobs"
-                subtitle={`${unblockedCount} unblocked by training · ${stillBlocked.length} still blocked`}
-              />
-            ) : (
-              <SectionHeader
-                title="Blocked jobs"
-                subtitle="No qualified shop with free capacity. Each card shows why, and how many shops fail each check."
-              />
-            )}
-            <div className="flex flex-col gap-4">
-              {rows.map((r) => {
-                const job = jobsById.get(r.id);
-                const order = flipOrder.get(r.id);
-                const justFunded = order !== undefined;
-                const delay = justFunded ? MOMENT.flipBase + order * MOMENT.flipStagger : 0;
-                return (
-                  <BlockedJobCard
-                    key={r.id}
-                    blocked={r.blocked}
-                    resolved={r.resolved}
-                    processTags={job?.process_tags}
-                    requiredCerts={job?.required_certs}
-                    showResolved={justFunded ? listArmed : true}
-                    flipDelayMs={delay}
-                    unblockedBy={r.pkgId}
-                    reducedMotion={reduced}
-                  />
-                );
-              })}
-            </div>
-          </section>
-
-          <section className="lg:col-span-7">
-            <SectionHeader
-              title="Training suggestions"
-              subtitle="ITB-eligible training that closes each gap. Costs are estimates for the demo."
-            />
-            <div className="flex flex-col gap-5">
-              {suggestions.length === 0 ? (
-                <EmptyState title="No suggestions yet" body="Training suggestions load with the gaps report." />
-              ) : (
-                suggestions.map((pkg) => (
-                  <SuggestionCard
-                    key={pkg.id}
-                    pkg={pkg}
-                    funded={isFunded(pkg)}
-                    pending={pendingId === pkg.id}
-                    disabled={pendingId !== null || demo.busy !== null}
-                    error={errors[pkg.id] || null}
-                    onFund={handleFund}
-                  />
-                ))
-              )}
-            </div>
-          </section>
-        </div>
-      )}
     </div>
   );
 }

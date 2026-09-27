@@ -15,3 +15,17 @@ export interface JobInfo {
   description: string
   value_cad?: number
 }
+
+/**
+ * National Defence contracts matched to a public shop by name + location
+ * (data/processed/national/entity_links.json; see dnd-history.ts). Public record, unverified.
+ */
+export interface DndHistory {
+  contracts: number
+  value_cad: number
+  first_date: string | null
+  last_date: string | null
+  confidence: "high" | "medium"
+  /** All high/medium matches, including the ones in the lower tier. */
+  links: number
+}

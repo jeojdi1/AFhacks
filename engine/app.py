@@ -24,7 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ConfigDict
 
-from engine import cache, pipeline, shopside, tagger
+from engine import cache, graphdb, pipeline, search, shopside, simulate, tagger
 from engine.state import (
     DEFAULT_PROGRAM_ID,
     DEMO_PARTS_CSV,
@@ -180,6 +180,9 @@ def demo_reset() -> dict:
         "jobs": len(state.jobs),
         "message": "Demo reset: shops and program seeded; no parts uploaded.",
     }
+
+
+app.include_router(simulate.router)  # /demo/seed, /demo/simulate/* (engine/simulate.py)
 
 
 @app.get("/programs/{program_id}")
@@ -411,3 +414,61 @@ def get_trainee_seat(program_id: str, package_id: str, seat: int) -> Response:
     return _read_action(
         program_id, ("seat", package_id, seat), lambda s: shopside.trainee_seat(s, package_id, seat)
     )
+
+
+# --------------------------------------------------------------------------- #
+# Search + graph (docs/api.md §7, additive): Neo4j when available, memory otherwise
+# --------------------------------------------------------------------------- #
+def _search_call(fn: Callable[[], Any]) -> Any:
+    try:
+        return fn()
+    except search.SearchError as exc:
+        raise HTTPException(status_code=exc.status, detail=exc.detail) from None
+
+
+@app.get("/search/shops")
+def search_shops(
+    q: str | None = None,
+    process: Annotated[list[str] | None, Query()] = None,
+    cert: Annotated[list[str] | None, Query()] = None,
+    near: str | None = None,
+    radius_km: float | None = None,
+    source: str = "all",
+    dnd_history: bool | None = None,
+    match: str = "all",
+    limit: Annotated[int, Query(ge=1, le=200)] = 25,
+) -> Response:
+    sq = _search_call(lambda: search.ShopQuery(q, process, cert, near, radius_km, source, dnd_history,
+                                               match, limit))
+    engine = search.engine_name()
+    key = ("search_shops", engine, graphdb.marker(), sq.key())
+    return _read(DEFAULT_PROGRAM_ID, key, lambda s: search.search_shops(s, sq, engine))
+
+
+@app.get("/search/jobs")
+def search_jobs(
+    shop_id: str,
+    q: str | None = None,
+    process: Annotated[list[str] | None, Query()] = None,
+    include_near_miss: bool = True,
+) -> Response:
+    procs = tuple(process or ())
+    key = ("search_jobs", shop_id, q, procs, include_near_miss)
+    return _read(
+        DEFAULT_PROGRAM_ID, key,
+        lambda s: _search_call(lambda: search.search_jobs(s, shop_id, q, list(procs), include_near_miss)),
+    )
+
+
+@app.get("/graph/summary")
+def graph_summary() -> dict:
+    return search.graph_summary()
+
+
+@app.get("/graph/ego")
+def graph_ego(
+    node_id: Annotated[str, Query(alias="id")],
+    depth: Annotated[int, Query(ge=1, le=2)] = 1,
+    limit: Annotated[int, Query(ge=1, le=500)] = 150,
+) -> dict:
+    return _search_call(lambda: search.graph_ego(node_id, depth, limit))

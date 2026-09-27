@@ -2,14 +2,15 @@
 
 import * as React from "react"
 import { toast } from "sonner"
-import { Check, FileLock2, Lock, MapPin, Send, ShieldCheck, Wallet } from "lucide-react"
+import { Check, Clock, FileLock2, Lock, MapPin, Send, ShieldCheck, Wallet } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/lib/data/store"
 import { MATERIAL_LABEL, PROCESS_LABEL, fmtKm, fmtMoney, label } from "@/lib/format"
 import { useShopBundle } from "@/lib/app/shop-bundle"
 import { useConnection } from "@/lib/app/connection"
 import { UnreachableNotice } from "@/components/mobile/shell/unreachable-notice"
-import { fitChecklist } from "@/lib/app/fit"
+import { fitChecklist, plainReason } from "@/lib/app/fit"
+import { certPlain } from "@/lib/ui/plain"
 import { fmtWeekday } from "@/lib/app/today"
 import { t } from "@/lib/app/strings"
 import type { QuestionCode, ReasonCode } from "@/lib/app/types"
@@ -134,6 +135,8 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
   }
 
   const controlled = job?.controlled ?? assignment?.controlled ?? false
+  // A required certificate the shop holds only as pending_training (funded welder training).
+  const trainingCert = (job?.required_certs ?? []).find((ct) => b.certs.find((c) => c.type === ct)?.status === "pending_training") ?? null
   const multLabel =
     offer.multiplier === 2 ? t("o.card.mult.sme", { mult: offer.multiplier }) : t("o.card.mult.plain", { mult: offer.multiplier })
 
@@ -185,7 +188,9 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
             <ShieldCheck className="mt-0.5 size-5 shrink-0 text-assigned" aria-hidden />
             <span>
               <strong>{t("o.card.noBidding")}</strong> {t("o.card.onlyYou", { prime })}{" "}
-              <strong>{t("o.card.credit", { prime, credit: fmtCredit(offer.credit_cad), mult: multLabel })}</strong>
+              <strong>
+                {t(state === "accepted" ? "o.card.creditAccepted" : "o.card.credit", { prime, credit: fmtCredit(offer.credit_cad), mult: multLabel })}
+              </strong>
             </span>
           </p>
           <p className="mt-1 pl-7 text-sm text-muted-foreground">
@@ -193,6 +198,16 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
           </p>
         </div>
       </section>
+
+      {trainingCert ? (
+        <div className="flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-base text-amber-900" data-testid="offer-training">
+          <Clock className="mt-0.5 size-5 shrink-0" aria-hidden />
+          <span>
+            <strong>{t("o.card.training")}</strong>{" "}
+            {t("o.card.trainingBody", { cert: certPlain(trainingCert).first.replace(/^./, (c) => c.toLowerCase()) })}
+          </span>
+        </div>
+      ) : null}
 
       {/* 3. Can we do it? (verdict first; rows expand on tap) */}
       {fit ? <FitChecklist items={fit} collapsible /> : <p className="text-base text-muted-foreground">{t("o.card.noJobData")}</p>}
@@ -220,12 +235,20 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
             {t("o.card.why")}
           </h2>
           <ul className="mt-2 flex flex-col gap-2">
-            {offer.reasons.slice(0, 3).map((r) => (
-              <li key={r} className="flex items-start gap-2 text-base">
-                <Check className="mt-0.5 size-5 shrink-0 text-assigned" aria-hidden />
-                {r}
-              </li>
-            ))}
+            {offer.reasons.slice(0, 3).map((r) => {
+              const text = plainReason(r, b.certs, prime)
+              const training = text.includes("welders in training")
+              return (
+                <li key={r} className="flex items-start gap-2 text-base">
+                  {training ? (
+                    <Clock className="mt-0.5 size-5 shrink-0 text-amber-700" aria-hidden />
+                  ) : (
+                    <Check className="mt-0.5 size-5 shrink-0 text-assigned" aria-hidden />
+                  )}
+                  {text}
+                </li>
+              )
+            })}
           </ul>
         </section>
       ) : null}

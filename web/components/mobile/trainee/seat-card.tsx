@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { CalendarPlus, GraduationCap, Hourglass, Inbox, ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/lib/data/store"
@@ -33,13 +34,15 @@ function Notice({ icon, title, body }: { icon?: React.ReactNode; title: string; 
  * /m/trainee/[packageId]?seat=N: a pseudonymous seat card. No name field
  * exists anywhere; the seat is "Seat 3 of 4 · TP-01".
  */
-export function SeatCard({ packageId, seat }: { packageId: string; seat: number }) {
+export function SeatCard({ packageId, seat }: { packageId: string; seat: number | null }) {
   const { ready, stage, gaps, fundResults, fundedIds, jobs } = useDemo()
   const { fundingRequests, events } = useAppActions()
 
   const pkg = gaps?.suggestions.find((p) => p.id === packageId) ?? fundResults[packageId]?.package ?? null
   const total = pkg?.trainees ?? null
-  const seatNo = total ? Math.min(Math.max(1, seat), total) : Math.max(1, seat)
+  // Never clamp: ?seat=9 on a 4-seat plan is a seat that does not exist (the API 404s it too).
+  const badSeat = seat === null || (total !== null && seat > total)
+  const seatNo = seat ?? 1
   const request = fundingRequests[packageId] ?? null
   // Live mode: this tab's demo store doesn't hear a Fund clicked on the laptop, but the
   // polled event log does, so a package_funded event flips an open seat page too.
@@ -62,7 +65,7 @@ export function SeatCard({ packageId, seat }: { packageId: string; seat: number 
         </span>
         <div className="min-w-0">
           <h2 className="text-xl leading-snug font-semibold tracking-tight">
-            {total
+            {total && !badSeat
               ? t("seat.header", { seat: seatNo, total, pkg: packageId })
               : `${t("title.trainee")} · ${packageId}`}
           </h2>
@@ -93,6 +96,33 @@ export function SeatCard({ packageId, seat }: { packageId: string; seat: number 
   }
 
   const routed = stage === "routed" || stage === "funded"
+
+  if (badSeat) {
+    return (
+      <div className="flex flex-col gap-5 pt-2" data-testid="seat-missing">
+        {header}
+        <Notice
+          title={total ? t("seat.missing", { pkg: packageId, total }) : t("seat.missingNoTotal", { pkg: packageId })}
+          body={t("seat.missingBody")}
+        />
+        {total ? (
+          <ul className="grid grid-cols-2 gap-2">
+            {Array.from({ length: total }, (_, i) => i + 1).map((n) => (
+              <li key={n}>
+                <Link
+                  href={`/m/trainee/${encodeURIComponent(packageId)}?seat=${n}`}
+                  className={cn(buttonVariants({ variant: "outline", size: "touch" }), "w-full")}
+                >
+                  {t("seat.pick", { seat: n, total })}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+    )
+  }
+
   const eligibility = <p className="text-sm leading-snug text-muted-foreground">{t("seat.eligibility")}</p>
 
   if (!funded) {

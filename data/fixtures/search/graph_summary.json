@@ -1,0 +1,33 @@
+{
+  "engine": "memory",
+  "nodes": {
+    "Cert": 8,
+    "DNDVendor": 1099,
+    "Job": 40,
+    "Manufacturer": 2946,
+    "Occupation": 12,
+    "Prime": 53,
+    "Process": 12,
+    "Program": 123,
+    "Region": 89,
+    "Shop": 108
+  },
+  "edges": {
+    "HAS_JOB": 40,
+    "HAS_PROCESS": 226,
+    "HAS_PROGRAM": 123,
+    "HOLDS_CERT": 119,
+    "IN_REGION": 3865,
+    "ITB_OBLIGATION": 123,
+    "MATCHES_DND_VENDOR": 102,
+    "NEEDS_CERT": 44,
+    "NEEDS_PROCESS": 52,
+    "OUTLOOK": 1020,
+    "PART_OF": 76,
+    "SAME_AS": 18
+  },
+  "totals": {
+    "nodes": 4490,
+    "edges": 5808
+  }
+}

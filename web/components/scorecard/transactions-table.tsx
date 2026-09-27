@@ -17,7 +17,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { CATEGORY_LABEL, fmtMoney, fmtPct, label } from "@/lib/format";
+import { fmtMoney, fmtPct } from "@/lib/format";
+import { cc } from "@/lib/ui/copy-c";
 
 import type { ShopRef } from "./worked-example";
 
@@ -54,23 +55,20 @@ export function TransactionsTable({
   const hidden = sorted.length - visible.length;
 
   return (
-    <Card className="gap-4 px-0 py-6 [--card-spacing:--spacing(6)]">
+    <Card className="gap-4 px-0 py-6 [--card-spacing:--spacing(6)]" data-testid="ledger-table">
       <div className="flex flex-wrap items-start justify-between gap-3 px-6">
         <div>
-          <h2 className="text-base font-semibold text-slate-900">Credit transactions</h2>
-          <p className="text-sm text-slate-500">
-            {transactions.length} entries in the ledger. Every row: value × CCV × multiplier = credit.
-          </p>
+          <p className="text-sm text-slate-600">{cc("score.ledger.sub")}</p>
         </div>
         {sorted.length > PREVIEW_ROWS ? (
           <Button variant="outline" size="sm" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
             {open ? (
               <>
-                Show fewer <ChevronUp />
+                {cc("score.ledger.showFewer")} <ChevronUp />
               </>
             ) : (
               <>
-                Show all {sorted.length} <ChevronDown />
+                {cc("score.ledger.showAll", { n: sorted.length })} <ChevronDown />
               </>
             )}
           </Button>
@@ -80,15 +78,15 @@ export function TransactionsTable({
       <Table className="text-sm">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead className="pl-6 text-slate-600">Part / package</TableHead>
-            <TableHead className="text-slate-600">Shop</TableHead>
-            <TableHead className="text-slate-600">Type</TableHead>
-            <TableHead className="text-slate-600">Category</TableHead>
-            <TableHead className="text-right text-slate-600">Value</TableHead>
-            <TableHead className="text-right text-slate-600">CCV</TableHead>
-            <TableHead className="text-right text-slate-600">Multiplier</TableHead>
-            <TableHead className="text-right text-slate-600">Credit</TableHead>
-            <TableHead className="pr-6 text-slate-600">Flags</TableHead>
+            <TableHead className="pl-6 text-slate-600">{cc("score.ledger.col.job")}</TableHead>
+            <TableHead className="text-slate-600">{cc("score.ledger.col.shop")}</TableHead>
+            <TableHead className="text-slate-600">{cc("score.ledger.col.kind")}</TableHead>
+            <TableHead className="text-slate-600">{cc("score.ledger.col.category")}</TableHead>
+            <TableHead className="text-right text-slate-600">{cc("score.ledger.col.value")}</TableHead>
+            <TableHead className="text-right text-slate-600">{cc("score.ledger.col.ccv")}</TableHead>
+            <TableHead className="text-right text-slate-600">{cc("score.ledger.col.mult")}</TableHead>
+            <TableHead className="text-right text-slate-600">{cc("score.ledger.col.credit")}</TableHead>
+            <TableHead className="pr-6 text-slate-600">{cc("score.ledger.col.flags")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -105,7 +103,7 @@ export function TransactionsTable({
                     <span title={t.ref_id}>{t.origin === "assignment" ? (partNos[t.ref_id] ?? t.ref_id) : t.ref_id}</span>
                     {isNew ? (
                       <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[11px] font-semibold text-white">
-                        New
+                        {cc("score.ledger.new")}
                       </span>
                     ) : null}
                   </span>
@@ -113,18 +111,18 @@ export function TransactionsTable({
                 <TableCell className="max-w-[220px] truncate text-slate-700" title={shop?.name ?? t.shop_id}>
                   {shop?.name ?? t.shop_id}
                 </TableCell>
-                <TableCell className="text-slate-700 capitalize">{t.type}</TableCell>
-                <TableCell className="text-slate-700">{label(CATEGORY_LABEL, t.category).replace(/\s*\(\d+x\)$/, "")}</TableCell>
+                <TableCell className="text-slate-700">{cc(`score.kind.${t.type}`)}</TableCell>
+                <TableCell className="text-slate-700">{cc(`score.cat.${t.category}`)}</TableCell>
                 <TableCell className="text-right text-slate-700 tabular-nums">{fmtMoney(t.value_cad)}</TableCell>
                 <TableCell className="text-right text-slate-700 tabular-nums">{fmtPct(t.ccv_pct, 0)}</TableCell>
                 <TableCell className="text-right tabular-nums">
                   <span
                     className={cn(
                       "font-semibold",
-                      t.multiplier >= 5 ? "text-emerald-700" : t.multiplier === 2 ? "text-[#B42318]" : "text-slate-600",
+                      t.multiplier >= 5 ? "text-emerald-700" : t.multiplier === 2 ? "text-slate-900" : "text-slate-600",
                     )}
                   >
-                    {t.multiplier}x
+                    {t.multiplier}×
                   </span>
                 </TableCell>
                 <TableCell className="text-right font-semibold text-slate-900 tabular-nums">
@@ -140,7 +138,7 @@ export function TransactionsTable({
                           key={f}
                           className="rounded-full border border-slate-200 px-1.5 py-0.5 text-[11px] font-medium text-slate-500"
                         >
-                          {f === "simplified-demo" ? "Simplified demo" : f}
+                          {f === "simplified-demo" ? cc("score.ledger.flag.simplified") : f}
                         </span>
                       ),
                     )}
@@ -153,7 +151,7 @@ export function TransactionsTable({
         <TableFooter>
           <TableRow className="hover:bg-transparent">
             <TableCell colSpan={7} className="pl-6 text-slate-600">
-              {hidden > 0 ? `Total of all ${sorted.length} transactions (${hidden} hidden)` : "Total credit"}
+              {hidden > 0 ? cc("score.ledger.totalHidden", { n: sorted.length, hidden }) : cc("score.ledger.total")}
             </TableCell>
             <TableCell className="text-right font-semibold text-slate-900 tabular-nums">
               {fmtMoney(totalCredit)}

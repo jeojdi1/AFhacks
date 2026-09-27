@@ -9,6 +9,7 @@
 
 import { COUNTING_CERT_STATUSES, type CertStatus } from "@/lib/api/types"
 import { CERT_LABEL, MATERIAL_LABEL, PROCESS_LABEL, label } from "@/lib/format"
+import { certPlain } from "@/lib/ui/plain"
 import type { CertWithDates, Job, Shop } from "./types"
 
 export type FitResult = "pass" | "fail" | "warn"
@@ -65,7 +66,12 @@ function list(xs: string[]): string {
   return xs.join(", ")
 }
 
-const certName = (c: string) => CERT_LABEL[c] ?? label({}, c)
+const certShortName = (c: string) => CERT_LABEL[c] ?? label({}, c)
+/** "Welding certification (CWB W47.1)": never a bare acronym (docs/ux-simplification.md §2). */
+const certName = (c: string) => {
+  const p = certPlain(c)
+  return p.first || certShortName(c)
+}
 const statusWord: Record<CertStatus, string> = {
   verified: "verified",
   declared: "declared by your shop",
@@ -134,13 +140,16 @@ export function fitChecklist(
     const c = certBy.get(ct)
     const st: CertStatus = c?.status ?? "unknown"
     const ok = counts(st)
+    // pending_training counts for matching (CLAUDE.md §1.1 decision 4), but the welders are not
+    // qualified yet: flag it, never show it as held.
+    const training = st === "pending_training"
     items.push({
       key: `cert:${ct}`,
       kind: "cert",
-      result: ok ? "pass" : "fail",
+      result: training ? "warn" : ok ? "pass" : "fail",
       status: st,
       label: certName(ct),
-      detail: `Required · yours is ${statusWord[st]}`,
+      detail: training ? "Welders in training (paid by Northgate): start after they qualify" : `Required · yours is ${statusWord[st]}`,
     })
   }
 
@@ -154,10 +163,10 @@ export function fitChecklist(
       kind: "controlled",
       result: ok ? "pass" : "fail",
       status: st,
-      label: "Controlled goods: CGP registration",
+      label: "Controlled part: security-cleared (Controlled Goods)",
       detail: ok
-        ? `Controlled job · your CGP registration is ${statusWord[st]}`
-        : "Controlled job · only CGP-registered shops may take it",
+        ? `Controlled job · your Controlled Goods registration is ${statusWord[st]}`
+        : "Controlled job · only security-cleared (Controlled Goods) shops may take it",
     })
   }
 
@@ -186,6 +195,34 @@ export function fitChecklist(
 
 function fmtHours(h: number): string {
   return Math.round(h).toLocaleString("en-US")
+}
+
+const lowerFirst = (x: string) => (x ? x.charAt(0).toLowerCase() + x.slice(1) : x)
+const upperFirst = (x: string) => (x ? x.charAt(0).toUpperCase() + x.slice(1) : x)
+const CERT_BY_LABEL = new Map(Object.entries(CERT_LABEL).map(([k, v]) => [v.toLowerCase(), k]))
+
+/**
+ * An engine "why you" reason in plain words for the phone (docs/ux-simplification.md §2):
+ *   "SME: 2x direct credit"            → "Small business: your work counts double (2×) for Northgate"
+ *   "Welding + sheet metal + CWB W47.1" → "Welding, sheet metal and welding certification (CWB W47.1)"
+ * A certificate the shop only has as pending_training says "welders in training", never held.
+ */
+export function plainReason(r: string, certs: CertWithDates[] = [], prime = "Northgate"): string {
+  if (/^SME: 2x/i.test(r)) return `Small business: your work counts double (2×) for ${prime}`
+  if (/^Large firm: 1x/i.test(r)) return `Your work counts 1× toward what ${prime} owes`
+  if (/^Only qualified shop in range/i.test(r)) return "The only qualified shop in range (counts 1×)"
+  if (/^CGP-registered/i.test(r)) return "Security-cleared (Controlled Goods) for this controlled part"
+  if (!r.includes(" + ")) return r
+  const status = new Map(certs.map((c) => [c.type as string, c.status]))
+  const parts = r.split(" + ").map((part) => {
+    const ct = CERT_BY_LABEL.get(part.trim().toLowerCase())
+    if (!ct) return lowerFirst(part.trim())
+    const p = certPlain(ct)
+    const name = p.first !== p.label ? `${lowerFirst(p.label)} (${certShortName(ct)})` : certShortName(ct)
+    return status.get(ct) === "pending_training" ? `${name}: welders in training` : name
+  })
+  const joined = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}` : parts[0]
+  return upperFirst(joined)
 }
 
 /** "fail" if any row fails, else "warn" if any row warns, else "pass". */

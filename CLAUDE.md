@@ -139,6 +139,11 @@ POST /shops/{id}/certifications/{type}     shop-declared expiry (never "verified
 GET  /shops/{id}/actions   GET /programs/{id}/actions
 GET  /programs/{id}/events?since=&limit=   event log (routed, offer_*, funding_requested, package_funded, ...)
 GET  /programs/{id}/training/{pkg}/seats/{n}  pseudonymous trainee seat card
+# Search and graph (additive v0.3, api.md §7; read-only). Neo4j when up and loaded (make graph-up), else in-memory; `engine` says which.
+GET  /search/shops?q=&process=&cert=&near=&radius_km=&source=&dnd_history=&match=&limit=   capability search (public shops never routable)
+GET  /search/jobs?shop_id=&q=&process=     jobs for a shop: offered / eligible / near misses (one requirement away) + federal tenders
+GET  /graph/summary                        node and edge counts by kind
+GET  /graph/ego?id=&depth=&limit=          neighbourhood of one node (graph page)
 ```
 
 ### Algorithms
@@ -563,4 +568,6 @@ HH:MM [lane] TASK-ID — result (demo-check: step)
 20:22 [E] H5.5 prep — pitch.md, demo-script.md (shop view before+after funding), devpost.md with final numbers (demo-check: live 8/8)
 20:28 [B] INTEGRATE — web live mode ↔ engine: full demo path in headless Chrome, 0 errors, reload restores state; H3.6 done (demo-check: live 8/8)
 22:35 [I] APP-INTEGRATE — phone app /m (T1–T8) integrated: build+lint+tsc clean, 344 tests, ruff, app fixtures up to date; scripts/smoke_mobile.mjs 20/20 live + 20/20 fixtures; §2.11 rehearsal 30/30 live (2 contexts) + 30/30 fixtures (2 tabs); original desktop path 17/17 both modes; fixes: tab badge + LiveStepSync (live phone follows laptop route/reset); demo-script phone segment (4:15, 530 words), W47.1 wording (demo-script, pitch, devpost) (demo-check: live 8/8, fixtures 8/8)
+01:00 [INT] UX-INTEGRATE — UX simplification (A–E) + portals/sign-in (H) + search/graph pages (I) + Neo4j graph and /search, /graph routes (G) + DND data fixes merged: copy-<agent>.ts keys merged into COPY (518 keys, no conflicts), store.tsx §9.3 strings (busy.*, "Claude read all 40 lines"), header portal links prefetch on, demo-script ON SCREEN cells + portals beat (4:40, 630 words), smoke script button names; make graph-load 4,490 nodes / 5,808 edges; 392 tests, ruff, npm build+lint, ux-check 71/71, smoke_mobile 20/20 live + 20/20 fixtures, /search + /graph engine neo4j (memory with Neo4j dead, /search/jobs memory by design) (demo-check: live 8/8, fixtures 8/8)
+02:29 [INT] QA2-INTEGRATE — 6 fixers (shell, story, shopdesk, search, phone, engine) + integrator cross-file changes: shop desk phone link → /phone?to= QR (phone-connect reads ?to), See how / fund links → /m/shops/{id}/grow/{req}, prime desk "22 Canadian shops (19 small businesses)", feed funding request → /gaps#TP-0x then "Funded", upload toast "Parts list loaded: 40 lines", offer inbox NG-0xx + green Accept, network stats hidden under Real, banner gap, NextStep outline fix (Button variant prop), search card in-training clock, renewalFor held excludes pending_training, phone offer totals drop declined, 404 page in the shell, phone toasts bottom-centre no close, assumption chip 13px, shop profile size label; engine tenders_for drops equipment/stock, title-only q, vehicle spares, Ontario first (+test, fixtures regen, api.md), demo-script (100 km); smoke adds /m/college + /phone; npm build+lint, 412 tests, ruff, ux-check 71/71, smoke_mobile 24/24 live + 24/24 fixtures, flagship 5-axis/AS9100/London 3 shops (neo4j), multi-user rerun 14/14 (hero stays TP-01, sim marked, no competitor bell, phone↔laptop, Demo→Live no reset) (demo-check: live 8/8, fixtures 8/8)
 ```

@@ -1,0 +1,13 @@
+{
+  "generated_by": "scripts/build_search_fixtures.py",
+  "engine": "memory (MUSTER_GRAPH=memory; Neo4j returns the same content with engine 'neo4j')",
+  "state": "reset -> upload demo parts -> route (36 assigned / 4 blocked, not funded)",
+  "note": "docs/api.md §7. Synthetic shops are fictional; public shops are 'Public data — unverified — not affiliated' and never routed. Tenders are a CanadaBuys sample (OGL).",
+  "endpoints": {
+    "GET /search/shops?process=cnc_milling&near=London&radius_km=50": "shops_cnc_london.json",
+    "GET /search/shops?cert=CWB_W47.1": "shops_cwb.json",
+    "GET /search/jobs?shop_id=syn-012": "jobs_syn-012.json",
+    "GET /graph/summary": "graph_summary.json",
+    "GET /graph/ego?id=syn-012&depth=2&limit=150": "graph_ego_syn-012.json"
+  }
+}

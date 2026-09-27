@@ -11,17 +11,17 @@
   "retrieved": "2026-09-26",
   "as_of": "Contracts dated 2021-01-01 to 2026-06-30; latest reporting period in file 2026-2027-Q1; resource last modified 2026-09-26 (open.canada.ca)",
   "headline": {
-    "contracts": 59102,
-    "total_value": 82898890458.97,
-    "distinct_vendors": 16167,
-    "ontario_share_of_value": 0.304,
-    "ontario_share_of_value_canadian_vendors": 0.3888,
-    "ontario_vendors": 4377,
-    "ontario_share_of_vendors": 0.2707,
-    "mfg_relevant_vendors": 1023,
-    "mfg_relevant_value_upper_bound": 169165752.17,
-    "dropped_person_like_vendors": 317,
-    "dropped_person_like_contracts": 591,
+    "contracts": 58965,
+    "total_value": 82896957593.98,
+    "distinct_vendors": 16097,
+    "ontario_share_of_value": 0.3101,
+    "ontario_share_of_value_canadian_vendors": 0.3398,
+    "ontario_vendors": 4678,
+    "ontario_share_of_vendors": 0.2906,
+    "mfg_relevant_vendors": 1017,
+    "mfg_relevant_value_upper_bound": 168974469.72,
+    "dropped_person_like_vendors": 397,
+    "dropped_person_like_contracts": 728,
     "top10_vendor_share_of_value": 0.6085
   },
   "scan": {
@@ -34,166 +34,166 @@
   "by_year": [
     {
       "year": "2021",
-      "value": 4093311687.74,
-      "contracts": 6844
+      "value": 4093137094.39,
+      "contracts": 6826
     },
     {
       "year": "2022",
-      "value": 13630334919.54,
-      "contracts": 7403
+      "value": 13629357093.58,
+      "contracts": 7380
     },
     {
       "year": "2023",
-      "value": 14383815313.81,
-      "contracts": 8348
+      "value": 14384755094.38,
+      "contracts": 8321
     },
     {
       "year": "2024",
-      "value": 29300119888.67,
-      "contracts": 9679
+      "value": 29299606050.79,
+      "contracts": 9653
     },
     {
       "year": "2025",
-      "value": 16710671839.81,
-      "contracts": 13642
+      "value": 16709906240.2,
+      "contracts": 13616
     },
     {
       "year": "2026",
-      "value": 4780636809.4,
-      "contracts": 13186
+      "value": 4780196020.64,
+      "contracts": 13169
     }
   ],
   "by_province": [
     {
       "province": "ON",
-      "value": 25203384211.71,
-      "contracts": 19116,
-      "vendors": 4377,
-      "share_of_value": 0.304
-    },
-    {
-      "province": "outside Canada",
-      "value": 16825964729.87,
-      "contracts": 7322,
-      "vendors": 3314,
-      "share_of_value": 0.203
+      "value": 25707942511.61,
+      "contracts": 20638,
+      "vendors": 4678,
+      "share_of_value": 0.3101
     },
     {
       "province": "NS",
-      "value": 15819131892.08,
-      "contracts": 5261,
-      "vendors": 869,
-      "share_of_value": 0.1908
+      "value": 15892834653.57,
+      "contracts": 5542,
+      "vendors": 929,
+      "share_of_value": 0.1917
     },
     {
       "province": "QC",
-      "value": 8553701316.3,
-      "contracts": 9473,
-      "vendors": 2303,
-      "share_of_value": 0.1032
+      "value": 12475364555.67,
+      "contracts": 10125,
+      "vendors": 2460,
+      "share_of_value": 0.1505
     },
     {
       "province": "BC",
-      "value": 8369116008.59,
-      "contracts": 4495,
-      "vendors": 1208,
-      "share_of_value": 0.101
+      "value": 8476615759.64,
+      "contracts": 4860,
+      "vendors": 1287,
+      "share_of_value": 0.1023
+    },
+    {
+      "province": "outside Canada",
+      "value": 7235562207.6,
+      "contracts": 2527,
+      "vendors": 1054,
+      "share_of_value": 0.0873
+    },
+    {
+      "province": "Canada (province unknown)",
+      "value": 6050989494.69,
+      "contracts": 4126,
+      "vendors": 2980,
+      "share_of_value": 0.073
     },
     {
       "province": "SK",
-      "value": 4605899980.57,
-      "contracts": 509,
-      "vendors": 164,
-      "share_of_value": 0.0556
-    },
-    {
-      "province": "unknown",
-      "value": 1245926469.59,
-      "contracts": 2935,
-      "vendors": 1533,
-      "share_of_value": 0.015
+      "value": 4622397238.32,
+      "contracts": 565,
+      "vendors": 174,
+      "share_of_value": 0.0558
     },
     {
       "province": "AB",
-      "value": 1005247730.81,
-      "contracts": 4743,
-      "vendors": 1113,
-      "share_of_value": 0.0121
+      "value": 1117772450.08,
+      "contracts": 5029,
+      "vendors": 1180,
+      "share_of_value": 0.0135
     },
     {
       "province": "NB",
-      "value": 541771890.84,
-      "contracts": 1946,
-      "vendors": 431,
-      "share_of_value": 0.0065
+      "value": 546429460.05,
+      "contracts": 2013,
+      "vendors": 454,
+      "share_of_value": 0.0066
     },
     {
       "province": "MB",
-      "value": 365667561.19,
-      "contracts": 1722,
-      "vendors": 410,
-      "share_of_value": 0.0044
+      "value": 380246287.34,
+      "contracts": 1810,
+      "vendors": 432,
+      "share_of_value": 0.0046
     },
     {
       "province": "NL",
-      "value": 287603022.85,
-      "contracts": 1249,
-      "vendors": 262,
-      "share_of_value": 0.0035
+      "value": 301363114.83,
+      "contracts": 1278,
+      "vendors": 270,
+      "share_of_value": 0.0036
     },
     {
       "province": "NT/NU",
-      "value": 64822362.73,
-      "contracts": 201,
-      "vendors": 115,
-      "share_of_value": 0.0008
+      "value": 77624188.66,
+      "contracts": 311,
+      "vendors": 127,
+      "share_of_value": 0.0009
     },
     {
       "province": "YT",
-      "value": 5699881.02,
-      "contracts": 52,
-      "vendors": 33,
+      "value": 6033293.6,
+      "contracts": 61,
+      "vendors": 36,
       "share_of_value": 0.0001
     },
     {
       "province": "PE",
-      "value": 4953400.82,
-      "contracts": 78,
-      "vendors": 35,
+      "value": 5782378.32,
+      "contracts": 80,
+      "vendors": 36,
       "share_of_value": 0.0001
     }
   ],
   "by_commodity_type": [
     {
       "name": "Services",
-      "value": 44937424301.56,
-      "contracts": 29518,
+      "value": 44936354095.1,
+      "contracts": 29399,
       "share_of_value": 0.5421
     },
     {
       "name": "Goods",
-      "value": 33722966252.89,
-      "contracts": 24901,
+      "value": 33724003666.13,
+      "contracts": 24893,
       "share_of_value": 0.4068
     },
     {
       "name": "Construction",
-      "value": 4238499904.52,
-      "contracts": 4683,
+      "value": 4236599832.75,
+      "contracts": 4673,
       "share_of_value": 0.0511
     }
   ],
   "by_commodity_family": [
     {
       "name": "Ships and boats",
-      "value": 14186229577.37,
-      "contracts": 1875,
+      "value": 14186479237.37,
+      "contracts": 1876,
       "share_of_value": 0.1711
     },
     {
       "name": "Other professional services not elsewhere specified",
-      "value": 12454700317.47,
-      "contracts": 1734,
+      "value": 12454148066.75,
+      "contracts": 1707,
       "share_of_value": 0.1502
     },
     {
@@ -204,26 +204,26 @@
     },
     {
       "name": "Engineering consultants-Other",
-      "value": 5905683049.95,
-      "contracts": 1067,
+      "value": 5905355653.95,
+      "contracts": 1055,
       "share_of_value": 0.0712
     },
     {
       "name": "Engineering services not elsewhere specified",
-      "value": 5896612928.67,
-      "contracts": 504,
+      "value": 5896498892.48,
+      "contracts": 498,
       "share_of_value": 0.0711
     },
     {
       "name": "Ships and boats Parts",
-      "value": 5465652842.86,
-      "contracts": 486,
+      "value": 5465988627.61,
+      "contracts": 487,
       "share_of_value": 0.0659
     },
     {
       "name": "Aircraft parts",
-      "value": 3466519503.09,
-      "contracts": 408,
+      "value": 3466586763.47,
+      "contracts": 409,
       "share_of_value": 0.0418
     },
     {
@@ -234,38 +234,38 @@
     },
     {
       "name": "Other equipment",
-      "value": 2244819472.27,
-      "contracts": 474,
+      "value": 2244637642.27,
+      "contracts": 473,
       "share_of_value": 0.0271
     },
     {
       "name": "Road motor vehicles-Military",
-      "value": 1706424168.71,
-      "contracts": 460,
+      "value": 1706503902.28,
+      "contracts": 457,
       "share_of_value": 0.0206
     },
     {
       "name": "Other Business services not Elsewhere Specified",
-      "value": 1316029630.02,
-      "contracts": 2154,
+      "value": 1315028807.51,
+      "contracts": 2152,
       "share_of_value": 0.0159
     },
     {
       "name": "Information technology and telecommunications consultants",
-      "value": 1238872142.51,
-      "contracts": 630,
-      "share_of_value": 0.0149
+      "value": 1239450386.27,
+      "contracts": 632,
+      "share_of_value": 0.015
     },
     {
       "name": "Industrial buildings",
-      "value": 1107129824.22,
-      "contracts": 525,
+      "value": 1107078727.82,
+      "contracts": 521,
       "share_of_value": 0.0134
     },
     {
       "name": "Other clothing",
-      "value": 954128550.09,
-      "contracts": 415,
+      "value": 954104289.84,
+      "contracts": 414,
       "share_of_value": 0.0115
     },
     {
@@ -276,8 +276,8 @@
     },
     {
       "name": "Other buildings",
-      "value": 765245035.77,
-      "contracts": 2090,
+      "value": 764533875.64,
+      "contracts": 2088,
       "share_of_value": 0.0092
     },
     {
@@ -288,8 +288,8 @@
     },
     {
       "name": "Other equipment and Parts",
-      "value": 611360011.76,
-      "contracts": 4214,
+      "value": 612709270.8,
+      "contracts": 4213,
       "share_of_value": 0.0074
     },
     {
@@ -318,8 +318,8 @@
     },
     {
       "name": "Residential buildings",
-      "value": 487399035.01,
-      "contracts": 3134,
+      "value": 487062035.01,
+      "contracts": 3133,
       "share_of_value": 0.0059
     },
     {
@@ -348,8 +348,8 @@
     },
     {
       "name": "Engineering consultants-Construction",
-      "value": 299089847.9,
-      "contracts": 1043,
+      "value": 299114526.94,
+      "contracts": 1044,
       "share_of_value": 0.0036
     },
     {
@@ -366,8 +366,8 @@
     },
     {
       "name": "Measuring, controlling, laboratory, medical and optical equipment and parts",
-      "value": 223790197.6,
-      "contracts": 758,
+      "value": 223745222.95,
+      "contracts": 757,
       "share_of_value": 0.0027
     },
     {
@@ -378,8 +378,8 @@
     },
     {
       "name": "Miscellaneous manufactured articles",
-      "value": 182950272.23,
-      "contracts": 2186,
+      "value": 183044963.83,
+      "contracts": 2190,
       "share_of_value": 0.0022
     },
     {
@@ -408,14 +408,14 @@
     },
     {
       "name": "Transportation of things not elsewhere specified",
-      "value": 138520452.44,
-      "contracts": 1235,
+      "value": 138425174.26,
+      "contracts": 1231,
       "share_of_value": 0.0017
     },
     {
       "name": "Highways, roads and streets",
-      "value": 136375845.6,
-      "contracts": 239,
+      "value": 136360572.32,
+      "contracts": 238,
       "share_of_value": 0.0016
     },
     {
@@ -444,8 +444,8 @@
     },
     {
       "name": "Temporary help services",
-      "value": 116307282.93,
-      "contracts": 485,
+      "value": 116282957.93,
+      "contracts": 484,
       "share_of_value": 0.0014
     },
     {
@@ -456,8 +456,8 @@
     },
     {
       "name": "Office buildings",
-      "value": 110553856.89,
-      "contracts": 428,
+      "value": 110471263.89,
+      "contracts": 427,
       "share_of_value": 0.0013
     },
     {
@@ -486,8 +486,8 @@
     },
     {
       "name": "Miscellaneous textiles, headgear, umbrellas, etc.",
-      "value": 91467764.34,
-      "contracts": 777,
+      "value": 91450659.84,
+      "contracts": 776,
       "share_of_value": 0.0011
     },
     {
@@ -510,8 +510,8 @@
     },
     {
       "name": "Road motor vehicles Parts",
-      "value": 82393697.41,
-      "contracts": 625,
+      "value": 82299836.39,
+      "contracts": 621,
       "share_of_value": 0.001
     },
     {
@@ -522,9 +522,9 @@
     },
     {
       "name": "Rental of motor and other vehicles",
-      "value": 71222138.22,
-      "contracts": 1424,
-      "share_of_value": 0.0009
+      "value": 69732054.47,
+      "contracts": 1403,
+      "share_of_value": 0.0008
     },
     {
       "name": "Application software (including COTS) and application development and delivery software",
@@ -549,9 +549,9 @@
   "by_mfg_flag": [
     {
       "flag": "vehicle_parts",
-      "value": 134341561.37,
-      "contracts": 1218,
-      "vendors": 585
+      "value": 134220966.07,
+      "contracts": 1212,
+      "vendors": 580
     },
     {
       "flag": "cables_harnesses",
@@ -561,9 +561,9 @@
     },
     {
       "flag": "fabrication",
-      "value": 7541678.88,
-      "contracts": 374,
-      "vendors": 243
+      "value": 7470991.73,
+      "contracts": 370,
+      "vendors": 242
     },
     {
       "flag": "welding",
@@ -637,7 +637,7 @@
       "vendor": "Airbus Defence and Space SA",
       "total_value": 4125667771.32,
       "contracts": 4,
-      "province": "outside Canada",
+      "province": "Canada (province unknown)",
       "top_categories": [
         "Aircraft",
         "Engineering services not elsewhere specified"
@@ -659,7 +659,7 @@
       "vendor": "Bell Textron Canada Limited",
       "total_value": 3080577363.13,
       "contracts": 2,
-      "province": "outside Canada",
+      "province": "QC",
       "top_categories": [
         "Aircraft parts",
         "Engineering services not elsewhere specified"
@@ -757,7 +757,7 @@
       "vendor": "Serco Facilities Management Inc",
       "total_value": 742076697.39,
       "contracts": 1,
-      "province": "unknown",
+      "province": "Canada (province unknown)",
       "top_categories": [
         "Other Business services not Elsewhere Specified"
       ]
@@ -842,7 +842,7 @@
       "vendor": "GD OTS C",
       "total_value": 470554084.48,
       "contracts": 67,
-      "province": "outside Canada",
+      "province": "QC",
       "top_categories": [
         "Ammunition"
       ]
@@ -1212,8 +1212,8 @@
     "Filter: contract_date 2021-01-01 to 2026-09-26; instrument types C (contract/call-up) and A (amendment). Standing offer / supply arrangement agreements (SOSA) excluded because they are not commitments.",
     "One contract = procurement_id + normalized vendor; value = contract_value of the most recently reported row (amendments carry the amended total). Values are reported commitments incl. taxes and exercised options, not payments.",
     "Vendor names normalized (case, accents, punctuation, legal suffixes). Spelling variants such as typos are not merged, so some vendors appear twice.",
-    "Vendors that look like individuals were dropped before aggregation: 317 vendor names, 591 contracts, $32,669,797. No personal names, emails or phones are included; the source buyer_name field (DND staff) is never read.",
-    "Province from vendor_postal_code (first 3 characters, FSA) as published by DND; 'outside Canada' where postal code is NA or vendor country is not CA. Postal code is the vendor's address in DND's system, not where work is done.",
+    "Vendors that look like individuals were dropped before aggregation: 397 vendor names, 728 contracts, $34,602,662. No personal names, emails or phones are included; the source buyer_name field (DND staff) is never read.",
+    "Province from vendor_postal_code (first 3 characters, FSA) as published by DND. Vendor-level province = most common province among the vendor's rows with a valid FSA. With no valid FSA on any row: 'outside Canada' only when the vendor country is not CA; otherwise 'Canada (province unknown)'. Canadian value (for Ontario share) includes 'Canada (province unknown)'. Postal code is the vendor's address in DND's system, not where work is done.",
     "mfg_flags mark what DND bought (GSIN/UNSPSC commodity code or description keywords), not a verified shop capability. Welding flags include purchases of welding equipment/supplies. Keyword-only matches are vetoed for IT, construction, professional-service and fuel categories.",
     "Real companies: Public data - unverified - not affiliated.",
     "mfg_value = value of the vendor's contracts in its largest manufacturing flag; mfg_relevant_value_upper_bound sums flags and can double count a contract carrying several flags.",

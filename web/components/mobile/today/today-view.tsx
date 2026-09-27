@@ -4,13 +4,15 @@
 // One column of attention cards in a fixed order, then 3 compact stats.
 
 import * as React from "react"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { CircleCheck, Inbox, RotateCw } from "lucide-react"
+import { ArrowRight, CircleCheck, Inbox, RotateCw } from "lucide-react"
 import { fmtMoney } from "@/lib/format"
 import { useDemo } from "@/lib/data/store"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
 import { EmptyState } from "@/components/muster/empty-state"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { ShopLabelChip } from "@/components/mobile/shell/m-header"
 import { UnreachableNotice } from "@/components/mobile/shell/unreachable-notice"
 import { useShopBundle } from "@/lib/app/shop-bundle"
@@ -31,12 +33,19 @@ extendStrings("en", {
   "today.stat.offers": "offered work",
   "today.stat.offers.detail": "{count} offers",
   "today.stat.offers.detail_one": "1 offer",
-  "today.stat.hours": "h/wk accepted",
-  "today.stat.hoursOf": "of {capacity} profile",
+  "today.stat.hours": "hrs/wk accepted",
+  "today.stat.hoursOf": "of {capacity} on your profile",
+  "today.stat.hoursOfTraining": "of {capacity} on your profile, incl. {training} from training",
   "today.stat.hoursConfirmed": "{free} free confirmed",
   "today.stat.hours.note": "Weekly hours per job are demo estimates of production load",
-  "today.stat.certs": "certs counting",
+  "today.stat.certs": "certificates in place",
   "today.stat.certs.detail": "of {total} tracked",
+  "today.stat.certs.detailTraining": "of {total} tracked · {training} in training",
+  "today.hero.kicker": "From Northgate, a defence company",
+  "today.hero.title": "{count} offers waiting for your answer",
+  "today.hero.title_one": "1 offer waiting for your answer",
+  "today.hero.body": "{value} of work · no bidding, each offer went only to you",
+  "today.hero.cta": "Review offers",
   "today.error": "Couldn't load this shop",
   "today.retry": "Try again",
 })
@@ -67,7 +76,7 @@ function Stat({ value, label, detail, tag }: { value: string; label: string; det
 /** Today home for one shop: /m/shops/[id]. */
 export function TodayView({ shopId }: { shopId: string }) {
   const bundle = useShopBundle(shopId)
-  const { stage, fundResults } = useDemo()
+  const { stage, fundResults, mode } = useDemo()
   const pathname = usePathname()
   const conn = useConnection()
   const [sheetOpen, setSheetOpen] = React.useState(false)
@@ -137,7 +146,9 @@ export function TodayView({ shopId }: { shopId: string }) {
   )
 
   const routed = stage === "routed" || stage === "funded" || (detail?.offers.length ?? 0) > 0
-  const replyCount = routed ? openOffers(bundle).length : 0
+  const open = routed ? openOffers(bundle) : []
+  const replyCount = open.length
+  const openValue = open.reduce((sum, o) => sum + o.value_cad, 0)
   const alertCount = replyCount + items.filter((i) => i.kind === "renewal").length
 
   // Installed app: badge the icon with what needs a reply (feature-checked).
@@ -176,6 +187,8 @@ export function TodayView({ shopId }: { shopId: string }) {
   const unreachable = conn.unreachable || (conn.live && !!bundle.error)
   const blind = unreachable && !routed
   const clear = routed && items.length === 0 && !blind
+  // The hero card above replaces the "offers need a reply" attention card.
+  const cards = replyCount > 0 ? items.filter((it) => it.kind !== "offers") : items
 
   return (
     <div className="flex flex-col gap-4 pt-1" data-testid="today-view">
@@ -196,11 +209,26 @@ export function TodayView({ shopId }: { shopId: string }) {
         ) : (
           <>
             {!routed ? (
-              <EmptyState className="py-6" icon={<Inbox className="size-5" aria-hidden />} title={t("empty.notRouted")} body={t("empty.notRoutedBody")} />
+              <EmptyState className="py-6" icon={<Inbox className="size-5" aria-hidden />} title={t("empty.notRouted")} body={t(mode === "fixtures" ? "empty.notRoutedBodyFixtures" : "empty.notRoutedBody")} />
             ) : null}
-            {items.length ? (
+            {replyCount > 0 ? (
+              <div className="flex flex-col gap-3 rounded-2xl border-2 border-brand/40 bg-brand/5 p-4" data-testid="offers-hero">
+                <div>
+                  <p className="text-sm font-semibold text-brand">{t("today.hero.kicker")}</p>
+                  <h2 className="mt-0.5 text-xl leading-tight font-bold">{t("today.hero.title", { count: replyCount })}</h2>
+                  <p className="mt-1 text-base leading-snug text-muted-foreground">
+                    {t("today.hero.body", { value: fmtMoney(openValue, { compact: true }) })}
+                  </p>
+                </div>
+                <Link href={`/m/shops/${encodeURIComponent(shopId)}/offers`} className={cn(buttonVariants({ size: "touch-lg" }), "w-full")}>
+                  {t("today.hero.cta")}
+                  <ArrowRight className="size-5" aria-hidden />
+                </Link>
+              </div>
+            ) : null}
+            {cards.length ? (
               <ul className="flex flex-col gap-3">
-                {items.map((it) => (
+                {cards.map((it) => (
                   <li key={`${it.kind}:${it.ref_id ?? ""}`}>
                     <AttentionCard item={it} onSelect={it.kind === "capacity" && it.href.endsWith(CHECKIN_HASH) ? () => onSheetChange(true) : undefined} />
                   </li>
@@ -233,14 +261,20 @@ export function TodayView({ shopId }: { shopId: string }) {
             detail={
               stats.confirmed_free_hours !== null
                 ? t("today.stat.hoursConfirmed", { free: stats.confirmed_free_hours })
-                : t("today.stat.hoursOf", { capacity: stats.capacity_hours })
+                : stats.training_hours > 0
+                  ? t("today.stat.hoursOfTraining", { capacity: stats.capacity_hours, training: stats.training_hours })
+                  : t("today.stat.hoursOf", { capacity: stats.capacity_hours })
             }
             tag={<AssumptionTag note={t("today.stat.hours.note")} />}
           />
           <Stat
-            value={`${stats.certs_counting}`}
+            value={`${stats.certs_in_place}`}
             label={t("today.stat.certs")}
-            detail={t("today.stat.certs.detail", { total: stats.certs_total })}
+            detail={
+              stats.certs_in_training > 0
+                ? t("today.stat.certs.detailTraining", { total: stats.certs_total, training: stats.certs_in_training })
+                : t("today.stat.certs.detail", { total: stats.certs_total })
+            }
           />
         </section>
       ) : null}

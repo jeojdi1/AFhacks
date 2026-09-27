@@ -102,8 +102,66 @@ export const CERT_STATUS_LABEL: Record<string, string> = {
   verified: "Verified",
   declared: "Declared",
   unknown: "Unknown",
-  pending_training: "Pending training",
+  pending_training: "Training under way",
 };
+
+/**
+ * How a certificate status is SHOWN (not how the rules count it).
+ *
+ * The matching rules count `verified`, `declared` and `pending_training` (CLAUDE.md §1.1
+ * decision 4), so a funded package can unblock jobs. But `pending_training` only means
+ * Northgate paid for welders to train: the shop does not hold the certificate yet. Every
+ * screen shows it as "Training under way", never as held, and counts it separately
+ * ("1 of 3 in place · 1 in training").
+ */
+export type CertDisplay = "held" | "in_training" | "missing";
+
+export function certDisplay(status: string | null | undefined): CertDisplay {
+  if (status === "verified" || status === "declared") return "held";
+  if (status === "pending_training") return "in_training";
+  return "missing";
+}
+
+/** Held now: verified or declared. `pending_training` is NOT held. */
+export function certIsHeld(status: string | null | undefined): boolean {
+  return certDisplay(status) === "held";
+}
+
+/** Welders in training for it, paid by Northgate (status `pending_training`). */
+export function certInTraining(status: string | null | undefined): boolean {
+  return certDisplay(status) === "in_training";
+}
+
+/** Counts the rules accept for matching (held or in training). Use for matching only, never for "held". */
+export function certCountsForMatching(status: string | null | undefined): boolean {
+  return certDisplay(status) !== "missing";
+}
+
+export const CERT_IN_TRAINING_LABEL = "Training under way";
+export const CERT_IN_TRAINING_NOTE = "paid by Northgate";
+
+/** Tally a list of statuses into held / in training. */
+export function certTally(statuses: (string | null | undefined)[]): { held: number; inTraining: number } {
+  let held = 0;
+  let inTraining = 0;
+  for (const s of statuses) {
+    const d = certDisplay(s);
+    if (d === "held") held += 1;
+    else if (d === "in_training") inTraining += 1;
+  }
+  return { held, inTraining };
+}
+
+/**
+ * Count text that keeps training separate:
+ *   with `needed`:    "1 of 3 needed in place · 1 in training"
+ *   without `needed`: "1 held · 1 in training"
+ * The "· N in training" part is left out when nothing is in training.
+ */
+export function fmtCertCount(t: { held: number; inTraining: number; needed?: number }): string {
+  const base = t.needed != null ? `${t.held} of ${t.needed} needed in place` : `${t.held} held`;
+  return t.inTraining ? `${base} · ${t.inTraining} in training` : base;
+}
 
 /** Label lookup that never renders a raw undefined. */
 export function label(map: Record<string, string>, key: string): string {
@@ -117,7 +175,7 @@ export const GLOSSARY: Record<string, string> = {
   CPCSC: "Canadian Program for Cyber Security Certification",
   Nadcap: "Aerospace industry accreditation for special processes such as heat treat, coatings and chemical processing",
   CGP: "Controlled Goods Program: federal registration required to handle controlled defence parts",
-  SME: "Small and medium-sized enterprise (under 250 employees)",
+  SME: "Small or medium-sized business. Demo rule: under 500 employees. Official ITB line: 250 full-time staff, or 500 with affiliates.",
   SMB: "Small and medium-sized business",
   CCV: "Canadian content value: share of the job's value made in Canada",
 }

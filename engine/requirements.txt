@@ -8,3 +8,4 @@ httpx
 anthropic
 pytest
 ruff
+neo4j>=5

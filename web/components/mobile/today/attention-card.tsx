@@ -61,7 +61,7 @@ function InlineTag({ text, note }: { text: string; note: string }) {
   return (
     <span
       title={note}
-      className="inline-flex h-5 items-center rounded-full border border-dashed border-slate-400 px-2 text-[11px] font-medium tracking-wide text-slate-600 lowercase"
+      className="inline-flex h-5 items-center rounded-full border border-dashed border-slate-400 px-2 text-[13px] font-medium tracking-wide text-slate-600 lowercase"
     >
       {text}
       <span className="sr-only">: {note}</span>

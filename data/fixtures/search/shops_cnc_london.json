@@ -1,0 +1,281 @@
+{
+  "engine": "memory",
+  "query": {
+    "q": null,
+    "process": [
+      "cnc_milling"
+    ],
+    "cert": [],
+    "near": "London",
+    "near_lat": 42.9849,
+    "near_lon": -81.2453,
+    "radius_km": 50.0,
+    "source": "all",
+    "dnd_history": null,
+    "match": "all",
+    "limit": 25
+  },
+  "counts": {
+    "total": 7,
+    "synthetic": 2,
+    "public": 5
+  },
+  "results": [
+    {
+      "shop_id": "syn-021",
+      "name": "Northfield Axis Machining Inc.",
+      "source": "synthetic",
+      "label": "Synthetic",
+      "onboarding": "onboarded",
+      "routable": true,
+      "city": "London",
+      "lat": 42.998,
+      "lon": -81.203,
+      "distance_km": 3.7,
+      "is_sme": true,
+      "processes": [
+        "cnc_milling",
+        "cnc_turning"
+      ],
+      "certs": [
+        {
+          "type": "CGP",
+          "status": "declared",
+          "source_url": null
+        },
+        {
+          "type": "ISO9001",
+          "status": "declared",
+          "source_url": null
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CNC milling"
+        ],
+        "missing": []
+      },
+      "score": 0.9851
+    },
+    {
+      "shop_id": "syn-004",
+      "name": "Forkline Weld & Machine Ltd.",
+      "source": "synthetic",
+      "label": "Synthetic",
+      "onboarding": "onboarded",
+      "routable": true,
+      "city": "London",
+      "lat": 42.948,
+      "lon": -81.202,
+      "distance_km": 5.4,
+      "is_sme": true,
+      "processes": [
+        "cnc_milling",
+        "welding"
+      ],
+      "certs": [
+        {
+          "type": "ISO9001",
+          "status": "declared",
+          "source_url": null
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CNC milling"
+        ],
+        "missing": []
+      },
+      "score": 0.9784
+    },
+    {
+      "shop_id": "pub-054",
+      "name": "Lor-Don Limited",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "London",
+      "lat": 42.99792,
+      "lon": -81.21268,
+      "distance_km": 3.0,
+      "is_sme": true,
+      "processes": [
+        "cnc_milling",
+        "sheet_metal",
+        "welding",
+        "painting"
+      ],
+      "certs": [],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CNC milling"
+        ],
+        "missing": []
+      },
+      "score": 0.8879
+    },
+    {
+      "shop_id": "pub-048",
+      "name": "ADJ Industries Inc.",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "London",
+      "lat": 43.02412,
+      "lon": -81.16848,
+      "distance_km": 7.6,
+      "is_sme": true,
+      "processes": [
+        "cnc_milling",
+        "five_axis_milling",
+        "welding",
+        "painting"
+      ],
+      "certs": [
+        {
+          "type": "CGP",
+          "status": "declared",
+          "source_url": "http://www.adjindustries.com/industries-defense.html"
+        },
+        {
+          "type": "ISO9001",
+          "status": "declared",
+          "source_url": "https://adjindustries.com/"
+        },
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": "https://adjindustries.com/"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CNC milling"
+        ],
+        "missing": []
+      },
+      "score": 0.8695
+    },
+    {
+      "shop_id": "pub-053",
+      "name": "I.G.D. Machine & Tool Ltd.",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "London",
+      "lat": 42.9326,
+      "lon": -81.18412,
+      "distance_km": 7.7,
+      "is_sme": true,
+      "processes": [
+        "cnc_milling",
+        "cnc_turning",
+        "welding",
+        "fasteners"
+      ],
+      "certs": [
+        {
+          "type": "CGP",
+          "status": "declared",
+          "source_url": "https://igdmachine.com/products/"
+        },
+        {
+          "type": "ISO9001",
+          "status": "declared",
+          "source_url": "https://igdmachine.com/products/"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CNC milling"
+        ],
+        "missing": []
+      },
+      "score": 0.8694
+    },
+    {
+      "shop_id": "pub-049",
+      "name": "Armo-Tool Ltd. (incl. Abuma Manufacturing)",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "London",
+      "lat": 42.91173,
+      "lon": -81.33628,
+      "distance_km": 11.0,
+      "is_sme": true,
+      "processes": [
+        "cnc_milling",
+        "welding"
+      ],
+      "certs": [],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CNC milling"
+        ],
+        "missing": []
+      },
+      "score": 0.856
+    },
+    {
+      "shop_id": "pub-078",
+      "name": "Harvan Manufacturing Ltd.",
+      "source": "public",
+      "label": "Public data — unverified — not affiliated",
+      "onboarding": "discovered",
+      "routable": false,
+      "city": "Woodstock",
+      "lat": 43.11233,
+      "lon": -80.7196,
+      "distance_km": 45.0,
+      "is_sme": true,
+      "processes": [
+        "cnc_milling",
+        "cnc_turning",
+        "sheet_metal",
+        "welding",
+        "wire_harness"
+      ],
+      "certs": [
+        {
+          "type": "CGP",
+          "status": "declared",
+          "source_url": "https://www.harvan.com/welding-fabrication/"
+        },
+        {
+          "type": "ISO9001",
+          "status": "declared",
+          "source_url": "https://www.harvan.com/parts-manufacturing-for-defense-and-military-vehicles-equipment-industry/"
+        },
+        {
+          "type": "CWB_W47.1",
+          "status": "declared",
+          "source_url": "https://www.harvan.com/parts-manufacturing-for-defense-and-military-vehicles-equipment-industry/"
+        }
+      ],
+      "dnd_history": null,
+      "match": {
+        "matched": [
+          "CNC milling"
+        ],
+        "missing": []
+      },
+      "score": 0.72
+    }
+  ],
+  "notes": [
+    "Synthetic shops are Muster's fictional demo shops.",
+    "Public shops: Public data — unverified — not affiliated. Discovered, not onboarded: never offered work.",
+    "Certifications count when verified, declared or pending training (Simplified ITB rules for demo)."
+  ]
+}

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { CircleAlert, CircleCheck, CircleDashed, FileCheck } from "lucide-react"
+import { CircleAlert, CircleCheck, CircleDashed, Clock, FileCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -59,6 +59,9 @@ export function WalletView({ shopId }: { shopId: string }) {
   }, [certs, today, shopId, jobsById, assignments])
 
   const heldRows = rows.filter((r) => r.held)
+  // pending_training counts for matching but is not held yet: welders are still in training (Q7).
+  const trainingCount = heldRows.filter((r) => r.cert.status === "pending_training").length
+  const inPlaceCount = heldRows.length - trainingCount
   const notHeld = rows.filter((r) => !r.held)
   const attention = heldRows.filter((r) => needsAttention(r.renewal)).length
 
@@ -143,8 +146,14 @@ export function WalletView({ shopId }: { shopId: string }) {
           </li>
           <li className="inline-flex h-8 items-center gap-1.5 rounded-full border border-border px-3 text-foreground">
             <FileCheck className="size-4" aria-hidden />
-            {t("wallet.summary.held", { count: heldRows.length })}
+            {t("wallet.summary.held", { count: inPlaceCount })}
           </li>
+          {trainingCount ? (
+            <li className="inline-flex h-8 items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-3 text-amber-800" data-testid="wallet-in-training">
+              <Clock className="size-4" aria-hidden />
+              {t("wallet.summary.training", { count: trainingCount })}
+            </li>
+          ) : null}
           {notHeld.length ? (
             <li className="inline-flex h-8 items-center gap-1.5 rounded-full border border-dashed border-slate-300 px-3 text-slate-600">
               <CircleDashed className="size-4" aria-hidden />

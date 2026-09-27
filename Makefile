@@ -54,3 +54,16 @@ demo: web-build
 	echo "Recording tip: click Reset demo first"; \
 	echo ""; \
 	wait
+
+# Neo4j graph database (optional; docs/api.md §7). The API falls back to the in-memory
+# graph whenever Neo4j is down or not loaded. Credentials: NEO4J_URI / NEO4J_USER /
+# NEO4J_PASSWORD in the environment or .env.
+.PHONY: graph-up graph-load
+
+graph-up:
+	@$(PY) scripts/load_graph.py --ping >/dev/null 2>&1 || (command -v neo4j >/dev/null 2>&1 && neo4j start) || echo "neo4j not installed; start it yourself (brew install neo4j)"
+	@$(PY) scripts/load_graph.py --ping --wait 60
+	@$(PY) scripts/load_graph.py --if-stale
+
+graph-load:
+	$(PY) scripts/load_graph.py

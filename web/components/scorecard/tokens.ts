@@ -1,10 +1,11 @@
 // Colour roles for the ITB Scorecard charts and meters.
-// One emphasis hue (the brand red) for the SME 2x story; slate for everything
-// else; emerald only for credit created by funded training (the "funded" state).
+// One emphasis hue (cyan) for the SME 2x story, never the brand red, which reads as a warning
+// on a chart (QA Q34); slate for everything else; emerald only for credit created by funded
+// training (the "funded" state).
 
 export const SC = {
-  accent: "#B42318", // brand red: SME direct (2x), the page's single emphasis
-  accentSoft: "#F4D3CF", // same hue, light step: the "work value" ghost behind the SME bar
+  accent: "#0E7490", // cyan-700: SME direct (2x), the page's single emphasis
+  accentSoft: "#CFFAFE", // same hue, light step: the "work value" ghost behind the SME bar
   ink: "#1E293B", // slate-800: base credit / direct credit
   inkSoft: "#E2E8F0", // slate-200: meter track
   regular: "#94A3B8", // slate-400: regular 1x work

@@ -1,0 +1,668 @@
+{
+  "engine": "memory",
+  "shop_id": "syn-012",
+  "query": {
+    "q": null,
+    "process": [],
+    "include_near_miss": true
+  },
+  "routable": true,
+  "stage": "routed",
+  "counts": {
+    "eligible": 5,
+    "offered_to_you": 2,
+    "open": 0,
+    "assigned_elsewhere": 3,
+    "near_miss": 25
+  },
+  "eligible": [
+    {
+      "job_id": "NG-021",
+      "part_no": "NG-STW-2210",
+      "description": "Crew stowage rack, mild steel sheet metal, formed and MIG welded, primed and painted (non-structural)",
+      "value_cad": 921600.0,
+      "hours_week": 22,
+      "process_tags": [
+        "sheet_metal",
+        "welding",
+        "painting"
+      ],
+      "controlled": false,
+      "credit_cad": 1677312.0,
+      "multiplier": 2,
+      "reasons": [
+        "Sheet metal + welding",
+        "88 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered_to_you",
+      "offer_status": "offered"
+    },
+    {
+      "job_id": "NG-022",
+      "part_no": "NG-STW-2224",
+      "description": "Tool and equipment box, steel, MIG welded and painted (non-structural)",
+      "value_cad": 777600.0,
+      "hours_week": 24,
+      "process_tags": [
+        "welding",
+        "painting"
+      ],
+      "controlled": false,
+      "credit_cad": 1415232.0,
+      "multiplier": 2,
+      "reasons": [
+        "Welding + painting",
+        "88 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "offered_to_you",
+      "offer_status": "offered"
+    },
+    {
+      "job_id": "NG-002",
+      "part_no": "NG-BRK-1022",
+      "description": "Periscope guard bracket, mild steel, laser cut and press-brake formed sheet metal, commercial quality",
+      "value_cad": 212800.0,
+      "hours_week": 8,
+      "process_tags": [
+        "sheet_metal"
+      ],
+      "controlled": false,
+      "credit_cad": 383040.0,
+      "multiplier": 2,
+      "reasons": [
+        "Sheet metal",
+        "88 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "assigned_elsewhere",
+      "offer_status": null
+    },
+    {
+      "job_id": "NG-018",
+      "part_no": "NG-PNT-6318",
+      "description": "Powder coat service, steel interior stowage brackets and covers, commercial finish",
+      "value_cad": 352000.0,
+      "hours_week": 10,
+      "process_tags": [
+        "painting"
+      ],
+      "controlled": false,
+      "credit_cad": 654720.0,
+      "multiplier": 2,
+      "reasons": [
+        "Painting",
+        "88 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "assigned_elsewhere",
+      "offer_status": null
+    },
+    {
+      "job_id": "NG-035",
+      "part_no": "NG-BRK-1040",
+      "description": "Fuel tank mounting bracket, mild steel, laser cut and press-brake formed sheet metal",
+      "value_cad": 197600.0,
+      "hours_week": 8,
+      "process_tags": [
+        "sheet_metal"
+      ],
+      "controlled": false,
+      "credit_cad": 355680.0,
+      "multiplier": 2,
+      "reasons": [
+        "Sheet metal",
+        "88 km from Northgate's London site",
+        "SME: 2x direct credit"
+      ],
+      "status": "assigned_elsewhere",
+      "offer_status": null
+    }
+  ],
+  "near_miss": [
+    {
+      "job_id": "NG-033",
+      "part_no": "NG-HUL-4431",
+      "description": "Rear ramp door frame weldment, armour steel, structural welding to CWB W47.1, primed and painted",
+      "value_cad": 1710000.0,
+      "hours_week": 48,
+      "status": "open",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "CWB_W47.1",
+          "message": "Get CWB W47.1 (now: unknown)"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-032",
+      "part_no": "NG-HUL-4422",
+      "description": "Engine deck access hatch frame weldment, armour steel, structural welding to CWB W47.1",
+      "value_cad": 1702000.0,
+      "hours_week": 44,
+      "status": "open",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "CWB_W47.1",
+          "message": "Get CWB W47.1 (now: unknown)"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-031",
+      "part_no": "NG-HUL-4410",
+      "description": "Hull side stowage bin weldment, armour steel plate, press-brake formed sheet metal, structural welding to CWB W47.1",
+      "value_cad": 1656000.0,
+      "hours_week": 40,
+      "status": "open",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "CWB_W47.1",
+          "message": "Get CWB W47.1 (now: unknown)"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-019",
+      "part_no": "NG-HAR-7001",
+      "description": "Chassis power distribution wire harness, copper, IPC/WHMA-A-620 Class 3, ISO 9001",
+      "value_cad": 2035000.0,
+      "hours_week": 26,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "wire_harness",
+          "message": "Add wire harness"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-009",
+      "part_no": "NG-TUR-1135",
+      "description": "Turret traverse gearbox housing, A356 cast aluminum, 5-axis machined, AS9100",
+      "value_cad": 1976000.0,
+      "hours_week": 26,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "AS9100",
+          "message": "Get AS9100 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "five_axis_milling",
+          "message": "Add 5-axis milling"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-023",
+      "part_no": "NG-ELC-7105",
+      "description": "Power converter electronics assembly, IPC-A-610 Class 3, conformal coat, aluminum enclosure, ISO 9001",
+      "value_cad": 1824000.0,
+      "hours_week": 20,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "electronics_assembly",
+          "message": "Add electronics assembly"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-007",
+      "part_no": "NG-DRV-4102",
+      "description": "Final drive output shaft, 4340 steel, CNC turned and ground, ISO 9001",
+      "value_cad": 1596000.0,
+      "hours_week": 22,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "cnc_turning",
+          "message": "Add CNC turning"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-038",
+      "part_no": "NG-OPT-1160",
+      "description": "Periscope housing, 7075 aluminum, 5-axis milled, AS9100",
+      "value_cad": 1430000.0,
+      "hours_week": 18,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "AS9100",
+          "message": "Get AS9100 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "five_axis_milling",
+          "message": "Add 5-axis milling"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-025",
+      "part_no": "NG-ELC-7133",
+      "description": "Driver display enclosure, sheet aluminum enclosure with electronics assembly, ISO 9001",
+      "value_cad": 1406000.0,
+      "hours_week": 16,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "electronics_assembly",
+          "message": "Add electronics assembly"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-026",
+      "part_no": "NG-ELC-7140",
+      "description": "Intercom control box electronics assembly, IPC-A-610, aluminum housing, ISO 9001",
+      "value_cad": 1230000.0,
+      "hours_week": 16,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "electronics_assembly",
+          "message": "Add electronics assembly"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-003",
+      "part_no": "NG-HSG-2105",
+      "description": "Hydraulic valve block housing, 6061-T6 aluminum, 3-axis CNC milled, precision bores, ISO 9001",
+      "value_cad": 999000.0,
+      "hours_week": 18,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "cnc_milling",
+          "message": "Add CNC milling"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-039",
+      "part_no": "NG-ELC-7155",
+      "description": "Sensor interface circuit board assembly, IPC-A-610 Class 3, ISO 9001",
+      "value_cad": 930000.0,
+      "hours_week": 12,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "electronics_assembly",
+          "message": "Add electronics assembly"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-036",
+      "part_no": "NG-HSG-2130",
+      "description": "Transmission oil cooler housing, 6061 aluminum, 3-axis CNC milled, ISO 9001",
+      "value_cad": 798000.0,
+      "hours_week": 14,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "cnc_milling",
+          "message": "Add CNC milling"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-029",
+      "part_no": "NG-TOW-4401",
+      "description": "Tow bracket weldment, armour steel, structural welding to CWB W47.1, ISO 9001",
+      "value_cad": 623200.0,
+      "hours_week": 18,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "CWB_W47.1",
+          "message": "Get CWB W47.1 (now: unknown)"
+        },
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-040",
+      "part_no": "NG-HAR-7022",
+      "description": "Exterior lighting wire harness, copper, IPC/WHMA-A-620, ISO 9001",
+      "value_cad": 604800.0,
+      "hours_week": 12,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "wire_harness",
+          "message": "Add wire harness"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-030",
+      "part_no": "NG-STP-4405",
+      "description": "Boarding step weldment, steel, structural welding to CWB W47.1, painted, ISO 9001",
+      "value_cad": 569400.0,
+      "hours_week": 20,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "CWB_W47.1",
+          "message": "Get CWB W47.1 (now: unknown)"
+        },
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-016",
+      "part_no": "NG-PLT-6215",
+      "description": "Electroless nickel plating service, hydraulic manifold components, ISO 9001",
+      "value_cad": 423400.0,
+      "hours_week": 10,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "plating",
+          "message": "Add plating"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-012",
+      "part_no": "NG-HT-6014",
+      "description": "Heat treat service: carburize and case-harden final drive gears, ISO 9001",
+      "value_cad": 384000.0,
+      "hours_week": 12,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "heat_treat",
+          "message": "Add heat treating"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-010",
+      "part_no": "NG-SUS-5010",
+      "description": "Suspension arm bushing sleeve, 1045 steel, CNC turned, ISO 9001",
+      "value_cad": 355680.0,
+      "hours_week": 12,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "cnc_turning",
+          "message": "Add CNC turning"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-015",
+      "part_no": "NG-PLT-6201",
+      "description": "Zinc-nickel plating service, steel fasteners and brackets, Nadcap chemical processing",
+      "value_cad": 342000.0,
+      "hours_week": 10,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "NADCAP:CHEM_PROCESSING",
+          "message": "Get Nadcap chemical processing (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "plating",
+          "message": "Add plating"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-011",
+      "part_no": "NG-HT-6001",
+      "description": "Heat treat service: through-harden and temper 4340 drive shafts, Nadcap heat treating accredited",
+      "value_cad": 319200.0,
+      "hours_week": 10,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "NADCAP:HEAT_TREAT",
+          "message": "Get Nadcap heat treating (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "heat_treat",
+          "message": "Add heat treating"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-027",
+      "part_no": "NG-FST-8001",
+      "description": "Armour bolt kits, grade 8 steel fasteners, zinc-nickel finish, ISO 9001",
+      "value_cad": 313200.0,
+      "hours_week": 8,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "fasteners",
+          "message": "Add fasteners"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-013",
+      "part_no": "NG-ANO-6102",
+      "description": "Type III hard anodize service, aluminum turret housings, Nadcap chemical processing",
+      "value_cad": 288800.0,
+      "hours_week": 8,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "NADCAP:CHEM_PROCESSING",
+          "message": "Get Nadcap chemical processing (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "anodizing",
+          "message": "Add anodizing"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-001",
+      "part_no": "NG-BRK-1010",
+      "description": "Antenna mount bracket, 6061-T6 aluminum, 3-axis CNC milled, ISO 9001 quality system",
+      "value_cad": 281200.0,
+      "hours_week": 10,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "cnc_milling",
+          "message": "Add CNC milling"
+        }
+      ]
+    },
+    {
+      "job_id": "NG-014",
+      "part_no": "NG-ANO-6110",
+      "description": "Type II anodize service, aluminum brackets and covers, ISO 9001",
+      "value_cad": 277400.0,
+      "hours_week": 6,
+      "status": "assigned_elsewhere",
+      "missing": [
+        {
+          "kind": "cert",
+          "requirement": "ISO9001",
+          "message": "Get ISO 9001 (now: unknown)"
+        },
+        {
+          "kind": "process",
+          "requirement": "anodizing",
+          "message": "Add anodizing"
+        }
+      ]
+    }
+  ],
+  "tenders": [
+    {
+      "title": "Spare Parts for Material Handling Equipment 2",
+      "reference": "cb-893-93522986",
+      "solicitation_number": "W8486-270977/A",
+      "closing_date": "2026-09-27T14:00:00",
+      "buyer": "Department of National Defence (DND)",
+      "category": "vehicles_vessels_aircraft",
+      "notice_type": "Request for Proposal",
+      "region": "Quebec (except NCR) / Montréal",
+      "url": null
+    },
+    {
+      "title": "Transmission Spares",
+      "reference": "cb-858-67519617",
+      "solicitation_number": "W8482-265030/A",
+      "closing_date": "2026-09-28T14:00:00",
+      "buyer": "Department of National Defence (DND)",
+      "category": "vehicles_vessels_aircraft",
+      "notice_type": "Request for Proposal",
+      "region": "Nova Scotia / British Columbia",
+      "url": null
+    },
+    {
+      "title": "Repair Parts for Boschung Jetbroom",
+      "reference": "cb-957-33733663",
+      "solicitation_number": "W0125-27TEM4",
+      "closing_date": "2026-09-28T14:00:00",
+      "buyer": "Department of National Defence (DND)",
+      "category": "vehicles_vessels_aircraft",
+      "notice_type": "Request for Proposal",
+      "region": "Belleville",
+      "url": null
+    },
+    {
+      "title": "Spares for armament loaders",
+      "reference": "cb-189-99496980",
+      "solicitation_number": "W8476-267174/A",
+      "closing_date": "2026-09-29T14:00:00",
+      "buyer": "Department of National Defence (DND)",
+      "category": "electrical_harness",
+      "notice_type": "Request for Proposal",
+      "region": "Quebec (except NCR) / Alberta",
+      "url": null
+    },
+    {
+      "title": "Cables for Army Vehicles - 5 Year Spares Acquisition via Supply Arrangement W8476-145075",
+      "reference": "WS5767361034-Doc5767416948",
+      "solicitation_number": "WS5767361034",
+      "closing_date": "2026-09-30T13:15:00",
+      "buyer": "Department of Public Works and Government Services (PSPC)",
+      "category": "electrical_harness",
+      "notice_type": "RFP against Supply Arrangement",
+      "region": "Canada",
+      "url": null
+    }
+  ],
+  "tenders_source": "CanadaBuys open tender notices (Open Government Licence); sample retrieved 2026-09-26. Matched by category and title; notices that buy equipment or off-the-shelf hardware are left out."
+}
