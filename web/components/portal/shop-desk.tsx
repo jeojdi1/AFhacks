@@ -6,7 +6,19 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Award, CalendarClock, CircleCheck, Clock, Factory, GraduationCap, Inbox, Send, Smartphone, Sparkles } from "lucide-react"
+import {
+  Banknote,
+  CalendarClock,
+  CheckCircle2,
+  CircleCheck,
+  Clock,
+  Factory,
+  Inbox,
+  Send,
+  Smartphone,
+  Sparkles,
+  type LucideIcon,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/lib/data/store"
 import { useShopBundle } from "@/lib/app/shop-bundle"
@@ -21,6 +33,10 @@ import { StatusBadge } from "@/components/muster/status-badge"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
 import { PortalPage, Panel, BigAction } from "./portal-page"
 import { CertName } from "./plain"
+import { InfoTip } from "./desk-art"
+import { CertBadgeArt, CertIconTile } from "./shop-art/cert-art"
+import { ProcessArt, SeatDots } from "@/components/mobile/art/process-art"
+import { WelderArt } from "@/components/mobile/trainee/seat-art"
 import { StartDemo, useRouted } from "./start-demo"
 
 export const SHOP_ID = "syn-012"
@@ -28,11 +44,22 @@ export const SHOP_ID = "syn-012"
 /** Desk order: offers that need a reply first, then accepted, then declined (job order within each). */
 const OFFER_ORDER: Record<string, number> = { offered: 0, accepted: 1, declined: 2 }
 
-function Stat({ value, label, testId }: { value: React.ReactNode; label: string; testId?: string }) {
+type Tone = "reply" | "accepted" | "money"
+
+const STAT_TONE: Record<Tone, { Icon: LucideIcon; tone: string; bg: string }> = {
+  reply: { Icon: Inbox, tone: "text-public", bg: "bg-public-soft" },
+  accepted: { Icon: CheckCircle2, tone: "text-assigned", bg: "bg-assigned-soft" },
+  money: { Icon: Banknote, tone: "text-slate-800", bg: "bg-muted/70" },
+}
+
+/** Big icon tile: icon, number, short label. */
+function Stat({ kind, value, label, testId }: { kind: Tone; value: React.ReactNode; label: string; testId?: string }) {
+  const { Icon, tone, bg } = STAT_TONE[kind]
   return (
-    <div className="flex min-w-0 flex-col" data-testid={testId}>
-      <span className="text-[1.75rem] leading-tight font-semibold tracking-tight tabular-nums">{value}</span>
-      <span className="text-sm text-muted-foreground">{label}</span>
+    <div className={cn("flex min-w-0 flex-col items-center gap-1 rounded-xl px-2 py-3 text-center", bg)} data-testid={testId}>
+      <Icon className={cn("size-7", tone)} aria-hidden />
+      <span className={cn("text-3xl leading-none font-semibold tracking-tight tabular-nums", tone)}>{value}</span>
+      <span className="text-sm leading-tight text-muted-foreground">{label}</span>
     </div>
   )
 }
@@ -114,10 +141,13 @@ export function ShopDesk() {
       title={`${short}'s shop desk`}
       badges={<StatusBadge kind="synthetic" />}
       lede={
-        <>
-          Defence work offered to your shop by Northgate (a fictional defence company), what one step would win more,
-          and which certificates need attention. Using it is free.
-        </>
+        <span className="inline-flex items-center gap-1">
+          Defence work from Northgate (fictional), at a glance. Free for your shop.
+          <InfoTip label="What is this desk?">
+            Defence work offered to your shop by Northgate (a fictional defence company), what one step would win more,
+            and which certificates need attention. Using it is free.
+          </InfoTip>
+        </span>
       }
     >
       {!routed && demo.ready ? (
@@ -139,15 +169,24 @@ export function ShopDesk() {
             <div className="h-20 animate-pulse rounded-lg bg-muted motion-reduce:animate-none" aria-hidden />
           ) : b.offers.length ? (
             <>
-              <div className="grid grid-cols-3 gap-3">
-                <Stat value={open.length} label={open.length === 1 ? "offer needs a reply" : "offers need a reply"} testId="shop-open-offers" />
-                <Stat value={accepted.length} label="accepted" />
-                <Stat value={fmtMoney(offerValue, { compact: true })} label="of work from Northgate" />
+              <div className="grid grid-cols-3 gap-2">
+                <Stat
+                  kind="reply"
+                  value={open.length}
+                  label={open.length === 1 ? "offer needs a reply" : "offers need a reply"}
+                  testId="shop-open-offers"
+                />
+                <Stat kind="accepted" value={accepted.length} label="accepted" />
+                <Stat kind="money" value={fmtMoney(offerValue, { compact: true })} label="of work from Northgate" />
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="flex flex-wrap items-center gap-x-1 text-sm text-muted-foreground">
                 No bidding: each job was offered only to you.
+                <InfoTip label="Why you got these offers">
+                  Shieldworks matched each of Northgate&apos;s jobs to one qualified shop: the process, size, certificates and
+                  free hours fit. Open an offer to see why you fit, then accept or decline it.
+                </InfoTip>
                 {newCount ? (
-                  <span className="ml-1 font-medium text-assigned">
+                  <span className="font-medium text-assigned">
                     {newCount} new {newCount === 1 ? "offer" : "offers"} after Northgate paid for welder training.
                   </span>
                 ) : null}
@@ -159,17 +198,20 @@ export function ShopDesk() {
                       href={wp(`/m/shops/${SHOP_ID}/offers/${encodeURIComponent(o.job_id)}`)}
                       prefetch={false}
                       data-testid={`desk-offer-${o.job_id}`}
-                      className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-3 py-2 text-sm hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+                      className="flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
                     >
-                      <span className="min-w-0 flex-1 truncate text-foreground" title={o.description}>
-                        {o.description.split(",")[0]}
-                        <span className="ml-1.5 text-xs text-muted-foreground">{o.job_id}</span>
+                      <ProcessArt tags={b.jobsById[o.job_id]?.process_tags} className="size-11" />
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="truncate font-medium text-foreground" title={o.description}>
+                          {o.description.split(",")[0]}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{o.job_id}</span>
                       </span>
-                      <span className="flex items-center gap-2 tabular-nums">
-                        {fmtMoney(o.value_cad, { compact: true })}
+                      <span className="flex shrink-0 flex-col items-end gap-1 tabular-nums sm:flex-row sm:items-center sm:gap-2">
+                        <span className="text-base font-semibold">{fmtMoney(o.value_cad, { compact: true })}</span>
                         <span
                           className={cn(
-                            "rounded-full px-2 py-0.5 text-xs font-medium",
+                            "rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap",
                             o.status === "accepted"
                               ? "bg-assigned-soft text-assigned"
                               : o.status === "declined"
@@ -192,31 +234,35 @@ export function ShopDesk() {
 
         <Panel title="One step to more work" icon={Sparkles} className="lg:col-span-2" testId="panel-readiness">
           {readiness ? (
-            <div className="flex flex-col gap-2">
-              <p className="text-lg leading-snug font-semibold" data-testid="readiness-headline">
-                <CertName type={readiness.requirement} /> → {readiness.jobs_unlocked.length} more{" "}
-                {readiness.jobs_unlocked.length === 1 ? "job" : "jobs"} worth {fmtMoney(readiness.value_cad, { compact: true })}
-              </p>
-              {readiness.requirement === "CWB_W47.1" && !funded && fundingRequest ? (
-                <p className="flex items-start gap-2 text-sm font-medium text-funded" data-testid="shop-funding-requested">
-                  <Send className="mt-0.5 size-4 shrink-0" aria-hidden />
-                  <span>
-                    Funding requested · awaiting Northgate.{" "}
-                    <span className="font-normal text-muted-foreground">You asked Northgate to pay for the welder training.</span>
-                  </span>
+            <div className="flex items-center gap-4">
+              <CertBadgeArt className="size-20 sm:size-24" />
+              <div className="flex min-w-0 flex-col gap-2">
+                <p className="text-xl leading-snug font-semibold" data-testid="readiness-headline">
+                  <CertName type={readiness.requirement} /> → {readiness.jobs_unlocked.length} more{" "}
+                  {readiness.jobs_unlocked.length === 1 ? "job" : "jobs"} worth {fmtMoney(readiness.value_cad, { compact: true })}
                 </p>
-              ) : readiness.requirement === "CWB_W47.1" && !funded ? (
-                <p className="text-sm text-muted-foreground">
-                  The company is certified, and each welder passes a test. Northgate can pay for the welder training.{" "}
-                  <Link
-                    href={wp(growHref(SHOP_ID, "CWB_W47.1"))}
-                    prefetch={false}
-                    className="font-medium text-foreground underline underline-offset-4"
-                  >
-                    See how
-                  </Link>
-                </p>
-              ) : null}
+                {readiness.requirement === "CWB_W47.1" && !funded && fundingRequest ? (
+                  <p className="flex items-start gap-2 text-sm font-medium text-funded" data-testid="shop-funding-requested">
+                    <Send className="mt-0.5 size-4 shrink-0" aria-hidden />
+                    <span>Funding requested · awaiting Northgate.</span>
+                  </p>
+                ) : readiness.requirement === "CWB_W47.1" && !funded ? (
+                  <p className="flex flex-wrap items-center gap-x-1 text-sm text-muted-foreground">
+                    Northgate can pay for the training.
+                    <InfoTip label="How welder certification works">
+                      The company is certified, and each welder passes a test. Northgate can pay for the welder training and
+                      earns credit for it.
+                    </InfoTip>
+                    <Link
+                      href={wp(growHref(SHOP_ID, "CWB_W47.1"))}
+                      prefetch={false}
+                      className="font-medium text-foreground underline underline-offset-4"
+                    >
+                      See how
+                    </Link>
+                  </p>
+                ) : null}
+              </div>
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
@@ -224,14 +270,25 @@ export function ShopDesk() {
             </p>
           )}
           {training ? (
-            <div className="flex items-start gap-2 rounded-lg bg-funded-soft px-3 py-2 text-sm text-funded" data-testid="shop-training">
-              <GraduationCap className="mt-0.5 size-4 shrink-0" aria-hidden />
-              <span>
-                <strong className="font-semibold">
-                  {training.trainees} welders in training, paid by Northgate.
-                </strong>{" "}
-                {training.recipient_example}. The stuck welding jobs start once they qualify.
-              </span>
+            <div className="flex flex-col gap-2 rounded-xl bg-funded-soft px-3 py-3 text-funded" data-testid="shop-training">
+              <div className="flex items-center gap-3">
+                <WelderArt className="h-16 w-32 shrink-0" />
+                <div className="flex min-w-0 flex-col gap-1.5">
+                  <p className="flex items-baseline gap-2">
+                    <strong className="text-4xl leading-none font-semibold tabular-nums">{training.trainees}</strong>
+                    <span className="text-base font-semibold">welders in training</span>
+                    <InfoTip label="About the welder training" className="self-center">
+                      Northgate pays for the training directly. The stuck welding jobs start once the welders qualify. Shieldworks
+                      never shows trainees&apos; names.
+                    </InfoTip>
+                  </p>
+                  <SeatDots count={training.trainees} />
+                </div>
+              </div>
+              <p className="flex flex-wrap items-center gap-x-1 text-sm">
+                <span className="font-medium">Paid by Northgate.</span>
+                <span className="text-funded/80">{training.recipient_example}</span>
+              </p>
             </div>
           ) : null}
         </Panel>
@@ -264,30 +321,53 @@ export function ShopDesk() {
                 </span>
               </p>
               {onFile.length ? (
-                <ul className="flex flex-col gap-1.5">
-                  {onFile.slice(0, 4).map((r) => (
-                    <li key={r.cert_type} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-sm">
-                      <span className="flex items-center gap-2">
-                        <Award className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                        <CertName type={r.cert_type} className="font-medium" />
-                        {certInTraining(r.status) ? (
-                          <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 text-xs font-medium text-amber-800">
-                            <Clock className="size-3" aria-hidden />
-                            {CERT_IN_TRAINING_LABEL}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">{r.status}</span>
+                <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {onFile.slice(0, 4).map((r) => {
+                    const inTraining = certInTraining(r.status)
+                    const warn = !inTraining && needsAttention(r)
+                    return (
+                      <li
+                        key={r.cert_type}
+                        className={cn(
+                          "flex items-center gap-2.5 rounded-lg border px-2.5 py-2 text-sm",
+                          warn ? "border-blocked/40 bg-blocked-soft" : "border-border"
                         )}
-                      </span>
-                      {certInTraining(r.status) ? (
-                        <span className="text-muted-foreground">paid by Northgate · not held yet</span>
-                      ) : (
-                        <span className={cn("text-muted-foreground", needsAttention(r) && "font-medium text-blocked")}>
-                          {r.act_by ? `${renewalVerb(r.cert_type)} by ${shortDate(r.act_by, appToday())}` : "no date yet"}
+                      >
+                        <CertIconTile type={r.cert_type} tone={warn ? "warn" : inTraining ? "training" : "neutral"} />
+                        <span className="flex min-w-0 flex-1 flex-col gap-1">
+                          <CertName type={r.cert_type} className="font-medium leading-snug" />
+                          {inTraining ? (
+                            <span className="inline-flex w-fit items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 text-xs font-medium text-amber-800">
+                              <Clock className="size-3" aria-hidden />
+                              {CERT_IN_TRAINING_LABEL}
+                            </span>
+                          ) : (
+                            <span
+                              className={cn(
+                                "inline-flex w-fit items-center gap-1 rounded-full px-2 text-xs font-medium whitespace-nowrap",
+                                warn ? "bg-blocked/15 text-blocked" : "bg-muted text-muted-foreground"
+                              )}
+                            >
+                              <CalendarClock className="size-3" aria-hidden />
+                              {r.act_by ? `Due ${shortDate(r.act_by, appToday())}` : "no date yet"}
+                            </span>
+                          )}
                         </span>
-                      )}
-                    </li>
-                  ))}
+                        <InfoTip label={`About this certificate: ${r.cert_type}`} className="self-start">
+                          {inTraining ? (
+                            <>Status: {CERT_IN_TRAINING_LABEL}. Paid by Northgate · not held yet.</>
+                          ) : (
+                            <>
+                              Status: {r.status}.{" "}
+                              {r.act_by
+                                ? `${renewalVerb(r.cert_type)} by ${shortDate(r.act_by, appToday())}.`
+                                : "No renewal date on file yet."}
+                            </>
+                          )}
+                        </InfoTip>
+                      </li>
+                    )
+                  })}
                 </ul>
               ) : null}
               <p className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -315,7 +395,6 @@ export function ShopDesk() {
               Preview the phone screens here
             </Link>
           </p>
-          <BigAction href="/shop/work" icon={Inbox} label="Work for you" hint="Every offer, with why you fit" />
         </div>
       </div>
 
