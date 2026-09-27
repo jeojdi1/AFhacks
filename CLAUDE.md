@@ -126,6 +126,7 @@ GET  /programs/{id}                        → program + counts
 POST /programs/{id}/parts                  multipart CSV (or ?use_demo=true) → tagged jobs
 POST /programs/{id}/route                  → {assignments[], blocked[]}
 GET  /programs/{id}/assignments
+GET  /programs/{id}/jobs                   → current jobs with status (rebuilds the jobs table after reload)
 GET  /programs/{id}/ledger                 → totals, direct/indirect, smb_progress, multiplier_breakdown
 GET  /programs/{id}/gaps                   → blocked jobs + training suggestions
 POST /programs/{id}/training/{pkg}/fund    → {before, after, unblocked_jobs[], credit_added, headline}
@@ -268,19 +269,19 @@ Format: `ID [lane] [priority] (depends on) — time box — acceptance criteria 
 
 ### H0: Setup (target: 6:00–6:45 PM)
 
-- [ ] **H0.1** [B] [P0] — 30m — Scaffold the repo per §2, with the Makefile targets `setup dev seed test lint demo-check fixtures-check reset-demo`, `.env.example`, `.gitignore` and a README stub. AC: `make dev` serves :8000 and :3000.
-- [ ] **H0.2** [B] [P0] (H0.1) — 20m — Write `/docs/api.md` from §3 with example payloads. AC: both lanes agree.
-- [ ] **H0.3** [B] [P0] (H0.2) — 20m — One fixture per endpoint in `/data/fixtures`, plus `*_after_fund` variants: a realistic Northgate scenario with fleet-sized quantities (package ≈ $40M), 40 jobs, **36 assigned, 4 blocked**. AC: the web app can import all of them; `make fixtures-check` passes.
-- [ ] **H0.4** [E] [P0] (H0.1) — 20m — `scripts/demo_check.py` with all 8 steps (live mode and `--fixtures` mode). AC: `make demo-check` runs and reports honestly.
+- [x] **H0.1** [B] [P0] — 30m — Scaffold the repo per §2, with the Makefile targets `setup dev seed test lint demo-check fixtures-check reset-demo`, `.env.example`, `.gitignore` and a README stub. AC: `make dev` serves :8000 and :3000.
+- [x] **H0.2** [B] [P0] (H0.1) — 20m — Write `/docs/api.md` from §3 with example payloads. AC: both lanes agree.
+- [x] **H0.3** [B] [P0] (H0.2) — 20m — One fixture per endpoint in `/data/fixtures`, plus `*_after_fund` variants: a realistic Northgate scenario with fleet-sized quantities (package ≈ $40M), 40 jobs, **36 assigned, 4 blocked**. AC: the web app can import all of them; `make fixtures-check` passes.
+- [x] **H0.4** [E] [P0] (H0.1) — 20m — `scripts/demo_check.py` with all 8 steps (live mode and `--fixtures` mode). AC: `make demo-check` runs and reports honestly.
 
 ### H1: Data (target: 6:45–9:30 PM)
 
-- [ ] **H1.1** [E] [P0] — 60m — `ingest_odbus.py`:
+- [x] **H1.1** [E] [P0] — 60m — `ingest_odbus.py`:
   - Download the ODBus CSV (manually into `data/raw` if needed).
   - Filter to Kitchener, Waterloo, Cambridge, Woolwich, London and Hamilton.
   - Keep NAICS codes starting with 3327, 3323, 3321, 3328, 3329, 3344, 3353, 3359, 3363, 3364, 3366, plus a keyword fallback (machine, tool, precision, fab, weld, metal).
 
-  AC: `candidates.csv` has 100 or more rows, with counts per city logged.
+  AC: `candidates.csv` has 100 or more rows, with counts per city logged. *(Done: 115 rows, but only Kitchener 103 + Hamilton 12 — ODBus covers only cities that publish business open data. Keyword matches ~44% noise; NAICS matches clean.)*
 - [ ] **H1.2** [E] [P1] (H1.1) — 75m — `enrich_sites.py`: for 30–50 shops with websites, polite crawl and LLM extraction to the Shop schema with provenance, cached. AC: 30 or more shops in `shops_public.json`.
 - [ ] **H1.3** [E] [P1] (H1.2) — 45m — Manual certification checks (CGP directory, CWB, Nadcap), saved to `certs.json` with verified_at. AC: every demo shop has a status for each certification type.
 - [ ] **H1.4** [E] [P0] — 30m — `shops_synthetic.json`: 30 shops, fixed seed, labelled synthetic, covering heat treat, plating, harness, 5-axis, CWB welding and CGP. AC: every process in the parts list is covered. *(A draft is produced by H0.3's `build_fixtures.py`; finalize it here.)*
@@ -290,10 +291,10 @@ Format: `ID [lane] [priority] (depends on) — time box — acceptance criteria 
 ### H2: Engine (target: 9:30 PM–3:30 AM)
 
 - [ ] **H2.1** [E] [P0] (H1.4, H1.5) — 40m — Models and `seed.py`. AC: `make seed` builds SQLite.
-- [ ] **H2.2** [E] [P0] (H2.1) — 45m — `tagger.py` with cache and rule fallback. AC: 40 lines tagged; fallback tests pass.
+- [x] **H2.2** [E] [P0] (H2.1) — 45m — `tagger.py` with cache and rule fallback. AC: 40 lines tagged; fallback tests pass.
 - [ ] **H2.3** [E] [P0] (H2.2) — 45m — `rules.py`. AC: the test "controlled job is never eligible for a non-CGP shop" passes; `pending_training` certs count; every rejection has a reason.
 - [ ] **H2.4** [E] [P0] (H2.3) — 60m — `scoring.py` + `assign.py` (OR-Tools plus greedy fallback). AC: under 2 seconds; capacity tests pass; each assignment carries its top 3 reasons.
-- [ ] **H2.5** [E] [P0] (H2.4) — 40m — `ledger.py`. AC: 5 hand-calculated pytest cases pass (including SME 2x and a mix of direct and indirect).
+- [x] **H2.5** [E] [P0] (H2.4) — 40m — `ledger.py`. AC: 5 hand-calculated pytest cases pass (including SME 2x and a mix of direct and indirect).
 - [ ] **H2.6** [E] [P0] (H2.4) — 50m — `gaps.py`. AC: 4 blocked jobs, each with a category, recipient type, cost (assumption), multiplier and capacity unlock.
 - [ ] **H2.7** [E] [P0] (H2.5, H2.6) — 40m — `training.py` fund simulation. AC: the diff shows unblocked jobs, credit added (training + jobs) and a headline.
 - [ ] **H2.8** [E] [P0] (H2.1–H2.7) — 45m — FastAPI endpoints with CORS. AC: `make demo-check` passes steps 1–7.
@@ -528,8 +529,8 @@ blockers: [..] | hours left: [..] | question: [..]
 
 | Lane | Mode | Current task | Demo-check reached | Blockers | Updated |
 | --- | --- | --- | --- | --- | --- |
-| E | SETUP | H0.1–H0.4 (kickoff) | — | — | Sat 18:20 |
-| F | SETUP | — | — | — | — |
+| E | BUILD | H2.1/H2.3/H2.4/H2.6–H2.9 (engine wave B) + data/outreach research | fixtures 8/8; live pending wave B | teammate offline → Lane E runs Lane F too | Sat 20:30 |
+| F | BUILD (run by E's session) | H3.1–H3.5 integrate/review | fixtures mode | teammate's laptop dead | Sat 20:30 |
 
 **Last integration:** —
 
@@ -537,5 +538,12 @@ blockers: [..] | hours left: [..] | question: [..]
 
 ```
 HH:MM [lane] TASK-ID — result (demo-check: step)
-18:20 [E] KICKOFF — CLAUDE.md saved with locked decisions (§1.1); repo jeojdi1/AFhacks created (demo-check: —)
+19:26 [E] KICKOFF — CLAUDE.md saved with locked decisions (§1.1); repo jeojdi1/AFhacks created, public (demo-check: —)
+19:31 [E] H0.1 — engine (FastAPI, uv py3.12, OR-Tools 9.15) + web (Next 16.3, React 19.2, shadcn, leaflet, recharts) scaffolded; make test, ruff, npm build/lint pass (demo-check: —)
+19:31 [E] H0.2 — docs/api.md v0.1 + docs/decisions.md (demo-check: —)
+19:44 [E] H1.1 — ODBus ingest: 115 candidates (Kitchener 103, Hamilton 12) (demo-check: —)
+20:25 [B] H0.3 — scenario generator + 20 fixtures: $42.7M package, 36/4, obligation 11.5% → 13.4% after TP-01, headline "$96K training → $480K credit (5x) + 3 jobs unblocked (+$9.1M credit)"; drafts for H1.4/H1.5/H1.6 (demo-check: fixtures 8/8)
+20:25 [E] H0.4 — demo_check.py 8 steps, live + --fixtures, catches 20/20 fixture mutations (demo-check: fixtures 8/8)
+20:25 [E] H2.2/H2.4(solver)/H2.5 — tagger, CP-SAT + greedy, ledger; 130 tests pass on clean main (demo-check: fixtures 8/8)
+20:25 [E] CONTRACT: GET /programs/{id}/jobs added (api.md §3, jobs.json fixtures) (demo-check: fixtures 8/8)
 ```
