@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 API_URL ?= http://localhost:8000
 
-.PHONY: setup dev engine web seed test lint demo-check fixtures-check fixtures reset-demo
+.PHONY: demo-seed setup dev engine web seed test lint demo-check fixtures-check fixtures reset-demo
 
 setup:
 	@test -x $(PY) || uv venv --python 3.12 .venv
@@ -42,18 +42,23 @@ reset-demo:
 .PHONY: web-build demo
 
 web-build:
-	cd web && npm run build
+	cd web && NEXT_PUBLIC_API_URL=/engine npm run build
 
 demo: web-build
 	@trap 'kill 0' INT TERM EXIT; \
 	$(PY) -m uvicorn engine.app:app --port 8000 & \
 	(cd web && npx next start -p 3000) & \
 	sleep 3; \
+	IP=$$(ipconfig getifaddr en0 2>/dev/null || hostname -I 2>/dev/null | cut -d' ' -f1); \
 	echo ""; \
-	echo "Muster demo: http://localhost:3000/program  (engine: http://localhost:8000)"; \
-	echo "Recording tip: click Reset demo first"; \
+	echo "Muster demo (laptop): http://localhost:3000/  (engine: http://localhost:8000)"; \
+	echo "Phone on the same Wi-Fi: http://$$IP:3000/m   (or open http://localhost:3000/phone for a QR code)"; \
+	echo "Recording tip: click Start over first. Filled demo instead: make demo-seed"; \
 	echo ""; \
 	wait
+
+demo-seed:
+	curl -fsS -X POST "$(API_URL)/demo/seed?scenario=populated" && echo
 
 # Neo4j graph database (optional; docs/api.md §7). The API falls back to the in-memory
 # graph whenever Neo4j is down or not loaded. Credentials: NEO4J_URI / NEO4J_USER /
