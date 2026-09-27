@@ -20,6 +20,7 @@ import { useConnection } from "@/lib/app/connection"
 import { renewalFor } from "@/lib/app/renewals"
 import { buildAttention, nextCheckinDate, openOffers, todayStats, type TodayItem } from "@/lib/app/attention"
 import { extendStrings, t } from "@/lib/app/strings"
+import { replyForDecision, usePrimeReplies } from "@/lib/app/prime-replies"
 import { appToday, fmtWeekday } from "@/lib/app/today"
 import type { Assignment, Renewal } from "@/lib/app/types"
 import { AttentionCard } from "./attention-card"
@@ -132,11 +133,23 @@ export function TodayView({ shopId }: { shopId: string }) {
     return m
   }, [actions.events, fundResults])
 
+  // Northgate's replies to this shop's open questions (engine decision.reply, or recorded on this device).
+  const localReplies = usePrimeReplies()
+  const replies = React.useMemo(() => {
+    const m: Record<string, { text: string; at: string }> = {}
+    for (const d of Object.values(actions.decisions)) {
+      const r = replyForDecision(d, localReplies)
+      if (r) m[d.job_id] = { text: r.text, at: r.at }
+    }
+    return m
+  }, [actions.decisions, localReplies])
+  const prime = offers[0]?.prime_name?.split(" ")[0] || "Northgate"
+
   const items = React.useMemo<TodayItem[]>(
-    () => buildAttention(bundle, renewals, today, { offeredAt }),
+    () => buildAttention(bundle, renewals, today, { offeredAt, replies, prime }),
     // bundle is a fresh object each render; list the fields buildAttention reads.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [detail, offers, actions, assignments, renewals, today, offeredAt]
+    [detail, offers, actions, assignments, renewals, today, offeredAt, replies, prime]
   )
 
   const stats = React.useMemo(

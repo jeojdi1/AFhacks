@@ -1,12 +1,10 @@
 "use client"
 
-import Link from "next/link"
 import { CircleCheck, CircleDashed, Clock, ExternalLink, GraduationCap, Send } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { t } from "@/lib/app/strings"
 import { fmtDay } from "@/lib/app/today"
 import type { GrowItem } from "@/lib/app/readiness"
-import { seatHref } from "@/lib/app/readiness"
 
 const CHIP = "inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-sm leading-tight font-medium"
 
@@ -32,23 +30,39 @@ function trainees(item: GrowItem): number {
   return item.pkg?.trainees ?? item.training?.trainees ?? 0
 }
 
-/** Funding request status chip ("Requested Sep 26 · awaiting Northgate" / "Funded · 4 welders in training"). */
+/**
+ * Funding request status chip ("Requested Sep 26 · awaiting Northgate" / "Funded · 4 welders in training").
+ * With `link`, a funded chip jumps to the seats summary on the same Grow item page (#seats): the
+ * shop sees each seat's stage there, never the trainee's private seat card.
+ */
 export function FundingChip({ item, link = false, className }: { item: GrowItem; link?: boolean; className?: string }) {
   if (item.funding === "funded") {
     const n = trainees(item)
     const text =
       item.requirement === "CWB_W47.1" ? t("ready.funded", { count: n }) : t("ready.fundedGeneric", { count: n })
-    const pkgId = item.pkg?.id ?? item.training?.package_id ?? null
     const body = (
       <>
         <GraduationCap className="size-4 shrink-0" aria-hidden />
         <span>{text}</span>
       </>
     )
-    if (link && pkgId) {
+    if (link && n > 0) {
       return (
-        <Link
-          href={seatHref(pkgId, 1)}
+        <a
+          href="#seats"
+          onClick={(e) => {
+            const el = document.getElementById("seats")
+            if (!el) return
+            e.preventDefault()
+            const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+            el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" })
+            el.focus({ preventScroll: true })
+            try {
+              window.history.replaceState(window.history.state, "", "#seats")
+            } catch {
+              /* no history access */
+            }
+          }}
           className={cn(
             CHIP,
             "min-h-12 border-funded/30 bg-funded-soft px-4 text-base text-funded outline-none hover:bg-funded/10 focus-visible:ring-3 focus-visible:ring-ring/50",
@@ -57,7 +71,7 @@ export function FundingChip({ item, link = false, className }: { item: GrowItem;
         >
           {body}
           <span className="ml-1 underline underline-offset-4">{t("ready.seeSeat")}</span>
-        </Link>
+        </a>
       )
     }
     return <span className={cn(CHIP, "border-funded/30 bg-funded-soft text-funded", className)}>{body}</span>

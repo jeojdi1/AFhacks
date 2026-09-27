@@ -20,11 +20,27 @@ function readFlag(): boolean {
  * in the layout); re-read on every client navigation.
  */
 export function useFromPrime(): boolean {
+  // Keeps the last value across a client navigation until the URL is re-read (no tab flicker).
+  return useFromPrimeState().last
+}
+
+/**
+ * useFromPrime plus whether the flag has been read yet (false on the server and the first
+ * client render). Screens that must never show shop-only controls to the defence company
+ * (the offer card's Accept / Decline) wait for `known` before rendering them.
+ */
+export function useFromPrimeState(): { fromPrime: boolean; known: boolean; last: boolean } {
   const pathname = usePathname()
-  const [flag, setFlag] = React.useState(false)
+  const [state, setState] = React.useState<{ fromPrime: boolean; known: boolean; path: string | null }>({
+    fromPrime: false,
+    known: false,
+    path: null,
+  })
   React.useEffect(() => {
     const v = readFlag()
-    queueMicrotask(() => setFlag(v))
+    queueMicrotask(() => setState({ fromPrime: v, known: true, path: pathname }))
   }, [pathname])
-  return flag
+  // A client navigation to another screen: unknown again until the effect re-reads the URL.
+  const known = state.known && state.path === pathname
+  return { fromPrime: known ? state.fromPrime : false, known, last: state.fromPrime }
 }

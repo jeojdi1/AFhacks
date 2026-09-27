@@ -17,10 +17,14 @@ function matchLists(shop: ShopResult, query: ShopSearchQueryEcho) {
   const missing: string[] = []
   // Counts for matching, but not held yet: welders still training (paid by Northgate).
   const training: string[] = []
+  const stillTraining: string[] = []
   for (const p of query.process) (shop.processes.includes(p) ? matched : missing).push(`Does ${processPlain(p).toLowerCase()}`)
   for (const c of query.cert) {
     const held = shop.certs.find((x) => x.type === c && COUNTING.has(x.status))
-    if (held && certInTraining(held.status)) training.push(`${certFirst(c)}: in training (${CERT_IN_TRAINING_NOTE}), not held yet`)
+    if (held && certInTraining(held.status)) {
+      training.push(`${certFirst(c)}: counts for matching, training ${CERT_IN_TRAINING_NOTE}`)
+      stillTraining.push(`${certFirst(c)}: ${c.startsWith("CWB") ? "welders" : "staff"} still training, not held yet`)
+    }
     else if (held) matched.push(`${certFirst(c)}: ${certStatusPlain(held.status, shop.source)}`)
     else missing.push(certFirst(c))
   }
@@ -28,13 +32,21 @@ function matchLists(shop: ShopResult, query: ShopSearchQueryEcho) {
   if (query.dnd_history && shop.dnd_history) matched.push("Has National Defence contract history")
   if (query.q) matched.push(`Name or city contains "${query.q}"`)
   if (shop.is_sme && shop.source === "synthetic") matched.push("Small business: its work on the contract counts double (2×)")
-  return { matched, missing, training }
+  return { matched, missing, training, stillTraining }
+}
+
+/** True when the shop has a searched-for certificate only in training (sorted after holders). */
+export function hasTrainingOnlyMatch(shop: ShopResult, query: ShopSearchQueryEcho): boolean {
+  return query.cert.some((c) => {
+    const held = shop.certs.find((x) => x.type === c && COUNTING.has(x.status))
+    return !!held && certInTraining(held.status)
+  })
 }
 
 export function ShopResultCard({ shop, query }: { shop: ShopResult; query: ShopSearchQueryEcho }) {
   const wp = useWithParams()
   const isPublic = shop.source === "public"
-  const { matched, missing, training } = matchLists(shop, query)
+  const { matched, missing, training, stillTraining } = matchLists(shop, query)
   const dnd = shop.dnd_history
 
   return (
@@ -97,8 +109,8 @@ export function ShopResultCard({ shop, query }: { shop: ShopResult; query: ShopS
                 key={c.type}
                 className={cn(
                   "inline-flex min-h-6 items-center gap-1 rounded-full border px-2 py-0.5 text-xs",
-                  c.status === "pending_training"
-                    ? "border-funded/30 bg-funded-soft text-funded"
+                  certInTraining(c.status)
+                    ? "border-amber-200 bg-amber-50 text-amber-800"
                     : isPublic
                       ? "border-public/25 bg-public-soft text-public"
                       : "border-assigned/25 bg-assigned-soft text-assigned"
@@ -153,7 +165,7 @@ export function ShopResultCard({ shop, query }: { shop: ShopResult; query: ShopS
                   </li>
                 ))}
                 {training.map((m) => (
-                  <li key={m} className="flex items-start gap-1.5 text-funded" data-in-training>
+                  <li key={m} className="flex items-start gap-1.5 text-amber-800" data-in-training>
                     <Clock className="mt-0.5 size-4 shrink-0" aria-hidden />
                     <span>{m}</span>
                   </li>
@@ -171,13 +183,21 @@ export function ShopResultCard({ shop, query }: { shop: ShopResult; query: ShopS
         <div>
           <p className="font-medium text-slate-700">What&apos;s missing</p>
           <ul className="mt-1 flex flex-col gap-1">
-            {missing.length ? (
-              missing.map((m) => (
-                <li key={m} className="flex items-start gap-1.5">
-                  <X className="mt-0.5 size-4 shrink-0 text-blocked" aria-hidden />
-                  <span>{m}</span>
-                </li>
-              ))
+            {missing.length || stillTraining.length ? (
+              <>
+                {missing.map((m) => (
+                  <li key={m} className="flex items-start gap-1.5">
+                    <X className="mt-0.5 size-4 shrink-0 text-blocked" aria-hidden />
+                    <span>{m}</span>
+                  </li>
+                ))}
+                {stillTraining.map((m) => (
+                  <li key={m} className="flex items-start gap-1.5 text-amber-800" data-still-training>
+                    <Clock className="mt-0.5 size-4 shrink-0" aria-hidden />
+                    <span>{m}</span>
+                  </li>
+                ))}
+              </>
             ) : (
               <li className="flex items-start gap-1.5 text-muted-foreground">
                 <CircleDashed className="mt-0.5 size-4 shrink-0" aria-hidden />

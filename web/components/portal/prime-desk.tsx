@@ -6,15 +6,19 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Activity, ClipboardList, Gauge, Inbox, Search, TriangleAlert, Wrench, type LucideIcon } from "lucide-react"
+import { Activity, ClipboardList, Gauge, Inbox, MessageCircleQuestion, Search, TriangleAlert, Wrench, XCircle, type LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/lib/data/store"
 import { decisionKey, useAppActions } from "@/lib/app/actions-store"
 import { feedItems, type FeedContext, type FeedTone } from "@/lib/app/feed"
+import { isSimulatedEvent } from "@/lib/app/sim-flag"
+import { t } from "@/lib/app/strings"
 import { fmtMoney } from "@/lib/format"
+import { SimulatedChip } from "@/components/mobile/shell/simulation"
 import { PortalPage, Panel, BigAction } from "./portal-page"
 import { PromiseMeter } from "./promise-meter"
 import { StartDemo, useRouted } from "./start-demo"
+import { useWithParams } from "@/lib/ui/use-with-params"
 
 const OBLIGATION_FALLBACK = 500_000_000
 
@@ -40,6 +44,7 @@ function Count({ n, label, tone, Icon }: { n: number; label: string; tone: strin
 
 export function PrimeDesk() {
   const demo = useDemo()
+  const wp = useWithParams()
   const actions = useAppActions()
   const routed = useRouted()
   const { ledger, program, assignments, blocked, jobs, gaps, offerStatus } = demo
@@ -56,6 +61,42 @@ export function PrimeDesk() {
     }
     return { accepted, declined, waiting: assignments.length - accepted - declined }
   }, [assignments, actions.decisions, offerStatus])
+
+  // Declines and open questions need Northgate's attention: pinned above the activity list.
+  const needsAttention = React.useMemo(() => {
+    const byJob = new Map(assignments.map((a) => [decisionKey(a.shop_id, a.job_id), a]))
+    const out: { key: string; jobId: string; shop: string; kind: "declined" | "question"; detail: string; simulated: boolean }[] = []
+    for (const [key, d] of Object.entries(actions.decisions)) {
+      const a = byJob.get(key)
+      if (!a || (d.decision !== "declined" && d.decision !== "question")) continue
+      const evKind = d.decision === "declined" ? "offer_declined" : "offer_question"
+      let simulated = false
+      for (let i = actions.events.length - 1; i >= 0; i--) {
+        const e = actions.events[i]
+        if (e.kind === evKind && e.shop_id === d.shop_id && e.job_id === d.job_id) {
+          simulated = isSimulatedEvent(e)
+          break
+        }
+      }
+      out.push({
+        key,
+        jobId: a.job_id,
+        shop: a.shop_name,
+        kind: d.decision,
+        detail:
+          d.decision === "declined"
+            ? d.reason_code
+              ? t(`reason.${d.reason_code}`)
+              : "no reason given"
+            : d.question_code
+              ? t(`question.${d.question_code}`)
+              : "question",
+        simulated,
+      })
+    }
+    // Declines first, then questions; by job id.
+    return out.sort((x, y) => (x.kind === y.kind ? x.jobId.localeCompare(y.jobId) : x.kind === "declined" ? -1 : 1))
+  }, [assignments, actions.decisions, actions.events])
 
   const ctx = React.useMemo<FeedContext>(
     () => ({ prime: "Northgate", packages: gaps?.suggestions ?? [] }),
@@ -128,6 +169,40 @@ export function PrimeDesk() {
                 <Count n={replies.waiting} label="waiting" tone="text-foreground" />
                 <Count n={replies.declined} label="declined" tone={replies.declined ? "text-destructive" : "text-muted-foreground"} />
               </div>
+              {needsAttention.length ? (
+                <ul className="flex flex-col gap-2" aria-label="Needs your attention" data-testid="replies-attention">
+                  {needsAttention.map((n) => (
+                    <li
+                      key={n.key}
+                      className={cn(
+                        "flex items-start gap-2 rounded-lg border px-3 py-2 text-sm",
+                        n.kind === "declined" ? "border-destructive/30 bg-destructive/5" : "border-sky-200 bg-sky-50/60"
+                      )}
+                    >
+                      {n.kind === "declined" ? (
+                        <XCircle className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden />
+                      ) : (
+                        <MessageCircleQuestion className="mt-0.5 size-4 shrink-0 text-sky-700" aria-hidden />
+                      )}
+                      <div className="flex min-w-0 flex-1 flex-col gap-1">
+                        <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                          <span className="font-medium text-foreground">
+                            {n.shop} {n.kind === "declined" ? "declined" : "asked about"} {n.jobId}
+                          </span>
+                          <span className="text-muted-foreground">· {n.detail}</span>
+                          {n.simulated ? <SimulatedChip /> : null}
+                        </p>
+                        <Link
+                          href={wp(`/prime/suppliers?job=${encodeURIComponent(n.jobId)}`)}
+                          className="self-start font-medium text-slate-800 underline underline-offset-4 hover:text-foreground"
+                        >
+                          Find another shop
+                        </Link>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
               {activity.length ? (
                 <ul className="flex flex-col gap-1.5" aria-label="Latest activity">
                   {activity.map((it) => (
@@ -136,6 +211,7 @@ export function PrimeDesk() {
                       <span className="min-w-0">
                         <span className="font-medium text-foreground">{it.title}</span>
                         {it.detail ? <span className="text-muted-foreground"> · {it.detail}</span> : null}
+                        {it.simulated ? <SimulatedChip className="ml-1.5 align-middle" /> : null}
                       </span>
                     </li>
                   ))}
@@ -160,8 +236,12 @@ export function PrimeDesk() {
           <BigAction
             href="/program"
             icon={ClipboardList}
-            label="Post a parts list"
-            hint="Muster splits it into jobs and matches each to a shop"
+            label={
+              routed
+                ? `Your parts list: ${assignments.length} of ${jobs.length || assignments.length + blocked.length} matched`
+                : "Post a parts list"
+            }
+            hint={routed ? "See where each job went, on a map" : "Muster splits it into jobs and matches each to a shop"}
             primary={!routed}
           />
           <BigAction href="/prime/suppliers" icon={Search} label="Find suppliers" hint="Small Canadian shops that can make your parts" />

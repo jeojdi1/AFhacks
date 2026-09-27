@@ -22,9 +22,10 @@ Rules for everything in this file: stats carry a footnote marker `[n]` pointing 
 
 - **Route + Credit:** 40 parts → **36 assigned, 4 blocked**; controlled jobs only to CGP shops; obligation meter **11.5%**
 - **Train:** fund TP-01 → **$96K training (4 new-welder training seats, all-in incl. stipend; assumption) → $480K credit (5x) + 3 jobs unblocked (+$9.1M credit)**; obligation **11.5% → 13.4%**, SMB target **36.4% → 42.5%**
-- **Two-sided:** primes pay; shops use it free, on their phone: accept or decline offers, see readiness ("Get CWB W47.1 → more jobs"), ask the prime to fund it; the prime sees each reply live
+- **Two-sided, four desks:** defence company, supplier, training partner, trainee each sign in to their own desk (demo sign-in). Shops use it free, on a real phone over Wi-Fi: accept or decline offers, see readiness ("Get CWB W47.1 → more jobs"), ask the prime to fund it; the prime sees each reply live
+- **Find suppliers:** "CWB welding near London" → one query on a Neo4j capability graph of real public data: 78 local shops, 2,946 StatCan manufacturers, 58,965 National Defence contracts matched by name [7][21] (public, unverified, not affiliated)
 
-**Speaker notes:** Northgate is a fictional prime with a $500M contract. Its ~$42.7M work package routes to qualified small shops, 90% of that value to small and medium shops, earning 2x credit. Four welding jobs are blocked: no available shop has CWB-qualified welders. The prime funds four new-welder training seats, qualified under CSA W47.1, through a regional college (e.g. Conestoga, example, not affiliated); the prime's cash for eligible training earns 5x credit (capped at 25% of the obligation), and the jobs unblock (W47.1 certifies the company; the welders get tickets). On the phone, the shop accepts the offer, asks Northgate to fund W47.1, and sees its welders in training; Northgate sees each reply as it happens.
+**Speaker notes:** Northgate is a fictional prime with a $500M contract. Its ~$42.7M work package routes to qualified small shops, 90% of that value to small and medium shops, earning 2x credit. Four welding jobs are blocked: no available shop has CWB-qualified welders. The prime funds four new-welder training seats, qualified under CSA W47.1, through a regional college (e.g. Conestoga, example, not affiliated); the prime's cash for eligible training earns 5x credit (capped at 25% of the obligation), and the jobs unblock (W47.1 certifies the company; the welders get tickets). On the phone, the shop accepts the offer, asks Northgate to fund W47.1, and sees its welders in training; Northgate sees each reply as it happens. And when Northgate needs new suppliers, it asks in plain words and searches real public records: which local shops weld to CWB, and which already did National Defence work. Those real shops are never sent work until they claim their profile.
 
 ### Slide 3: Why now, and what happens Monday
 
@@ -32,7 +33,7 @@ Rules for everything in this file: stats carry a footnote marker `[n]` pointing 
 - **Model:** primes pay a per-program subscription + small fee on routed value; shops and colleges free
 - **Monday:** incorporate; request a concept review from the DIA ITB team; ask CME Defence and Waterloo EDC for shop introductions → 15 shop interviews in 30 days, one-prime pilot LOI in 90
 
-**Speaker notes:** Australia's ICN Gateway proved suppliers will register [5]. Canada needs the next step, with the workforce built in. Our wedge is Route + Credit; Train is the differentiator. Exit gate for our first month: 15 shop interviews, 3 primes say "we'd pilot", and the DIA ITB team has reviewed the concept. Nothing is booked yet: these are requests.
+**Speaker notes:** Australia's ICN Gateway proved suppliers will register [5]. Canada needs the next step, with the workforce built in. Our wedge is Route + Credit; Train is the differentiator. Exit gate for our first month: 15 shop interviews, 3 primes say "we'd pilot", and the DIA ITB team has reviewed the concept. We've emailed 55 organisations so far. Nothing is booked yet: these are requests.
 
 ---
 
@@ -87,7 +88,13 @@ Job Bank rates the general welder outlook in Ontario "very limited" [17]. The ga
 No one in the middle. The prime pays the college or apprenticeship sponsor directly, the DIA decides eligibility, and Muster keeps the per-job audit trail.
 
 **Q: Your data only covers a few cities. How do you get national coverage?**
-We already have 78 public shops across 12 southwestern Ontario cities, 39 of which list welding, from company sites plus StatCan ODBus [7] (public, unverified, not affiliated). Next, shops claim their profiles, and CME Defence and Waterloo EDC bring members in.
+Our graph already holds 2,946 StatCan manufacturers and 58,965 National Defence contracts [7][21], plus 78 local shops from company sites (public, unverified, not affiliated). Next, shops claim their profiles, and CME Defence and Waterloo EDC bring members in.
+
+**Q: Is any of this real data?**
+The routing demo is fictional and synthetic by design. Search and the supplier map use real open data: StatCan ODBus, National Defence contracts, CanadaBuys tenders, Job Bank [7][21][22]. Each real company is labelled unverified, not affiliated, never sent work.
+
+**Q: Have you talked to anyone?**
+We've emailed 55 organisations. We're not claiming any replies or partners yet; the first-month goal is 15 shop interviews and a DIA concept review.
 
 **Q: How do you verify certifications?**
 Each badge shows status, source, date verified and expiry. CGP, CWB and Nadcap are checked against their public directories [6][9][10]; ISO/AS9100 via IAF CertSearch [11]. CPCSC Level 1 is self-assessed with no public registry [12], so it's always "declared".
@@ -128,5 +135,8 @@ Waterloo Region's small machine and fab shops get defence work they'd never see;
 18. **BDC: "We do not expressly match businesses with defence contractors."** https://www.bdc.ca/en/solutions/defence (accessed 2026-09-26)
 19. **Vendr medians: Deltek US$20,479/yr, Coupa US$94,519/yr (as of 2026-09-26).** https://www.vendr.com/marketplace/deltek ; https://www.vendr.com/marketplace/coupa
 20. **Goverly (readiness files, Prime 360 search; supplier-paid tiers).** https://www.goverly.ai (accessed 2026-09-26)
+
+21. **National Defence contracts over $10K, proactive disclosure (58,965 contracts, $82.9B, 16,097 vendors, contracts dated 2021-01-01 to 2026-06-30; Ontario vendors 34% of the value to vendors in Canada, 31% of all value; Open Government Licence).** https://open.canada.ca/data/en/dataset/d8f85d91-7dec-4fd1-8055-483b77225d8b ; our de-duplicated counts in `data/processed/national/dnd_contracts_summary.json`. ODBus national manufacturers (2,946) in `data/processed/national/odbus_summary.json`. Name matches to shops are unverified.
+22. **CanadaBuys open tender notices (919 open, 376 defence-related, retrieved 2026-09-26; Open Government Licence).** https://canadabuys.canada.ca/opendata/pub/openTenderNotice-ouvertAvisAppelOffres.csv ; Job Bank 2025–2027 outlooks: https://open.canada.ca/data/en/dataset/b0e112e9-cf53-4e79-8838-23cd98debe5b
 
 Demo numbers (package value, obligation %, SMB %, 36/4, headline) come from the fictional Northgate scenario in `/data/fixtures` and are illustrative, not real contract data. The $96K is 4 × $24K new-welder seats from `data/rules/training_costs.json` (assumption).

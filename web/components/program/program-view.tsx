@@ -11,6 +11,7 @@ import { StoryBanner } from "@/components/muster/story-banner";
 import type { PartsUploadResponse, RouteResponse, Shop } from "@/lib/api/types";
 import { fx } from "@/lib/data/fixture-source";
 import { useDemo } from "@/lib/data/store";
+import { decisionKey, useAppActions } from "@/lib/app/actions-store";
 import { fmtMoney, fmtPct } from "@/lib/format";
 import { Rich } from "@/lib/ui/copy";
 import { cb } from "@/lib/ui/copy-b";
@@ -65,7 +66,18 @@ export function ProgramView() {
   }, [mode]);
 
   const routed = stage === "routed" || stage === "funded" || assignments.length > 0;
-  const rows = useMemo(() => buildRows(jobs, assignments, blocked), [jobs, assignments, blocked]);
+  const { decisions, source } = useAppActions();
+  const offerStatus = demo.offerStatus;
+  const rows = useMemo(() => {
+    const base = buildRows(jobs, assignments, blocked);
+    // A shop's decline is shown on its row; routing and credit stay as matched (demo).
+    return base.map((r) => {
+      if (!r.assignment) return r;
+      const k = decisionKey(r.assignment.shop_id, r.id);
+      const declined = decisions[k]?.decision === "declined" || (source !== "engine" && offerStatus?.[k] === "declined");
+      return declined ? { ...r, declined: true } : r;
+    });
+  }, [jobs, assignments, blocked, decisions, source, offerStatus]);
   const mapModel = useMemo(() => buildMapModel(shops, assignments), [shops, assignments]);
 
   const site = {
@@ -161,7 +173,8 @@ export function ProgramView() {
 
   return (
     <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-6 px-4 py-6 sm:px-6">
-      <div>
+      {/* #map ("Start the demo", step-2 pill) lands on the Step 2 banner + Next, then the stat cards. */}
+      <div id="map" className="scroll-mt-40">
         {banner}
         <h1 className="text-2xl leading-tight font-semibold tracking-tight text-foreground">{cb("program.h1")}</h1>
       </div>
@@ -183,7 +196,7 @@ export function ProgramView() {
         />
       ) : null}
 
-      <div id="map" className="flex scroll-mt-20 flex-col gap-6">
+      <div className="flex flex-col gap-6">
         {routed ? (
           <section
             className={story ? "grid grid-cols-1 gap-4 sm:grid-cols-3" : "grid grid-cols-2 gap-4 lg:grid-cols-5"}

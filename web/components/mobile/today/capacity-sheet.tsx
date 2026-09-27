@@ -6,9 +6,8 @@
 // and works on a shared floor tablet.
 
 import * as React from "react"
-import Link from "next/link"
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog"
-import { Check, ChevronRight, Clock, CloudUpload, TriangleAlert, X } from "lucide-react"
+import { Check, ChevronRight, Clock, CloudUpload, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PROCESS_LABEL, label } from "@/lib/format"
 import { Button } from "@/components/ui/button"
@@ -44,8 +43,6 @@ extendStrings("en", {
   "checkin.sending": "Saving…",
   "checkin.confirmed": "Confirmed {date} · {hours} h/wk free",
   "checkin.confirmedHorizon": "For the next {weeks} weeks",
-  "checkin.over": "You're {hours} h/wk over on accepted work. Consider declining an offer or asking Northgate to split the quantity",
-  "checkin.overLink": "Review offers",
   "checkin.fine": "Routing still uses your profile capacity; confirmed capacity feeds routing in the next release.",
   "checkin.done": "Done",
   "checkin.change": "Change",
@@ -120,7 +117,6 @@ export function CapacitySheet({ shopId, open, onOpenChange, shop, acceptedHours,
         >
           <CapacityForm
             key={gen}
-            shopId={shopId}
             processes={(profile?.processes ?? []) as ProcessTag[]}
             capacityHours={profile?.capacity_hours_week ?? null}
             accepted={accepted}
@@ -136,7 +132,6 @@ export function CapacitySheet({ shopId, open, onOpenChange, shop, acceptedHours,
 }
 
 function CapacityForm({
-  shopId,
   processes,
   capacityHours,
   accepted,
@@ -145,7 +140,6 @@ function CapacityForm({
   onDone,
   onConfirmed,
 }: {
-  shopId: string
   processes: ProcessTag[]
   capacityHours: number | null
   accepted: number
@@ -213,7 +207,6 @@ function CapacityForm({
 
   if (result) {
     const cap = result.capacity
-    const over = result.over_by_hours
     return (
       <>
         {header}
@@ -233,22 +226,6 @@ function CapacityForm({
               ) : null}
             </div>
           </div>
-          {over > 0 ? (
-            <div className="flex flex-col gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900" data-testid="capacity-over">
-              <p className="flex items-start gap-2 text-base">
-                <TriangleAlert className="mt-0.5 size-5 shrink-0 text-amber-700" aria-hidden />
-                <span>{t("checkin.over", { hours: over })}</span>
-              </p>
-              <Link
-                href={`/m/shops/${encodeURIComponent(shopId)}/offers`}
-                onClick={onDone}
-                className="inline-flex min-h-12 items-center justify-between gap-2 rounded-lg border border-amber-300 bg-background px-4 text-base font-semibold text-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                {t("checkin.overLink")}
-                <ChevronRight className="size-5" aria-hidden />
-              </Link>
-            </div>
-          ) : null}
           <p className="text-sm text-muted-foreground">{t("checkin.fine")}</p>
         </div>
         <div className="grid grid-cols-2 gap-3 border-t border-border px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">

@@ -1,11 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { Check, CircleHelp, X } from "lucide-react"
+import { Check, CircleHelp, MessageSquareReply, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { t } from "@/lib/app/strings"
 import type { OfferDecisionRec } from "@/lib/app/types"
 import { Button } from "@/components/ui/button"
+import { SimulatedChip } from "@/components/mobile/shell/simulation"
 import { WillSendChip, decisionLine, type OfferState } from "./shared"
 import "./strings"
 
@@ -20,7 +21,8 @@ const STATUS_ICON: Record<OfferState, typeof Check> = { accepted: Check, decline
 /**
  * Sticky bottom bar: Accept · Decline · Ask Northgate (56 px each).
  * After an accept/decline it becomes a status row with "Change answer".
- * A question keeps the three buttons, with the question shown above them.
+ * A question keeps the three buttons, with the question (and Northgate's reply, once sent) above them.
+ * A simulated decision (the demo simulator answered for this shop) is labelled as such.
  */
 export function DecisionBar({
   state,
@@ -30,11 +32,17 @@ export function DecisionBar({
   onAccept,
   onDecline,
   onAsk,
+  simulated = false,
+  reply = null,
+  prime = "Northgate",
 }: {
   state: OfferState
   decision: OfferDecisionRec | null
   pending: boolean
   busy: boolean
+  simulated?: boolean
+  reply?: { text: string; via: "engine" | "local" } | null
+  prime?: string
   onAccept: () => void
   onDecline: () => void
   onAsk: () => void
@@ -61,10 +69,22 @@ export function DecisionBar({
         <div aria-live="polite" className={cn("mb-3 flex flex-wrap items-center gap-2 rounded-xl border px-3 py-2", STATUS_TONE[state])}>
           <Icon className="size-5 shrink-0" aria-hidden />
           <div className="min-w-0 flex-1">
-            <p className="text-base leading-snug font-semibold">{decisionLine(state, decision)}</p>
-            {state === "question" ? <p className="text-sm text-foreground/80">{t("o.status.questionBody")}</p> : null}
+            <p className="text-base leading-snug font-semibold">{decisionLine(state, decision, simulated)}</p>
+            {simulated ? <p className="text-sm text-foreground/80">{t("o.status.simBody")}</p> : null}
+            {state === "question" && reply ? (
+              <p className="mt-1 flex items-start gap-1.5 text-sm text-foreground" data-testid="offer-reply-bar">
+                <MessageSquareReply className="mt-0.5 size-4 shrink-0" aria-hidden />
+                <span>
+                  <span className="font-semibold">{t("o.reply.title", { prime })}:</span> “{reply.text}”
+                </span>
+              </p>
+            ) : null}
+            {state === "question" ? (
+              <p className="text-sm text-foreground/80">{reply ? t("o.status.questionReplied") : t("o.status.questionBody")}</p>
+            ) : null}
             {state === "declined" && decision?.note ? <p className="text-sm break-words text-foreground/80">“{decision.note}”</p> : null}
           </div>
+          {simulated ? <SimulatedChip /> : null}
           {pending ? <WillSendChip /> : null}
         </div>
       ) : null}

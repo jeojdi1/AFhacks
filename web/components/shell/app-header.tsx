@@ -1,6 +1,6 @@
 "use client"
 
-import type * as React from "react"
+import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { BookOpen, Factory, LoaderCircle, Network, RotateCcw, Search, Smartphone } from "lucide-react"
@@ -11,6 +11,15 @@ import { isDirectoryPath } from "@/lib/ui/steps"
 import { useStoryMode } from "@/lib/ui/story-mode"
 import { useWithParams } from "@/lib/ui/use-with-params"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useSession } from "@/lib/auth/session"
 import { AccountMenu } from "@/components/auth/account-menu"
@@ -25,11 +34,15 @@ import { ModeSwitcher } from "./mode-switcher"
  */
 export function AppHeader() {
   const pathname = usePathname() ?? "/"
-  const { reset, busy, ready } = useDemo()
+  const { busy } = useDemo()
   const wp = useWithParams()
-  const resetting = busy === BUSY.reset
+  const role = useSession().session?.role
   // A signed-in shop never sees Northgate's supplier search (prime-only).
-  const shopRole = useSession().session?.role === "shop"
+  const shopRole = role === "shop"
+  // Start over wipes the shared engine for every phone: only the defence company
+  // (or the signed-out presenter) gets it; a shop, college or trainee never does.
+  const canStartOver = !role || role === "prime"
+  const resetting = busy === BUSY.reset
 
   const links: { key: string; label: string; href: string; icon: React.ComponentType<{ className?: string }>; active: boolean; always?: boolean; hide?: boolean }[] = [
     { key: "directory", label: c("nav.directory"), href: "/network", icon: BookOpen, active: isDirectoryPath(pathname), always: true },
@@ -92,25 +105,65 @@ export function AppHeader() {
         <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">
           <ActivityBell />
           <ModeSwitcher />
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => void reset()}
-            disabled={!ready || !!busy}
-            className="px-2.5"
-            aria-label={c("nav.startOver.aria")}
-            title={c("nav.startOver.aria")}
-            data-testid="start-over"
-          >
-            {resetting ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : <RotateCcw data-icon="inline-start" />}
-            <span className="hidden sm:inline">{resetting ? c("busy.reset") : c("nav.startOver")}</span>
-          </Button>
+          {canStartOver || resetting ? <StartOverButton /> : null}
           <span className="hidden sm:contents">
             <AccountMenu />
           </span>
         </div>
       </div>
     </header>
+  )
+}
+
+/**
+ * "Start over": POST /demo/reset clears the shared engine for every screen on the demo,
+ * so it asks first. Cancel has focus when the dialog opens; Escape closes it.
+ */
+function StartOverButton() {
+  const { reset, busy, ready } = useDemo()
+  const [open, setOpen] = React.useState(false)
+  const cancelRef = React.useRef<HTMLButtonElement | null>(null)
+  const resetting = busy === BUSY.reset
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Button
+        variant="outline"
+        size="lg"
+        onClick={() => setOpen(true)}
+        disabled={!ready || !!busy}
+        className="px-2.5"
+        aria-label={c("nav.startOver.aria")}
+        aria-haspopup="dialog"
+        title={c("nav.startOver.aria")}
+        data-testid="start-over"
+      >
+        {resetting ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : <RotateCcw data-icon="inline-start" />}
+        <span className="hidden sm:inline">{resetting ? c("busy.reset") : c("nav.startOver")}</span>
+      </Button>
+      <DialogContent initialFocus={cancelRef} showCloseButton={false} data-testid="start-over-dialog">
+        <DialogHeader>
+          <DialogTitle>Start over?</DialogTitle>
+          <DialogDescription>
+            This clears every shop&apos;s answers and funding for everyone on this demo.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <DialogClose render={<Button ref={cancelRef} variant="outline" data-testid="start-over-cancel" />}>
+            Cancel
+          </DialogClose>
+          <Button
+            variant="destructive"
+            data-testid="start-over-confirm"
+            onClick={() => {
+              setOpen(false)
+              void reset()
+            }}
+          >
+            Start over
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 

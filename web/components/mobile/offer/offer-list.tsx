@@ -130,10 +130,11 @@ export function OfferList({ shopId }: { shopId: string }) {
 
   const open = views.filter((v) => needsReply(v.state))
   const answered = views.filter((v) => !needsReply(v.state))
-  // Declined offers are no longer on the table: leave them out of the value and hours (matches the desk).
+  // Declined offers are no longer on the table: leave them out of the value (matches the desk).
   const live = views.filter((v) => v.state !== "declined")
   const total = live.reduce((s, v) => s + v.offer.value_cad, 0)
-  const hours = live.reduce((s, v) => s + v.offer.hours_week, 0)
+  // Hours only for offers still waiting for an answer: accepted work is already booked.
+  const hours = open.reduce((s, v) => s + v.offer.hours_week, 0)
 
   return (
     <div className="flex flex-col gap-4 pt-2">
@@ -148,7 +149,9 @@ export function OfferList({ shopId }: { shopId: string }) {
           </p>
         ) : null}
         <p className="text-base text-muted-foreground">
-          {t("o.list.total", { value: fmtMoney(total, { compact: true }), hours })}
+          {open.length
+            ? t("o.list.total", { value: fmtMoney(total, { compact: true }), hours })
+            : t("o.list.totalNoneOpen", { value: fmtMoney(total, { compact: true }) })}
         </p>
         <p className="mt-1 flex items-start gap-2 rounded-lg border border-assigned/25 bg-assigned-soft px-3 py-2 text-sm font-medium text-assigned">
           <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden />

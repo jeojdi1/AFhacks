@@ -1,17 +1,64 @@
 "use client"
 
 import * as React from "react"
-import { BadgeCheck, Inbox } from "lucide-react"
+import { BadgeCheck, GraduationCap, Inbox, ShieldCheck } from "lucide-react"
 import { useDemo } from "@/lib/data/store"
 import { fmtMoney } from "@/lib/format"
 import { useShopBundle } from "@/lib/app/shop-bundle"
-import { t } from "@/lib/app/strings"
+import { extendStrings, t } from "@/lib/app/strings"
 import { capacityUnlockShort, growTitle, requirementName, requirementShort } from "@/lib/app/copy"
-import { growItemFor, packageFor, requirementDef, type ReadinessStepDef } from "@/lib/app/readiness"
+import { growItemFor, packageFor, requirementDef, seatDemo, seatStages, type GrowItem, type ReadinessStepDef } from "@/lib/app/readiness"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
 import { FlagChip, FundingChip, SourceLink, TierChip } from "./grow-chips"
 import { FundingBar } from "./funding-bar"
 import { WhoPays } from "./who-pays"
+
+extendStrings("en", {
+  "ready.seats.title": "Seats",
+  "ready.seats.body": "{count} funded seats at {partner}. Seats are numbered, never named; each trainee's own card is private to them.",
+  "ready.seats.bodyNoPartner": "{count} funded seats. Seats are numbered, never named; each trainee's own card is private to them.",
+  "ready.seats.row": "Seat {seat} of {total}",
+  "ready.seats.stage": "Stage {step} of {steps}",
+})
+
+/** The shop's view of a funded plan's seats: stage per seat, no names, no link into the trainee's app. */
+function SeatsSummary({ item }: { item: GrowItem }) {
+  const total = item.pkg?.trainees ?? item.training?.trainees ?? 0
+  const ref = React.useRef<HTMLElement>(null)
+  // Arriving from Today ("View seats") with #seats: the section only exists once data loads, so scroll here.
+  React.useEffect(() => {
+    if (typeof window === "undefined" || window.location.hash !== "#seats" || !ref.current) return
+    ref.current.scrollIntoView({ block: "start" })
+  }, [])
+  if (!total) return null
+  const idx = Math.max(0, seatStages.findIndex((s) => s.id === seatDemo.stage_after_funding))
+  const stage = seatStages[idx]
+  const partner = item.pkg?.recipient_example ?? null
+  return (
+    <section id="seats" ref={ref} tabIndex={-1} aria-labelledby="seats-title" className="scroll-mt-20 outline-none" data-testid="grow-seats">
+      <h3 id="seats-title" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+        <GraduationCap className="size-5 text-muted-foreground" aria-hidden />
+        {t("ready.seats.title")}
+        <AssumptionTag note={seatDemo.note} />
+      </h3>
+      <p className="mt-1 mb-3 flex items-start gap-2 text-sm text-muted-foreground">
+        <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden />
+        {partner ? t("ready.seats.body", { count: total, partner }) : t("ready.seats.bodyNoPartner", { count: total })}
+      </p>
+      <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
+        {Array.from({ length: total }, (_, i) => i + 1).map((n) => (
+          <li key={n} className="flex min-h-12 items-center gap-3 px-4 py-2.5" data-testid="grow-seat">
+            <span className="min-w-0 flex-1 text-base font-medium">{t("ready.seats.row", { seat: n, total })}</span>
+            <span className="text-right text-sm">
+              <span className="block font-medium text-funded">{stage?.label ?? seatDemo.stage_after_funding}</span>
+              <span className="block text-muted-foreground">{t("ready.seats.stage", { step: idx + 1, steps: seatStages.length })}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
 
 function Step({ step, index, last }: { step: ReadinessStepDef; index: number; last: boolean }) {
   return (
@@ -134,6 +181,9 @@ export function ReadinessStepper({ shopId, requirement }: { shopId: string; requ
         {def ? <p className="mt-3 text-[15px] leading-snug">{def.summary}</p> : null}
         {def?.registry_url ? <SourceLink href={def.registry_url} label={t("ready.registry")} /> : null}
       </section>
+
+      {/* Seats (funded plans only): stages, never names */}
+      {routed && item?.funding === "funded" ? <SeatsSummary item={item} /> : null}
 
       {/* Steps */}
       {def ? (

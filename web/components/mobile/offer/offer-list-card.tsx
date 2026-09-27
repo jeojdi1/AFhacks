@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils"
 import { fmtMoney } from "@/lib/format"
 import { extendStrings, t } from "@/lib/app/strings"
 import { Button } from "@/components/ui/button"
+import { SimulatedChip } from "@/components/mobile/shell/simulation"
+import { isSimulatedRecord } from "@/lib/app/sim-flag"
 import { DecisionChip, NewChip, ReplyByChip, WillSendChip, needsReply, type OfferView } from "./shared"
 import "./strings"
 
@@ -77,6 +79,7 @@ export function OfferListCard({
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
             <DecisionChip state={state} decision={decision} />
+            {decision && isSimulatedRecord(decision) ? <SimulatedChip /> : null}
             {pending ? <WillSendChip /> : null}
             {isNew && open ? <NewChip /> : null}
             {open && replyBy ? <ReplyByChip date={replyBy} /> : null}

@@ -5,6 +5,11 @@ import { fmtMoney, fmtPct } from "@/lib/format"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
 import { CREDIT_EXPLAINER, Plain, TIP } from "./plain"
 
+/** Compact money without a trailing ".0" ("$75M", not "$75.0M"), as /scorecard shows it. */
+export function moneyShort(n: number): string {
+  return fmtMoney(n, { compact: true }).replace(/\.0(?=[KMB]$)/, "")
+}
+
 /**
  * "Credit so far $57.5M of $500M · 11.5% of what Northgate owes".
  * Before matching: "Northgate owes Canada $500M of business".
@@ -59,8 +64,8 @@ export function PromiseMeter({ ledger, obligation }: { ledger: LedgerResponse | 
         </span>
         {ledger?.smb ? (
           <span className="inline-flex items-center gap-1.5">
-            Small-business target: {fmtMoney(ledger.smb.achieved_cad, { compact: true })} of{" "}
-            {fmtMoney(ledger.smb.target_cad, { compact: true })} ({fmtPct(ledger.smb.progress_pct, 0)})
+            Small-business target: {moneyShort(ledger.smb.achieved_cad)} of {moneyShort(ledger.smb.target_cad)}{" "}
+            ({fmtPct(ledger.smb.progress_pct, 0)})
             <AssumptionTag note={`Basis: ${ledger.smb.basis}`} />
           </span>
         ) : null}

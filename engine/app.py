@@ -348,6 +348,11 @@ class DecisionBody(_Body):
     note: str | None = None
 
 
+class ReplyBody(_Body):
+    reply_code: str | None = None  # required; checked in shopside for a readable 400
+    text: str | None = None
+
+
 class FundingRequestBody(_Body):
     requirement: str
 
@@ -367,6 +372,12 @@ class CertDeclarationBody(_Body):
 def decide_offer(shop_id: str, job_id: str, body: DecisionBody) -> dict:
     data = body.model_dump()
     return _action(DEFAULT_PROGRAM_ID, lambda s: shopside.decide(s, shop_id, job_id, data))
+
+
+@app.post("/shops/{shop_id}/offers/{job_id}/reply")
+def reply_offer(shop_id: str, job_id: str, body: ReplyBody) -> dict:
+    data = body.model_dump()
+    return _action(DEFAULT_PROGRAM_ID, lambda s: shopside.reply(s, shop_id, job_id, data))
 
 
 @app.post("/shops/{shop_id}/funding-requests")

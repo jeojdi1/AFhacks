@@ -22,7 +22,7 @@
 
 import * as React from "react"
 import { toast } from "sonner"
-import { useDemo, type DemoContextValue } from "@/lib/data/store"
+import { useDemo, type DemoContextValue, type OfferDecision } from "@/lib/data/store"
 import { fx } from "@/lib/data/fixture-source"
 import { CERT_LABEL, PROCESS_LABEL } from "@/lib/format"
 import { CERT_TYPES, PROCESS_TAGS, type ShopListItem, type ShopsResponse } from "@/lib/api/types"
@@ -849,14 +849,43 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }):
     return fr === d.fundingRequests ? d : { ...d, fundingRequests: fr }
   }, [base, outbox, inflight, demo.fundedIds, demo.gaps])
 
-  // Mirror accepted/declined into the desktop offer inbox.
+  // Mirror accepted/declined into the desktop offer inbox (useDemo().offerStatus), and take an
+  // answer back out when it is undone or turns into a question. Live with the engine's §6 routes:
+  // offerStatus equals the engine's decision map (accepted/declined only). Otherwise (fixtures, or an
+  // engine without them) only keys this mirror wrote are removed, so an answer given on the laptop
+  // profile (setOfferStatus) is kept.
+  const mirroredRef = React.useRef<Set<string>>(new Set())
+  const mirrorStartedRef = React.useRef(false)
   React.useEffect(() => {
-    if (!demo.ready || (demo.stage !== "routed" && demo.stage !== "funded")) return
+    if (!demo.ready || !loaded || (demo.stage !== "routed" && demo.stage !== "funded")) return
+    const want: Record<string, OfferDecision> = {}
     for (const r of Object.values(data.decisions)) {
-      if (r.decision !== "accepted" && r.decision !== "declined") continue
-      if (demo.offerStatus[decisionKey(r.shop_id, r.job_id)] !== r.decision) demo.setOfferStatus(r.shop_id, r.job_id, r.decision)
+      if (r.decision === "accepted" || r.decision === "declined") want[decisionKey(r.shop_id, r.job_id)] = r.decision
     }
-  }, [data.decisions, demo])
+    const cur = demo.offerStatus
+    let next: Record<string, OfferDecision>
+    if (useEngine) {
+      next = want
+    } else {
+      next = { ...cur }
+      for (const k of mirroredRef.current) if (!(k in want)) delete next[k]
+      // First run after a reload (mirroredRef starts empty): drop answers whose latest event is an
+      // undo or a question. Only once, so a later answer given on the laptop profile is never undone.
+      if (!mirrorStartedRef.current) {
+        const last: Record<string, string> = {}
+        for (const e of data.events) {
+          if (e.shop_id && e.job_id && e.kind.startsWith("offer_") && e.kind !== "offer_reply") last[decisionKey(e.shop_id, e.job_id)] = e.kind
+        }
+        for (const [k, kind] of Object.entries(last)) if (!(k in want) && (kind === "offer_undo" || kind === "offer_question")) delete next[k]
+      }
+      Object.assign(next, want)
+    }
+    mirroredRef.current = new Set(Object.keys(want))
+    mirrorStartedRef.current = true
+    const same = Object.keys(next).length === Object.keys(cur).length && Object.entries(next).every(([k, v]) => cur[k] === v)
+    if (same) return
+    demo.replaceOfferStatus(next)
+  }, [data.decisions, data.events, demo, loaded, useEngine])
 
   // ---- actions ---------------------------------------------------------------------
 

@@ -2,16 +2,23 @@
 
 import * as React from "react"
 import { toast } from "sonner"
-import { Check, Clock, FileLock2, Lock, MapPin, Send, ShieldCheck, Wallet } from "lucide-react"
+import Link from "next/link"
+import { Check, CircleHelp, Clock, Eye, FileLock2, Lock, MapPin, MessageSquareReply, Send, ShieldCheck, Wallet, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/lib/data/store"
 import { MATERIAL_LABEL, PROCESS_LABEL, fmtKm, fmtMoney, label } from "@/lib/format"
 import { useShopBundle } from "@/lib/app/shop-bundle"
 import { useConnection } from "@/lib/app/connection"
 import { UnreachableNotice } from "@/components/mobile/shell/unreachable-notice"
-import { fitChecklist, plainReason } from "@/lib/app/fit"
+import { fitChecklist, plainReason, type AcceptedJobLoad } from "@/lib/app/fit"
+import { shopInfo } from "@/lib/app/actions-store"
+import { shortShopName } from "@/lib/app/feed"
+import { replyForDecision, usePrimeReplies } from "@/lib/app/prime-replies"
+import { isSimulatedRecord } from "@/lib/app/sim-flag"
+import { useFromPrimeState } from "@/components/mobile/shell/use-from-prime"
+import { SimulatedChip } from "@/components/mobile/shell/simulation"
 import { certPlain } from "@/lib/ui/plain"
-import { fmtWeekday } from "@/lib/app/today"
+import { fmtDateTime, fmtWeekday } from "@/lib/app/today"
 import { t } from "@/lib/app/strings"
 import type { QuestionCode, ReasonCode } from "@/lib/app/types"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -22,7 +29,19 @@ import { FitChecklist } from "./fit-checklist"
 import { DecisionBar } from "./decision-bar"
 import { DeclineSheet } from "./decline-sheet"
 import { AskSheet } from "./ask-sheet"
-import { DecisionChip, NewChip, ReplyByChip, WillSendChip, offerState, replyByFrom, routedAtFrom, useNewOfferIds } from "./shared"
+import {
+  DecisionChip,
+  NewChip,
+  ReplyByChip,
+  WillSendChip,
+  offerState,
+  questionText,
+  reasonText,
+  replyByFrom,
+  routedAtFrom,
+  useNewOfferIds,
+  type OfferState,
+} from "./shared"
 import "./strings"
 
 const UNDO_MS = 10_000
@@ -30,6 +49,10 @@ const UNDO_MS = 10_000
 /**
  * /m/shops/[id]/offers/[jobId]: "can we do it, is it worth it, what's the
  * catch" on one screen, then Accept · Decline · Ask Northgate.
+ *
+ * Opened by the defence company from its feed (?from=prime), the card is read-only:
+ * no Accept / Decline / Ask / Change answer / Send to estimator, a status line with the
+ * shop's answer instead, and copy addressed to Northgate ("You offered this job only to …").
  */
 export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) {
   const { stage, ready } = useDemo()
@@ -46,23 +69,37 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
   const newIds = useNewOfferIds(b.certs, b.jobsById, b.offers)
   const replyBy = replyByFrom(routedAtFrom(b.actions.routedAt, b.actions.events))
   const prime = offer?.prime_name?.split(" ")[0] || "Northgate"
+  const { fromPrime, known: viewKnown } = useFromPrimeState()
+  const shopName = shortShopName(b.detail?.shop.name ?? shopInfo(shopId)?.name ?? shopId) || shopId
+  const simulated = !!decision && isSimulatedRecord(decision)
+  const localReplies = usePrimeReplies()
+  const reply = replyForDecision(decision, localReplies)
 
   const fit = React.useMemo(() => {
     if (!job || !b.shop) return null
     let load = 0
     let n = 0
+    const accepted: AcceptedJobLoad[] = []
     for (const o of b.offers) {
       if (o.job_id === jobId) continue
-      if (offerState(o, b.actions.decisions[o.job_id]) === "accepted") {
+      const d = b.actions.decisions[o.job_id]
+      if (offerState(o, d) === "accepted") {
         load += o.hours_week
         n += 1
+        accepted.push({
+          job_id: o.job_id,
+          hours_week: o.hours_week,
+          process_tags: b.jobsById[o.job_id]?.process_tags ?? [],
+          accepted_at: d?.decision === "accepted" ? d.at : null,
+        })
       }
     }
     return fitChecklist(job, b.shop, b.certs, load, {
-      confirmedCapacityHours: b.actions.capacity?.hours_week ?? null,
+      confirmedCapacity: b.actions.capacity ?? null,
+      acceptedJobs: accepted,
       acceptedCount: n,
     })
-  }, [job, b.shop, b.offers, b.certs, b.actions.decisions, b.actions.capacity, jobId])
+  }, [job, b.shop, b.offers, b.certs, b.actions.decisions, b.actions.capacity, b.jobsById, jobId])
 
   const decide = b.actions.decide
   const undo = React.useCallback(async () => {
@@ -129,7 +166,11 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
         className="mt-4"
         title={b.error ?? t("o.card.notFound")}
         body={t("o.card.notFoundBody")}
-        action={{ label: t("o.card.backToOffers"), href: `/m/shops/${encodeURIComponent(shopId)}/offers` }}
+        action={
+          fromPrime
+            ? { label: t("o.prime.back"), href: "/m/prime" }
+            : { label: t("o.card.backToOffers"), href: `/m/shops/${encodeURIComponent(shopId)}/offers` }
+        }
       />
     )
   }
@@ -139,6 +180,18 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
   const trainingCert = (job?.required_certs ?? []).find((ct) => b.certs.find((c) => c.type === ct)?.status === "pending_training") ?? null
   const multLabel =
     offer.multiplier === 2 ? t("o.card.mult.sme", { mult: offer.multiplier }) : t("o.card.mult.plain", { mult: offer.multiplier })
+  const credit = fmtCredit(offer.credit_cad)
+  const creditLine = fromPrime
+    ? t(state === "accepted" ? (simulated ? "o.prime.creditSimulated" : "o.prime.creditAccepted") : "o.prime.credit", {
+        credit,
+        mult: multLabel,
+        shop: shopName,
+      })
+    : t(state === "accepted" ? (simulated ? "o.card.creditSimulated" : "o.card.creditAccepted") : "o.card.credit", {
+        prime,
+        credit,
+        mult: multLabel,
+      })
 
   return (
     <div className="flex flex-col gap-4 pt-2">
@@ -146,6 +199,7 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
       <section aria-labelledby="offer-title" className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-1.5">
           <DecisionChip state={state} decision={decision} />
+          {simulated ? <SimulatedChip /> : null}
           {decision?.pending ? <WillSendChip /> : null}
           {newIds.has(jobId) && (state === "open" || state === "question") ? <NewChip /> : null}
           {replyBy && (state === "open" || state === "question") ? <ReplyByChip date={replyBy} withTag /> : null}
@@ -187,30 +241,54 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
           <p className="flex items-start gap-2">
             <ShieldCheck className="mt-0.5 size-5 shrink-0 text-assigned" aria-hidden />
             <span>
-              <strong>{t("o.card.noBidding")}</strong> {t("o.card.onlyYou", { prime })}{" "}
-              <strong>
-                {t(state === "accepted" ? "o.card.creditAccepted" : "o.card.credit", { prime, credit: fmtCredit(offer.credit_cad), mult: multLabel })}
-              </strong>
+              <strong>{t("o.card.noBidding")}</strong>{" "}
+              {fromPrime ? t("o.prime.onlyYou", { shop: shopName }) : t("o.card.onlyYou", { prime })} <strong>{creditLine}</strong>
             </span>
           </p>
           <p className="mt-1 pl-7 text-sm text-muted-foreground">
-            {t("o.card.itbGloss")} {t("label.simplifiedItb")}
+            {fromPrime ? t("o.prime.itbGloss") : t("o.card.itbGloss")} {t("label.simplifiedItb")}
           </p>
         </div>
+
+        {/* Northgate's reply to the shop's question */}
+        {!fromPrime && state === "question" && reply ? (
+          <p
+            className="flex items-start gap-2 rounded-xl border border-controlled/25 bg-controlled-soft px-4 py-3 text-base text-foreground"
+            data-testid="offer-reply"
+          >
+            <MessageSquareReply className="mt-0.5 size-5 shrink-0 text-controlled" aria-hidden />
+            <span>
+              <strong>{t("o.reply.title", { prime })}:</strong> “{reply.text}”
+              {reply.via === "local" ? <span className="block text-sm text-muted-foreground">{t("o.reply.demo")}</span> : null}
+            </span>
+          </p>
+        ) : null}
       </section>
+
+      {fromPrime ? (
+        <PrimeStatus state={state} decision={decision} shop={shopName} simulated={simulated} reply={reply} />
+      ) : null}
 
       {trainingCert ? (
         <div className="flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-base text-amber-900" data-testid="offer-training">
           <Clock className="mt-0.5 size-5 shrink-0" aria-hidden />
           <span>
-            <strong>{t("o.card.training")}</strong>{" "}
-            {t("o.card.trainingBody", { cert: certPlain(trainingCert).first.replace(/^./, (c) => c.toLowerCase()) })}
+            <strong>{fromPrime ? t("o.prime.training") : t("o.card.training")}</strong>{" "}
+            {t(fromPrime ? "o.prime.trainingBody" : "o.card.trainingBody", {
+              cert: certPlain(trainingCert).first.replace(/^./, (c) => c.toLowerCase()),
+              shop: shopName,
+            })}
           </span>
         </div>
       ) : null}
 
       {/* 3. Can we do it? (verdict first; rows expand on tap) */}
-      {fit ? <FitChecklist items={fit} collapsible /> : <p className="text-base text-muted-foreground">{t("o.card.noJobData")}</p>}
+      {/* The shop's own capacity and profile checks: not shown to the defence company. */}
+      {fromPrime ? null : fit ? (
+        <FitChecklist items={fit} collapsible />
+      ) : (
+        <p className="text-base text-muted-foreground">{t("o.card.noJobData")}</p>
+      )}
 
       {/* Quantity, unit price, distance */}
       <ul className="flex flex-col gap-1 text-base text-muted-foreground">
@@ -232,11 +310,11 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
       {offer.reasons.length ? (
         <section aria-labelledby="why-title" className="rounded-xl border border-border bg-card px-4 py-3">
           <h2 id="why-title" className="text-lg font-semibold">
-            {t("o.card.why")}
+            {fromPrime ? t("o.prime.why", { shop: shopName }) : t("o.card.why")}
           </h2>
           <ul className="mt-2 flex flex-col gap-2">
             {offer.reasons.slice(0, 3).map((r) => {
-              const text = plainReason(r, b.certs, prime)
+              const text = plainReason(r, b.certs, prime, fromPrime ? "prime" : "shop")
               const training = text.includes("welders in training")
               return (
                 <li key={r} className="flex items-start gap-2 text-base">
@@ -257,7 +335,7 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
       <p className="flex items-start gap-2 text-base text-muted-foreground">
         <Wallet className="mt-0.5 size-5 shrink-0" aria-hidden />
         <span>
-          {t("o.card.payment")} <AssumptionTag className="align-middle" note={t("o.card.paymentNote")} />
+          {fromPrime ? t("o.prime.payment") : t("o.card.payment")} <AssumptionTag className="align-middle" note={t("o.card.paymentNote")} />
         </span>
       </p>
 
@@ -269,40 +347,115 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
         )}
       >
         <FileLock2 className={cn("mt-0.5 size-5 shrink-0", controlled ? "text-controlled" : "text-muted-foreground")} aria-hidden />
-        <span>{controlled ? t("o.card.drawings.controlled") : t("o.card.drawings.plain")}</span>
+        <span>
+          {fromPrime
+            ? t(controlled ? "o.prime.drawings.controlled" : "o.prime.drawings.plain", { shop: shopName })
+            : controlled
+              ? t("o.card.drawings.controlled")
+              : t("o.card.drawings.plain")}
+        </span>
       </p>
 
-      {/* 7. Send to estimator */}
-      <ShareButton
-        jobId={offer.job_id}
-        part={offer.part_no}
-        desc={offer.description}
-        qty={job?.qty ?? null}
-        value={offer.value_cad}
-        hours={offer.hours_week}
-        replyBy={replyBy}
-      />
+      {/* 7-8. Shop-only controls: never rendered for the defence company, nor before the view is known. */}
+      {viewKnown && !fromPrime ? (
+        <>
+          <ShareButton
+            jobId={offer.job_id}
+            part={offer.part_no}
+            desc={offer.description}
+            qty={job?.qty ?? null}
+            value={offer.value_cad}
+            hours={offer.hours_week}
+            replyBy={replyBy}
+          />
 
-      <DecisionBar
-        state={state}
-        decision={decision}
-        pending={!!decision?.pending}
-        busy={busy}
-        onAccept={accept}
-        onDecline={() => setSheet("decline")}
-        onAsk={() => setSheet("ask")}
-      />
+          <DecisionBar
+            state={state}
+            decision={decision}
+            pending={!!decision?.pending}
+            busy={busy}
+            onAccept={accept}
+            onDecline={() => setSheet("decline")}
+            onAsk={() => setSheet("ask")}
+            simulated={simulated}
+            reply={reply}
+            prime={prime}
+          />
 
-      <DeclineSheet
-        open={sheet === "decline"}
-        onOpenChange={(o) => setSheet(o ? "decline" : null)}
-        jobId={offer.job_id}
-        primeName={prime}
-        busy={busy}
-        onSubmit={decline}
-      />
-      <AskSheet open={sheet === "ask"} onOpenChange={(o) => setSheet(o ? "ask" : null)} jobId={offer.job_id} busy={busy} onSubmit={ask} />
+          <DeclineSheet
+            open={sheet === "decline"}
+            onOpenChange={(o) => setSheet(o ? "decline" : null)}
+            jobId={offer.job_id}
+            primeName={prime}
+            busy={busy}
+            onSubmit={decline}
+          />
+          <AskSheet open={sheet === "ask"} onOpenChange={(o) => setSheet(o ? "ask" : null)} jobId={offer.job_id} busy={busy} onSubmit={ask} />
+        </>
+      ) : null}
     </div>
+  )
+}
+
+const PRIME_TONE: Record<OfferState, string> = {
+  accepted: "border-assigned/25 bg-assigned-soft text-assigned",
+  declined: "border-blocked/30 bg-blocked-soft text-blocked",
+  question: "border-controlled/25 bg-controlled-soft text-controlled",
+  open: "border-border bg-muted text-foreground",
+}
+const PRIME_ICON: Record<OfferState, typeof Check> = { accepted: Check, declined: X, question: CircleHelp, open: Clock }
+
+/** Read-only answer line for the defence company: "Accepted by Tallowfield · Sep 26, 9:41 PM". */
+function PrimeStatus({
+  state,
+  decision,
+  shop,
+  simulated,
+  reply,
+}: {
+  state: OfferState
+  decision: ReturnType<typeof useShopBundle>["actions"]["decisions"][string] | null
+  shop: string
+  simulated: boolean
+  reply: { text: string; via: "engine" | "local" } | null
+}) {
+  const Icon = PRIME_ICON[state]
+  let line: string
+  if (state === "accepted") line = decision?.at ? t("o.prime.status.accepted", { shop, date: fmtDateTime(decision.at) }) : t("o.prime.status.acceptedNoDate", { shop })
+  else if (state === "declined") {
+    const r = reasonText(decision)
+    line = r ? t("o.prime.status.declined", { shop, reason: r.toLowerCase() }) : t("o.prime.status.declinedNoReason", { shop })
+  } else if (state === "question") line = t("o.prime.status.question", { shop, question: (questionText(decision) ?? "").toLowerCase() })
+  else line = t("o.prime.status.open", { shop })
+  return (
+    <section aria-label={t("o.prime.status.label", { shop })} className="flex flex-col gap-2" data-testid="prime-offer-status">
+      <div className={cn("flex items-start gap-2 rounded-xl border px-4 py-3", PRIME_TONE[state])}>
+        <Icon className="mt-0.5 size-5 shrink-0" aria-hidden />
+        <div className="min-w-0 flex-1">
+          <p className="text-base leading-snug font-semibold">{line}</p>
+          {decision?.note && (state === "declined" || state === "question") ? (
+            <p className="text-sm break-words text-foreground/80">“{decision.note}”</p>
+          ) : null}
+          {simulated ? <p className="text-sm text-foreground/80">{t("o.prime.status.sim", { shop })}</p> : null}
+          {state === "question" && reply ? (
+            <p className="mt-1 flex items-start gap-1.5 text-sm text-foreground">
+              <MessageSquareReply className="mt-0.5 size-4 shrink-0" aria-hidden />
+              {t("o.prime.replied", { text: reply.text })}
+            </p>
+          ) : null}
+        </div>
+        {simulated ? <SimulatedChip /> : null}
+      </div>
+      {state === "question" && !reply ? (
+        <Link href="/m/prime" className="text-base font-medium text-brand underline underline-offset-4">
+          {t("o.prime.replyCta")}
+        </Link>
+      ) : null}
+      <p className="flex items-start gap-2 text-sm text-muted-foreground">
+        <Eye className="mt-0.5 size-4 shrink-0" aria-hidden />
+        {t("o.prime.readOnly", { shop })}
+      </p>
+    </section>
   )
 }
 

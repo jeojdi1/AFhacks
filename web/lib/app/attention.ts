@@ -1,9 +1,10 @@
 // Shop "Today" home: what needs the owner tonight, in a fixed order
 // (docs/app-spec.md §2.2, T2). Pure logic, no React. Owner: Agent T.
 //
-// Order never changes: offers needing a reply → renewals (urgent / window open /
-// lapsed) → capacity check-in → one step away (readiness[0]) → workers in
-// training. A card that no longer applies drops out; the others keep their order.
+// Order never changes: offers needing a reply → Northgate's replies to the shop's
+// questions → renewals (urgent / window open / lapsed) → capacity check-in → one
+// step away (readiness[0]) → workers in training. A card that no longer applies
+// drops out; the others keep their order.
 
 import { COUNTING_CERT_STATUSES } from "@/lib/api/types"
 import { CERT_LABEL, PROCESS_LABEL, fmtMoney, label } from "@/lib/format"
@@ -20,6 +21,14 @@ extendStrings("en", {
   "today.offers.big_one": "offer",
   "today.offers.verb": "Reply",
   "today.offers.assumption": "Reply-by dates are set by the prime; the demo uses 5 business days from when the offer arrived",
+
+  "today.reply.title": "{prime} replied on {job}: “{text}”",
+  "today.reply.titleMany": "{prime} replied to {count} of your questions",
+  "today.reply.detail": "You can still accept or decline",
+  "today.reply.detailMany": "Latest on {job}: “{text}”",
+  "today.reply.big": "replies",
+  "today.reply.big_one": "reply",
+  "today.reply.verb": "Open",
 
   "today.renewal.title": "{cert} · {verb} by {date}",
   "today.renewal.titleLapsed": "{cert} · lapsed {date}",
@@ -40,7 +49,7 @@ extendStrings("en", {
   "today.capacity.big": "weeks ahead",
   "today.capacity.bigLast": "h/wk free last time",
   "today.capacity.verb": "Confirm",
-  "today.capacity.overTitle": "You're {hours} h/wk over on accepted work",
+  "today.capacity.overTitle": "Work accepted since your check-in is {hours} h/wk over your free hours",
   "today.capacity.overDetail": "You confirmed {free} h/wk free on {date}. Consider declining an offer or asking Northgate to split the quantity",
   "today.capacity.overBig": "h/wk over",
   "today.capacity.overVerb": "Review",
@@ -64,7 +73,7 @@ extendStrings("en", {
   "today.training.detail": "+{hours} h/wk {process} once qualified",
   "today.training.detailNoHours": "Funded by Northgate · {cert}",
   "today.training.big": "in training",
-  "today.training.verb": "View seat",
+  "today.training.verb": "View seats",
   "today.training.assumption": "Added weekly hours are a demo estimate per trainee, not a shop commitment",
   "today.training.welders": "welders",
   "today.training.welders_one": "welder",
@@ -99,12 +108,25 @@ export interface AttentionOptions {
    * funded package arrive at the fund time; everything else at routedAt.
    */
   offeredAt?: Record<string, string>
+  /**
+   * The prime's replies to this shop's open questions (job id → reply), from the
+   * engine's decision.reply or recorded on this device (prime-replies.ts).
+   */
+  replies?: Record<string, { text: string; at: string }>
+  /** Short prime name for copy ("Northgate"). */
+  prime?: string
 }
 
 /** The bundle fields buildAttention reads (a full ShopBundle works). */
 export type AttentionBundle = Pick<ShopBundle, "detail" | "offers" | "actions" | "assignments" | "shop">
 
 const shopPath = (shopId: string) => `/m/shops/${encodeURIComponent(shopId)}`
+
+/** The seats section of a shop's Grow item: /m/shops/syn-012/grow/CWB_W47.1#seats (Grow tab when the requirement is unknown). */
+export function seatsHref(shopId: string, requirement: string | null): string {
+  const grow = `${shopPath(shopId)}/grow`
+  return requirement ? `${grow}/${encodeURIComponent(requirement)}#seats` : grow
+}
 
 /** Short certificate name for card titles ("CGP", "CPCSC L1", "CWB W47.1"). */
 export function certShort(type: string): string {
@@ -137,6 +159,20 @@ export function nextCheckinDate(c: CapacityCheckin | null | undefined, today: Da
 /** Offers still waiting on the shop (status offered, no decision or only a question). */
 export function openOffers(b: Pick<AttentionBundle, "offers">) {
   return b.offers.filter((o) => o.status === "offered")
+}
+
+/**
+ * Weekly hours of offers accepted after `since` (a capacity check-in): the check-in's
+ * free hours already leave out work booked before it.
+ */
+export function acceptedSinceHours(b: Pick<AttentionBundle, "offers" | "actions">, since: string): number {
+  return b.offers
+    .filter((o) => {
+      if (o.status !== "accepted") return false
+      const d = b.actions.decisions[o.job_id]
+      return d?.decision === "accepted" && d.at > since
+    })
+    .reduce((s, o) => s + o.hours_week, 0)
 }
 
 /** Weekly hours of accepted offers. */
@@ -234,6 +270,30 @@ export function buildAttention(
     })
   }
 
+  // 1b. Northgate answered the shop's questions.
+  const replied = Object.entries(opts.replies ?? {})
+    .filter(([job]) => actions.decisions[job]?.decision === "question")
+    .sort((a, z) => z[1].at.localeCompare(a[1].at))
+  if (replied.length) {
+    const prime = opts.prime ?? "Northgate"
+    const [job, r] = replied[0]
+    const one = replied.length === 1
+    out.push({
+      kind: "reply",
+      ref_id: one ? job : null,
+      title: one ? t("today.reply.title", { prime, job, text: r.text }) : t("today.reply.titleMany", { prime, count: replied.length }),
+      detail: one ? t("today.reply.detail") : t("today.reply.detailMany", { job, text: r.text }),
+      due_at: null,
+      value_cad: null,
+      href: one ? `${base}/offers/${encodeURIComponent(job)}` : `${base}/offers`,
+      tone: "info",
+      big: String(replied.length),
+      big_label: t("today.reply.big", { count: replied.length }),
+      verb: t("today.reply.verb"),
+      assumption: null,
+    })
+  }
+
   // 2. Renewals that need action, most urgent first (one card each).
   const due = renewals
     .filter((r) => r.status !== "unknown" && RENEWAL_CARD_STAGES.includes(r.stage))
@@ -271,7 +331,8 @@ export function buildAttention(
 
   // 3. Capacity check-in (weekly), or an over-capacity warning after one.
   const cap = actions.capacity
-  const accepted = acceptedLoadHours(bundle)
+  // Confirmed hours are FREE hours (booked work already left out), so only work accepted after the check-in uses them up.
+  const accepted = cap ? acceptedSinceHours(bundle, cap.confirmed_at) : acceptedLoadHours(bundle)
   if (!capacityFresh(cap, today)) {
     out.push({
       kind: "capacity",
@@ -350,7 +411,8 @@ export function buildAttention(
         : t("today.training.detailNoHours", { cert: tr.cert_unlock ? certShort(tr.cert_unlock) : tr.category }),
       due_at: null,
       value_cad: null,
-      href: `/m/trainee/${encodeURIComponent(tr.package_id)}?seat=1`,
+      // The shop's own seats summary (stages only, no names), not the trainee's private seat card.
+      href: seatsHref(shopId, tr.cert_unlock ?? Object.keys(tr.capacity_unlock ?? {})[0] ?? null),
       tone: "info",
       big: String(tr.trainees),
       big_label: t("today.training.big"),

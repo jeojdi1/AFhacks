@@ -8,6 +8,7 @@ import {
   Clock,
   GraduationCap,
   Inbox,
+  MessageSquareReply,
   OctagonAlert,
   ShieldAlert,
   Sprout,
@@ -20,6 +21,7 @@ import type { AttentionKind, AttentionTone, RenewalStage } from "@/lib/app/types
 
 const KIND_ICON: Record<AttentionKind, React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>> = {
   offers: Inbox,
+  reply: MessageSquareReply,
   renewal: ShieldAlert,
   capacity: Clock,
   readiness: Sprout,

@@ -74,6 +74,11 @@ export interface DemoActions {
   getShops(): Promise<ShopsResponse>
   getShop(id: string): Promise<ShopDetailResponse>
   setOfferStatus(shopId: string, jobId: string, status: OfferDecision): void
+  /**
+   * Replace every offer answer at once (live: the actions store mirrors the engine's current
+   * decisions, so an undo, reset or reseed elsewhere clears rows setOfferStatus never could).
+   */
+  replaceOfferStatus(next: Record<string, OfferDecision>): void
   setMode(m: Mode): void
 }
 
@@ -155,6 +160,8 @@ function resolveOverrides() {
 const STORAGE_KEY = "muster.demo.v1"
 /** Live-mode extras the engine cannot give back after a reload (fund responses, solver). */
 const LIVE_CACHE_KEY = "muster.demo.live.v1"
+/** Last flow read from the live engine: what a reload shows while the engine is unreachable. */
+const LIVE_FLOW_KEY = "muster.demo.liveflow.v1"
 const IDS = demoIds()
 
 export const BUSY = {
@@ -177,8 +184,11 @@ interface Persisted {
   modeOverride: Mode | null
   stage: Stage
   funded: string[]
+  /** Only written for demo data: live offer answers come from the engine (the actions store). */
   offerStatus: Record<string, OfferDecision>
   fileName: string | null
+  /** The mode the page last ran in, so an "auto" reload during an engine outage stays live. */
+  lastMode: Mode | null
 }
 
 function readPersisted(): Persisted | null {
@@ -193,6 +203,7 @@ function readPersisted(): Persisted | null {
       funded: Array.isArray(p.funded) ? p.funded.filter((x): x is string => typeof x === "string") : [],
       offerStatus: p.offerStatus && typeof p.offerStatus === "object" ? p.offerStatus : {},
       fileName: typeof p.fileName === "string" ? p.fileName : null,
+      lastMode: p.lastMode === "live" || p.lastMode === "fixtures" ? p.lastMode : null,
     }
   } catch {
     return null
@@ -235,6 +246,34 @@ function writeLiveCache(c: LiveCache) {
     window.localStorage.setItem(LIVE_CACHE_KEY, JSON.stringify(c))
   } catch {
     /* storage unavailable */
+  }
+}
+
+function readLiveFlow(): FlowData | null {
+  try {
+    const raw = window.localStorage.getItem(LIVE_FLOW_KEY)
+    if (!raw) return null
+    const f = JSON.parse(raw) as Partial<FlowData>
+    const stages: Stage[] = ["empty", "uploaded", "routed", "funded"]
+    if (!f || !stages.includes(f.stage as Stage)) return null
+    if (!Array.isArray(f.jobs) || !Array.isArray(f.assignments) || !Array.isArray(f.blocked) || !Array.isArray(f.fundedIds)) {
+      return null
+    }
+    return {
+      ...emptyFlow(f.program ?? null),
+      ...f,
+      fundResults: f.fundResults && typeof f.fundResults === "object" ? f.fundResults : {},
+    } as FlowData
+  } catch {
+    return null
+  }
+}
+
+function writeLiveFlow(f: FlowData) {
+  try {
+    window.localStorage.setItem(LIVE_FLOW_KEY, JSON.stringify(f))
+  } catch {
+    /* storage unavailable or full: an outage reload shows an empty live page instead */
   }
 }
 
@@ -1090,6 +1129,13 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
     [patch, handleError]
   )
 
+  /**
+   * Live, engine unreachable at load: the page stays live and shows the last live flow
+   * (or an empty live page). The engine watcher reloads the flow on its first answer,
+   * and the actions store sends anything queued meanwhile.
+   */
+  const offlineLoadRef = React.useRef(false)
+
   // Detect mode and restore the flow once on mount.
   React.useEffect(() => {
     let cancelled = false
@@ -1100,41 +1146,55 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
       // A runtime ?mode= override beats the saved switcher choice.
       const p = saved && modeOverridden ? { ...saved, modeOverride: null } : saved
       modeOverrideRef.current = p?.modeOverride ?? null
-      // A saved "fixtures" choice is honoured as-is. A saved "live" choice still
-      // probes the engine, so a reload with the engine down falls back to demo mode.
+      // Only an explicit "Demo data" choice (switcher or ?mode=fixtures) means fixtures.
+      // Live asked for (switcher, ?mode=live, env live, or an "auto" page that last ran
+      // live) stays live through an engine outage instead of silently dropping to demo data.
+      const liveWanted =
+        p?.modeOverride === "live" ||
+        (p?.modeOverride !== "fixtures" && (envMode === "live" || (envMode === "auto" && p?.lastMode === "live")))
       let mode: Mode
       if (p?.modeOverride === "fixtures") mode = "fixtures"
-      else if (p?.modeOverride === "live" || envMode === "auto") {
-        mode = (await probeLive()) ? "live" : "fixtures"
-        if (mode === "fixtures" && p?.modeOverride === "live") {
-          modeOverrideRef.current = null
-          toast.message("Live engine not reachable", { description: "Continuing in demo mode with the same steps." })
-        }
-      } else mode = envMode
+      else if (liveWanted) mode = "live"
+      else if (envMode === "auto") mode = (await probeLive()) ? "live" : "fixtures"
+      else mode = envMode
       if (cancelled) return
 
-      const restored = {
-        offerStatus: p?.offerStatus ?? {},
-        fileName: p?.stage && p.stage !== "empty" ? p.fileName : null,
-      }
+      const fileName = p?.stage && p.stage !== "empty" ? p.fileName : null
       if (mode === "fixtures") {
         const flow = replayFixtures(p)
-        patch({ ...flow, ...restored, mode, apiUrl: apiBase, ready: true, busy: null, error: null })
+        patch({ ...flow, offerStatus: p?.offerStatus ?? {}, fileName, mode, apiUrl: apiBase, ready: true, busy: null, error: null })
         return
       }
+      // Live: offer answers always come from the engine (the actions store mirrors them in),
+      // never from an earlier session's localStorage.
       try {
+        // A short probe first, so a dead host never leaves the page on "Connecting" for 30 s.
+        if (liveWanted && !(await probeLive())) throw new ApiError(0, "Engine not reachable", true)
         const flow = await loadLive()
         if (cancelled) return
-        patch({ ...flow, ...restored, mode, apiUrl: apiBase, ready: true, busy: null, error: null })
+        offlineLoadRef.current = false
+        patch({ ...flow, offerStatus: {}, fileName, mode, apiUrl: apiBase, ready: true, busy: null, error: null })
       } catch {
         if (cancelled) return
-        // Engine down or failing (also when live is forced by ?mode=live or the env):
-        // replay the saved step on fixtures so the presenter keeps their place and the
-        // persisted stage is never overwritten with "empty".
-        modeOverrideRef.current = null
-        patch({ ...replayFixtures(p), ...restored, mode: "fixtures", apiUrl: apiBase, ready: true, busy: null, error: null })
-        toast.message(envMode === "live" ? "Live engine not reachable" : "Live engine not responding", {
-          description: "Continuing in demo mode with the same steps.",
+        const cached = readLiveFlow()
+        offlineLoadRef.current = true
+        patch({
+          ...(cached ?? emptyFlow(null)),
+          offerStatus: {},
+          fileName: cached && cached.stage !== "empty" ? fileName : null,
+          mode: "live",
+          apiUrl: apiBase,
+          ready: true,
+          busy: null,
+          error: null,
+        })
+        toast.message("Not connected to the live engine", {
+          id: "engine-offline",
+          description: cached
+            ? "Showing the last live data. Muster reconnects on its own and sends anything waiting."
+            : "Muster reconnects on its own and sends anything waiting.",
+          action: { label: "Use demo data", onClick: () => setModeRef.current("fixtures") },
+          duration: 10000,
         })
       }
     })()
@@ -1150,10 +1210,34 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
       modeOverride: modeOverrideRef.current,
       stage: state.stage,
       funded: state.fundedIds,
-      offerStatus: state.offerStatus,
+      // Live answers belong to the engine: never persist them, or a reseed/reset elsewhere
+      // would come back from localStorage as stale "Answered" rows.
+      offerStatus: state.mode === "live" ? {} : state.offerStatus,
       fileName: state.fileName,
+      lastMode: state.mode,
     })
   }, [state.ready, state.stage, state.fundedIds, state.offerStatus, state.fileName, state.mode])
+
+  // Live: keep the last engine flow so a reload during an outage still shows it.
+  React.useEffect(() => {
+    if (!state.ready || state.mode !== "live" || state.busy) return
+    // Hydrated from the snapshot while offline: nothing new to save until the engine answers.
+    if (offlineLoadRef.current) return
+    writeLiveFlow(flowOf(stateRef.current))
+  }, [
+    state.ready,
+    state.mode,
+    state.busy,
+    state.stage,
+    state.program,
+    state.jobs,
+    state.assignments,
+    state.blocked,
+    state.ledger,
+    state.gaps,
+    state.fundResults,
+    state.fundedIds,
+  ])
 
   // Live mode: keep fund responses + solver so a reload can restore the Gaps/Scorecard/Shop panels.
   React.useEffect(() => {
@@ -1170,9 +1254,12 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
   // or a routed/funded event arrived, reload the flow exactly as on mount. The page only
   // redraws when the reloaded flow differs, so this tab's own steps never cause a toast.
   const seqRef = React.useRef<number | null>(null)
+  /** routed_at of the engine's latest routing; undefined until the first read. */
+  const routedAtRef = React.useRef<string | null | undefined>(undefined)
   React.useEffect(() => {
     if (!state.ready || state.mode !== "live") {
       seqRef.current = null
+      routedAtRef.current = undefined
       return
     }
     let stopped = false
@@ -1185,17 +1272,24 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
       const gen = genRef.current
       try {
         const since = seqRef.current
-        const [prog, ev] = await Promise.all([
+        const [prog, ev, acts] = await Promise.all([
           http<ProgramResponse>("GET", `/programs/${PID}`, { timeoutMs: 3000 }),
           http<{ last_seq?: number; has_more?: boolean; events?: { kind?: string }[] }>(
             "GET",
             `/programs/${PID}/events?since=${since ?? 0}&limit=100`,
             { timeoutMs: 3000 }
           ).catch(() => null),
+          http<{ routed_at?: string | null }>("GET", `/programs/${PID}/actions`, { timeoutMs: 3000 }).catch(() => null),
         ])
         if (stopped || gen !== genRef.current) return
         const lastSeq = typeof ev?.last_seq === "number" ? ev.last_seq : null
-        const engineReset = since !== null && lastSeq !== null && lastSeq < since
+        // A reset + reseed can land last_seq on (or past) our watermark; a new routed_at gives it away.
+        const routedAt = acts ? (acts.routed_at ?? null) : undefined
+        const rerouted = routedAt !== undefined && routedAtRef.current !== undefined && routedAt !== routedAtRef.current
+        if (routedAt !== undefined) routedAtRef.current = routedAt
+        // The first answer after an offline load: always reload the flow from the engine.
+        const reconnected = offlineLoadRef.current
+        const engineReset = (since !== null && lastSeq !== null && lastSeq < since) || rerouted
         const flowEvent =
           since !== null && (!!ev?.has_more || (ev?.events ?? []).some((e) => FLOW_EVENT_KINDS.has(String(e?.kind))))
         const cur = stateRef.current
@@ -1206,7 +1300,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
           (routedLike &&
             ((prog.counts?.assigned ?? cur.assignments.length) !== cur.assignments.length ||
               (prog.counts?.blocked ?? cur.blocked.length) !== cur.blocked.length))
-        if (!engineReset && !flowEvent && !countsDiffer) {
+        if (!engineReset && !flowEvent && !countsDiffer && !reconnected) {
           if (lastSeq !== null) seqRef.current = lastSeq
           return
         }
@@ -1215,6 +1309,17 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
         // A step started meanwhile: leave the watermark so the next check looks again.
         if (stopped || gen !== genRef.current || now.busy || now.mode !== "live") return
         if (lastSeq !== null) seqRef.current = lastSeq
+        if (reconnected) {
+          offlineLoadRef.current = false
+          patch((c2) => ({
+            ...flow,
+            error: null,
+            offerStatus: {},
+            fileName: flow.stage === "empty" ? null : c2.fileName,
+          }))
+          toast.success("Connected to the live engine", { id: "engine-offline", description: liveSummary(flow) })
+          return
+        }
         const changed = flowFingerprint(flow) !== flowFingerprint(now)
         if (!changed) {
           // Same flow, but the engine restarted its log: old offer answers no longer apply
@@ -1434,15 +1539,17 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
       const s = stateRef.current
       if (s.mode === "live") {
         try {
-          const d = await http<ShopDetailResponse>("GET", `/shops/${encodeURIComponent(id)}`)
-          return applyOfferStatus(d, stateRef.current.offerStatus)
+          // Live offer status is the engine's; the phone/laptop overlay the engine's answers
+          // (actions store) on top, never an earlier session's local ones.
+          return await http<ShopDetailResponse>("GET", `/shops/${encodeURIComponent(id)}`)
         } catch (e) {
           handleError(e, "Could not load this shop")
         }
       } else {
         await latency()
       }
-      return applyOfferStatus(fxShopDetail(id, flowOf(stateRef.current)), stateRef.current.offerStatus)
+      const fxDetail = fxShopDetail(id, flowOf(stateRef.current))
+      return s.mode === "fixtures" ? applyOfferStatus(fxDetail, stateRef.current.offerStatus) : fxDetail
     },
     [handleError]
   )
@@ -1454,9 +1561,25 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
     [patch]
   )
 
+  const replaceOfferStatus = React.useCallback(
+    (next: Record<string, OfferDecision>) => {
+      // Returns the same state when nothing changed, so a mirror effect never loops.
+      setState((cur) => {
+        const keys = Object.keys(cur.offerStatus)
+        const same = keys.length === Object.keys(next).length && keys.every((k) => cur.offerStatus[k] === next[k])
+        if (same) return cur
+        const updated = { ...cur, offerStatus: { ...next } }
+        stateRef.current = updated
+        return updated
+      })
+    },
+    []
+  )
+
   const setMode = React.useCallback(
     (m: Mode) => {
       const gen = ++genRef.current
+      offlineLoadRef.current = false
       modeOverrideRef.current = m
       // Keep an active ?mode= override in step with the switcher so a reload agrees.
       if (modeOverridden) sessionSet(SESSION_MODE_KEY, m)
@@ -1469,6 +1592,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
           funded: cur.fundedIds,
           offerStatus: cur.offerStatus,
           fileName: cur.fileName,
+          lastMode: "live",
         })
         patch({
           ...flow,
@@ -1537,9 +1661,10 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
       getShops,
       getShop,
       setOfferStatus,
+      replaceOfferStatus,
       setMode,
     }),
-    [state, demoShopId, reset, uploadParts, route, fund, getShops, getShop, setOfferStatus, setMode]
+    [state, demoShopId, reset, uploadParts, route, fund, getShops, getShop, setOfferStatus, replaceOfferStatus, setMode]
   )
 
   return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>

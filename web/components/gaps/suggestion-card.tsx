@@ -11,6 +11,8 @@ import { AssumptionTag } from "@/components/muster/assumption-tag";
 import { Details } from "@/components/muster/details";
 import { StatusBadge } from "@/components/muster/status-badge";
 import { useAppActions } from "@/lib/app/actions-store";
+import { isSimulatedEvent } from "@/lib/app/sim-flag";
+import { SimulatedChip } from "@/components/mobile/shell/simulation";
 import { packageTitle, shortShopName } from "@/lib/app/copy";
 import { growHref } from "@/lib/app/readiness";
 import { fmtTime } from "@/lib/app/today";
@@ -52,16 +54,22 @@ function partnerName(pkg: TrainingPackage): string {
 
 /** Phone app (§2.5): the shop asked Northgate to fund this package. Kept on the desktop card. */
 function RequestedBadge({ pkg }: { pkg: TrainingPackage }) {
-  const request = useAppActions().fundingRequests[pkg.id];
+  const { fundingRequests, events } = useAppActions();
+  const request = fundingRequests[pkg.id];
   if (!request) return null;
+  // Written by the demo simulator: say so (same rule as the activity bell and /m/prime).
+  const simulated = events.some((e) => e.kind === "funding_requested" && e.package_id === pkg.id && isSimulatedEvent(e));
   return (
-    <span
-      data-shop-requested
-      className="inline-flex h-6 items-center gap-1 rounded-md border border-public/25 bg-public-soft px-2 text-[13px] font-medium whitespace-nowrap text-public"
-      title={cd("gaps.hero.requested.tip", { requirement: request.requirement })}
-    >
-      <Hand className="size-3.5" aria-hidden />
-      {cd("gaps.hero.requested", { time: fmtTime(request.at) })}
+    <span className="inline-flex flex-wrap items-center gap-1.5">
+      <span
+        data-shop-requested
+        className="inline-flex h-6 items-center gap-1 rounded-md border border-public/25 bg-public-soft px-2 text-[13px] font-medium whitespace-nowrap text-public"
+        title={cd("gaps.hero.requested.tip", { requirement: request.requirement })}
+      >
+        <Hand className="size-3.5" aria-hidden />
+        {cd("gaps.hero.requested", { time: fmtTime(request.at) })}
+      </span>
+      {simulated ? <SimulatedChip /> : null}
     </span>
   );
 }

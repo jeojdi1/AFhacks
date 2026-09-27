@@ -33,8 +33,8 @@ export function SeatStepper({ stages, currentId }: { stages: SeatStage[]; curren
             >
               {done ? <Check className="size-5" /> : i + 1}
             </span>
-            <div className={cn("min-w-0 flex-1 pb-5", !done && !now && "opacity-70")}>
-              <p className="flex flex-wrap items-center gap-2 text-base leading-snug font-semibold">
+            <div className="min-w-0 flex-1 pb-5">
+              <p className={cn("flex flex-wrap items-center gap-2 text-base leading-snug font-semibold", !done && !now && "text-muted-foreground")}>
                 {s.label}
                 {now ? (
                   <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">{t("seat.current")}</span>

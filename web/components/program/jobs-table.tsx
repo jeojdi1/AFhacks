@@ -195,6 +195,7 @@ function JobRowView({ row: r, detail }: { row: JobRow; detail: boolean }) {
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-1.5">
               <StatusBadge kind={a.shop_source === "public" ? "public" : "synthetic"} />
+              {r.declined ? <DeclinedChip /> : null}
               <span className="text-xs text-slate-500">
                 {a.shop_city} · {fmtKm(a.distance_km)}
               </span>
@@ -303,6 +304,7 @@ function JobCardView({ row: r }: { row: JobRow }) {
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="font-medium text-slate-900">{a.shop_name}</span>
             <StatusBadge kind={a.shop_source === "public" ? "public" : "synthetic"} />
+            {r.declined ? <DeclinedChip /> : null}
           </div>
           <div className="text-xs text-slate-500">
             {a.shop_city} · {fmtKm(a.distance_km)} · {cb("why.match", { score: Math.round(a.score * 100) })}
@@ -421,6 +423,19 @@ function MultiplierChip({ multiplier }: { multiplier: number }) {
       )}
     >
       {double ? cb("program.chip.double") : multiplier === 1 ? cb("program.chip.single") : `counts ${multiplier}×`}
+    </span>
+  );
+}
+
+/** The shop said no; the demo keeps routing (and credit) as matched until Northgate re-routes. */
+function DeclinedChip() {
+  return (
+    <span
+      className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-900"
+      title="The shop declined this offer. The demo keeps the match and its credit until Northgate picks another shop."
+      data-declined-chip
+    >
+      Declined, still counted (demo)
     </span>
   );
 }

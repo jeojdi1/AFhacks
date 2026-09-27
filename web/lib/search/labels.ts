@@ -93,6 +93,58 @@ export interface ParsedQuery {
   /** Left-over text used as a name / city search when nothing else was recognised. */
   q: string | null
   recognised: string[]
+  /** Place names the demo data can't search ("near Ottawa"): shown so they aren't silently dropped. */
+  ignored: string[]
+}
+
+/** Where the demo's shops are; used when a place in the request can't be searched. */
+export const COVERAGE_NOTE = "demo data covers Southwestern Ontario only; showing all locations"
+
+// "near X" / "in X": up to three words, stopping at a joining word, a number or punctuation.
+const PLACE_PHRASE =
+  /\b(near|around|close\s+to|in)\s+((?:(?!(?:within|with|that|who|which|for|and|or|having|has|km|shops?|suppliers?)\b)\p{L}[\p{L}.'-]*\s*){1,3})/giu
+// Regions the demo already sits inside: nothing to filter, nothing to warn about.
+const COVERED_PLACES = new Set(["canada", "ontario", "southern ontario", "southwestern ontario", "southwest ontario", "sw ontario"])
+// "in <word>" is usually a material or a phrase ("in aluminum", "in house"); treat it as a place
+// only when it is written with a capital or is a well-known Canadian place.
+const KNOWN_PLACES = new Set([
+  "toronto", "ottawa", "montreal", "montréal", "quebec", "québec", "quebec city", "vancouver", "calgary", "edmonton",
+  "winnipeg", "halifax", "windsor", "sudbury", "kingston", "oshawa", "barrie", "guelph", "niagara", "niagara falls",
+  "st. catharines", "st catharines", "burlington", "mississauga", "brampton", "markham", "sarnia", "thunder bay",
+  "peterborough", "belleville", "brantford", "saskatoon", "regina", "victoria", "moncton", "fredericton", "gatineau",
+  "laval", "longueuil", "sherbrooke", "st. john's", "charlottetown", "north bay", "sault ste. marie", "timmins",
+  "british columbia", "alberta", "saskatchewan", "manitoba", "nova scotia", "new brunswick", "newfoundland", "pei",
+  "northern ontario", "eastern ontario", "gta",
+])
+const PLACE_BLOCK = /\b(me|here|us|house|stock|aluminum|aluminium|steel|stainless|titanium|brass|copper|plastic|volume|bulk|canada)\b/i
+
+/** Place phrases in the request that are not a searchable city (e.g. "Ottawa"). */
+function unknownPlaces(raw: string, cities: string[], near: string | null): string[] {
+  const known = new Set(cities.map((c) => c.toLowerCase()))
+  const out: string[] = []
+  for (const m of raw.matchAll(PLACE_PHRASE)) {
+    const word = m[1].toLowerCase().replace(/\s+/g, " ")
+    const phrase = m[2].trim().replace(/[.'-]+$/, "")
+    const lower = phrase.toLowerCase()
+    if (!phrase || COVERED_PLACES.has(lower)) continue
+    // A searchable city, or one that starts the phrase ("London Ontario").
+    if (known.has(lower) || [...known].some((c) => lower === c || lower.startsWith(`${c} `))) continue
+    if (near && lower.includes(near.toLowerCase())) continue
+    // Process or certificate words ("in 5-axis", "near cnc") are not places.
+    const t = ` ${lower} `
+    if (PROCESS_WORDS.some(([re]) => re.test(t)) || CERT_WORDS.some(([re]) => re.test(t)) || MILLING.test(t)) continue
+    if (PLACE_BLOCK.test(lower)) continue
+    const capitalised = /^\p{Lu}/u.test(phrase)
+    const knownPlace = KNOWN_PLACES.has(lower) || KNOWN_PLACES.has(lower.split(" ")[0])
+    if (word === "in" && !capitalised && !knownPlace) continue
+    // Keep only the place itself: known multi-word names whole, otherwise the capitalised words.
+    const name = knownPlace || !capitalised ? phrase : phrase.split(/\s+/).filter((w) => /^\p{Lu}/u.test(w)).join(" ") || phrase
+    const pretty = name
+      .replace(/\s+(ontario|on)$/i, "")
+      .replace(/(^|\s)(\p{Ll})/gu, (_, sp: string, ch: string) => sp + ch.toUpperCase())
+    if (!out.includes(pretty)) out.push(pretty)
+  }
+  return out
 }
 
 const PROCESS_WORDS: [RegExp, string][] = [
@@ -135,6 +187,7 @@ export function parseQuery(text: string, cities: string[]): ParsedQuery {
     includePublic: null,
     q: null,
     recognised: [],
+    ignored: [],
   }
   if (!raw) return out
   for (const [re, p] of PROCESS_WORDS) if (re.test(t) && !out.process.includes(p)) out.process.push(p)
@@ -164,7 +217,9 @@ export function parseQuery(text: string, cities: string[]): ParsedQuery {
   for (const c of out.cert) out.recognised.push(certFirst(c))
   if (out.near) out.recognised.push(`near ${out.near} (${out.radius_km ?? DEFAULT_RADIUS_KM} km)`)
   if (out.dnd_history) out.recognised.push("has National Defence contract history")
-  if (!out.recognised.length) out.q = raw
+  out.ignored = unknownPlaces(raw, cities, out.near)
+  // A place we can't search is not a shop name: leave it out rather than match nothing.
+  if (!out.recognised.length && !out.ignored.length) out.q = raw
   return out
 }
 

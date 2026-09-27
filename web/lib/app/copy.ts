@@ -150,7 +150,7 @@ extendStrings("en", {
   "ready.requested": "Requested {date} · awaiting Northgate",
   "ready.funded": "Funded · {count} welders in training",
   "ready.fundedGeneric": "Funded · {count} in training",
-  "ready.seeSeat": "See the trainee seat",
+  "ready.seeSeat": "See the seats",
   "ready.requestedToast": "Request sent to Northgate",
   "ready.requestedToastBody": "Northgate sees it on its Gaps page.",
   "ready.notRouted": "Northgate hasn't sent offers yet",

@@ -94,8 +94,9 @@
   --status-blocked-soft: oklch(0.987 0.022 95.277); /* amber-50 */
   --status-controlled: oklch(0.541 0.281 293.009); /* violet-600 */
   --status-controlled-soft: oklch(0.969 0.016 293.756); /* violet-50 */
-  --status-funded: oklch(0.596 0.145 163.225);
-  --status-funded-soft: oklch(0.979 0.021 166.113);
+  /* emerald-700 (#007a55): text-funded on emerald-50 >= 5:1 (emerald-600 was 3.46:1, WCAG AA fail) */
+  --status-funded: oklch(0.508 0.118 165.612);
+  --status-funded-soft: oklch(0.979 0.021 166.113); /* emerald-50 */
   --status-public: oklch(0.5 0.134 242.749); /* sky-700 */
   --status-public-soft: oklch(0.977 0.013 236.62); /* sky-50 */
   --status-synthetic: oklch(0.446 0.043 257.281); /* slate-600 */

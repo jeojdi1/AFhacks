@@ -4,12 +4,26 @@
 // button. Tone uses colour + icon + text together (WCAG 1.4.1).
 
 import Link from "next/link"
-import { CircleCheck, CircleHelp, CircleX, Clock, HandCoins, Info, Route, ShieldCheck, TriangleAlert, Undo2, Wrench } from "lucide-react"
+import {
+  CircleCheck,
+  CircleHelp,
+  CircleX,
+  Clock,
+  HandCoins,
+  Info,
+  MessageSquareReply,
+  Route,
+  ShieldCheck,
+  TriangleAlert,
+  Undo2,
+  Wrench,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 import { fmtTime } from "@/lib/app/today"
 import type { FeedItem, FeedTone } from "@/lib/app/feed"
 import { SimulatedChip } from "@/components/mobile/shell/simulation"
+import { usePhoneHref } from "@/components/mobile/shell/use-phone-href"
 
 const TONE: Record<FeedTone, string> = {
   success: "bg-assigned-soft text-assigned",
@@ -30,6 +44,8 @@ function KindIcon({ item }: { item: FeedItem }) {
       return <CircleHelp className={cls} aria-hidden />
     case "offer_undo":
       return <Undo2 className={cls} aria-hidden />
+    case "offer_reply":
+      return <MessageSquareReply className={cls} aria-hidden />
     case "funding_requested":
       return <HandCoins className={cls} aria-hidden />
     case "package_funded":
@@ -67,6 +83,7 @@ export function NoBreakIds({ text }: { text: string }) {
 
 export function ActivityItem({ item, fresh = false }: { item: FeedItem; fresh?: boolean }) {
   const a = item.action
+  const phoneHref = usePhoneHref()
   const btn = cn(buttonVariants({ variant: "outline", size: "touch" }), "shrink-0")
   return (
     <li
@@ -112,7 +129,7 @@ export function ActivityItem({ item, fresh = false }: { item: FeedItem; fresh?: 
               {a.label}
             </a>
           ) : (
-            <Link href={a.href} className={btn}>
+            <Link href={phoneHref(a.href)} className={btn}>
               {a.label}
             </Link>
           )}

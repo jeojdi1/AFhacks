@@ -182,7 +182,7 @@ export function useShopBundle(shopId: string): ShopBundle {
     // Latest offer event per job: an undo (or a question) means "offered" again,
     // even though the desktop overlay (useDemo().offerStatus) cannot be cleared.
     const lastKind: Record<string, string> = {}
-    for (const e of actions.events) if (e.job_id && e.kind.startsWith("offer_")) lastKind[e.job_id] = e.kind
+    for (const e of actions.events) if (e.job_id && e.kind.startsWith("offer_") && e.kind !== "offer_reply") lastKind[e.job_id] = e.kind
     return detail.offers.map((o) => {
       const d = actions.decisions[o.job_id]
       let status = o.status

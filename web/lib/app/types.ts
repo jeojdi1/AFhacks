@@ -74,8 +74,21 @@ export interface OfferDecisionRec {
   /** ISO timestamp (UTC). */
   at: string
   idempotency_key: string
+  /**
+   * Northgate's reply to a question decision (POST /shops/{id}/offers/{job}/reply).
+   * Absent until the prime replies; a new decision by the shop drops it.
+   */
+  reply?: OfferReply | null
   /** Client only: queued in the outbox, not yet confirmed by the engine ("Will send"). */
   pending?: boolean
+}
+
+/** decision.reply: the prime's canned answer to a shop question (docs/api.md). */
+export interface OfferReply {
+  code: string
+  text: string
+  /** ISO timestamp (UTC). */
+  at: string
 }
 
 /** 200 from POST /shops/{shop_id}/offers/{job_id}/decision. */
@@ -99,6 +112,7 @@ export const EVENT_KINDS = [
   "package_funded",
   "capacity_confirmed",
   "cert_declared",
+  "offer_reply",
 ] as const
 export type EventKind = (typeof EVENT_KINDS)[number]
 
@@ -143,6 +157,8 @@ export interface FundingRequestRec {
   /** "funded" is derived from the package status. */
   status: FundingRequestStatus
   at: string
+  /** Engine records carry it; "sim:<step>" marks a simulated request. */
+  idempotency_key?: string
   /** Client only: queued in the outbox. */
   pending?: boolean
 }
@@ -332,7 +348,7 @@ export interface ReadinessStep {
 // ---------------------------------------------------------------------------
 // §2.2 Today
 
-export const ATTENTION_KINDS = ["offers", "renewal", "capacity", "readiness", "training"] as const
+export const ATTENTION_KINDS = ["offers", "reply", "renewal", "capacity", "readiness", "training"] as const
 export type AttentionKind = (typeof ATTENTION_KINDS)[number]
 export type AttentionTone = "action" | "warn" | "danger" | "info"
 

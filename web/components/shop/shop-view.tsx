@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import Link from "next/link"
 import { AlertTriangle, ArrowLeft, Building2, ExternalLink, Globe, Info, MapPin, Users } from "lucide-react"
+import { toast } from "sonner"
 import { useDemo } from "@/lib/data/store"
+import { useAppActions, useShopActions } from "@/lib/app/actions-store"
+import { t } from "@/lib/app/strings"
+import type { ReasonCode } from "@/lib/app/types"
 import { MATERIAL_LABEL, PROCESS_LABEL, fmtMoney } from "@/lib/format"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
@@ -23,7 +27,7 @@ import { useStoryMode } from "@/lib/ui/story-mode"
 import { useWithParams } from "@/lib/ui/use-with-params"
 import { CapabilitiesCard } from "./capabilities-card"
 import { CertificationsCard } from "./certifications-card"
-import { OfferInbox } from "./offer-inbox"
+import { OfferInbox, type InboxDecision } from "./offer-inbox"
 import { ReadinessCard } from "./readiness-card"
 import { ShopHeader } from "./shop-header"
 import { TrainingCard } from "./training-card"
@@ -64,9 +68,16 @@ function shortName(name: string): string {
   return name.split(/\s+/)[0] ?? name
 }
 
+const UNDO_MS = 10_000
+
 function RoutableShopView({ id }: { id: string }) {
   const demo = useDemo()
   const { stage, mode, fundResults, jobs, blocked, offerStatus, setOfferStatus, demoShopId } = demo
+  // Live: answers go to the engine (POST /shops/{id}/offers/{job}/decision), same path as the
+  // phone OfferCard, and each offer's status comes from the engine's decisions. Fixtures: local.
+  const appActions = useAppActions()
+  const shopActions = useShopActions(id)
+  const viaEngine = appActions.source === "engine"
 
   // Keep the latest loader in a ref so an unstable function identity never re-triggers the fetch.
   const getShopRef = useRef(demo.getShop)
@@ -191,6 +202,45 @@ function RoutableShopView({ id }: { id: string }) {
     lookAt = c("shop.b.look")
   }
 
+  // Offer answers: engine decisions in live mode; demo.offerStatus in fixtures mode.
+  const inboxDecisions: Record<string, InboxDecision> = {}
+  if (viaEngine) {
+    for (const [jobId, d] of Object.entries(shopActions.decisions)) {
+      if (d.decision === "undo") continue
+      inboxDecisions[jobId] = { decision: d.decision, reason_code: d.reason_code, question_code: d.question_code, pending: d.pending }
+    }
+  } else {
+    const prefix = `${shop.id}:`
+    for (const [k, v] of Object.entries(offerStatus ?? {})) {
+      if (k.startsWith(prefix) && (v === "accepted" || v === "declined")) inboxDecisions[k.slice(prefix.length)] = { decision: v }
+    }
+  }
+  const prime = offers[0]?.prime_name?.split(" ")[0] || "Northgate"
+  const undo = async (jobId: string) => {
+    const r = await shopActions.decide(jobId, { decision: "undo" })
+    if (r && !r.pending) toast.message("Answer withdrawn", { description: `${jobId} is open again.` })
+  }
+  const accept = async (jobId: string) => {
+    if (!viaEngine) return setOfferStatus(shop.id, jobId, "accepted")
+    const r = await shopActions.decide(jobId, { decision: "accepted" })
+    if (!r || r.pending) return
+    toast.success("Accepted", {
+      description: `${prime} sees it now. Undo within 10 seconds.`,
+      duration: UNDO_MS,
+      action: { label: "Undo", onClick: () => void undo(jobId) },
+    })
+  }
+  const decline = async (jobId: string, reason: ReasonCode, note: string | null) => {
+    if (!viaEngine) return setOfferStatus(shop.id, jobId, "declined")
+    const r = await shopActions.decide(jobId, { decision: "declined", reason_code: reason, note })
+    if (!r || r.pending) return
+    toast.message(`Declined: ${t(`reason.${reason}`).toLowerCase()}`, {
+      description: `${prime} sees your reason.`,
+      duration: UNDO_MS,
+      action: { label: "Undo", onClick: () => void undo(jobId) },
+    })
+  }
+
   const stats = (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-shop-stats>
       <StatCard
@@ -246,10 +296,11 @@ function RoutableShopView({ id }: { id: string }) {
           {routed ? (
             <OfferInbox
               offers={offers}
-              shopId={shop.id}
               newJobIds={newJobIds}
-              offerStatus={offerStatus ?? {}}
-              onDecide={(jobId, status) => setOfferStatus(shop.id, jobId, status)}
+              decisions={inboxDecisions}
+              certifications={certifications}
+              onAccept={accept}
+              onDecline={decline}
               routed={routed}
             />
           ) : (

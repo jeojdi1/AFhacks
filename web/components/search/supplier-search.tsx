@@ -6,14 +6,20 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { ArrowLeft, Info, LoaderCircle, Search, SearchX, X } from "lucide-react"
+import { usePathname } from "next/navigation"
+import { ArrowLeft, Info, LoaderCircle, Lock, Search, SearchX, TriangleAlert, UserRoundX, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PortalPage } from "@/components/portal/portal-page"
 import { useWithParams } from "@/lib/ui/use-with-params"
+import { useDemo } from "@/lib/data/store"
+import { useAppActions } from "@/lib/app/actions-store"
+import { fixtures } from "@/lib/api/fixtures"
+import type { Job } from "@/lib/api/types"
 import { useShopSearch } from "@/lib/search/client"
-import { CITY_NAMES } from "@/lib/search/local"
+import { CITY_NAMES, fixtureShop } from "@/lib/search/local"
 import {
   CERT_KEYS,
+  COVERAGE_NOTE,
   PROCESS_KEYS,
   QUICK_CHIPS,
   DEFAULT_RADIUS_KM,
@@ -26,7 +32,7 @@ import {
 import type { DndHistory, ShopSearchParams } from "@/lib/search/types"
 import { EngineBadge } from "./engine-badge"
 import { SearchExplainer } from "./search-explainer"
-import { ShopResultCard } from "./shop-result-card"
+import { ShopResultCard, hasTrainingOnlyMatch } from "./shop-result-card"
 
 interface Filters {
   process: string[]
@@ -57,11 +63,96 @@ function sameList(a: string[], b: string[]) {
   return a.length === b.length && a.every((x, i) => x === b[i])
 }
 
+const noopSubscribe = () => () => {}
+const readSearch = () => (typeof window === "undefined" ? "" : window.location.search)
+const serverSearch = () => ""
+
+/** ?job=NG-005 (from the phone's "Find another shop"). Hydration-safe, like useWithParams. */
+function useJobParam(): string | null {
+  usePathname() // re-read on navigation
+  const search = React.useSyncExternalStore(noopSubscribe, readSearch, serverSearch)
+  const v = new URLSearchParams(search).get("job")
+  return v?.trim() ? v.trim() : null
+}
+
+/** A job's needs as search filters: its processes, its certificates, and security clearance when controlled. */
+function jobFilters(job: Job): Filters {
+  const cert = [...job.required_certs] as string[]
+  if (job.controlled && !cert.includes("CGP")) cert.push("CGP")
+  return { ...EMPTY, process: [...job.process_tags], cert }
+}
+
+/** "Fire-control sensor mounting bracket" from the full description. */
+function jobTitle(job: Job): string {
+  return job.description.split(",")[0].trim()
+}
+
+/**
+ * The job named by ?job=, and the shop that said no to it (the one to replace).
+ * Jobs come from the store (live or demo); the demo parts list is the fallback.
+ */
+function useJobContext(jobId: string | null) {
+  const { jobs, offerStatus, assignments } = useDemo()
+  const { decisions } = useAppActions()
+  return React.useMemo(() => {
+    if (!jobId) return null
+    const want = jobId.toUpperCase()
+    const job =
+      jobs.find((j) => j.id.toUpperCase() === want) ??
+      (fixtures.jobs.jobs as Job[]).find((j) => j.id.toUpperCase() === want) ??
+      null
+    if (!job) return { jobId, job: null, declinedBy: null, declinedName: null }
+    const declines = Object.values(decisions)
+      .filter((d) => d.job_id === job.id && d.decision === "declined")
+      .sort((a, b) => (a.at < b.at ? 1 : -1))
+    let declinedBy: string | null = declines[0]?.shop_id ?? null
+    if (!declinedBy) {
+      const k = Object.entries(offerStatus).find(([key, v]) => key.endsWith(`:${job.id}`) && v === "declined")
+      declinedBy = k ? k[0].slice(0, k[0].length - job.id.length - 1) : null
+    }
+    const assigned = assignments.find((a) => a.job_id === job.id)
+    const declinedName = declinedBy
+      ? (assigned?.shop_id === declinedBy ? assigned.shop_name : null) ?? fixtureShop(declinedBy)?.name ?? declinedBy
+      : null
+    return { jobId, job, declinedBy, declinedName }
+  }, [jobId, jobs, offerStatus, assignments, decisions])
+}
+
 export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
   const wp = useWithParams()
   const [filters, setFilters] = React.useState<Filters>(INITIAL)
   const [text, setText] = React.useState("")
   const [understood, setUnderstood] = React.useState<string[] | null>(null)
+  const [ignored, setIgnored] = React.useState<string[]>([])
+
+  // "Find another shop" for a declined job: start from that job's needs, not the default chip.
+  const jobParam = useJobParam()
+  const [dismissedJob, setDismissedJob] = React.useState<string | null>(null)
+  const ctx = useJobContext(jobParam && jobParam !== dismissedJob ? jobParam : null)
+  const [appliedJob, setAppliedJob] = React.useState<string | null>(null)
+  if (ctx?.job && appliedJob !== ctx.job.id) {
+    // Adjust state while rendering (once per job id): React re-renders before painting.
+    setAppliedJob(ctx.job.id)
+    setFilters(jobFilters(ctx.job))
+    setText("")
+    setUnderstood(null)
+    setIgnored([])
+  }
+  const excluded = ctx?.job ? ctx.declinedBy : null
+
+  const clearJob = () => {
+    if (!jobParam) return
+    setDismissedJob(jobParam)
+    setAppliedJob(null)
+    setFilters(INITIAL)
+    try {
+      const url = new URL(window.location.href)
+      url.searchParams.delete("job")
+      window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`)
+    } catch {
+      /* URL unchanged; the job is still dismissed for this visit */
+    }
+  }
 
   const params: ShopSearchParams = {
     q: filters.q,
@@ -78,6 +169,7 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
   const set = (patch: Partial<Filters>) => {
     setFilters((f) => ({ ...f, ...patch }))
     setUnderstood(null)
+    setIgnored([])
   }
 
   const onSubmit = (e: React.FormEvent) => {
@@ -86,6 +178,7 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
     if (!text.trim()) {
       setFilters(EMPTY)
       setUnderstood(null)
+      setIgnored([])
       return
     }
     setFilters((f) => ({
@@ -99,6 +192,7 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
       q: parsed.q,
     }))
     setUnderstood(parsed.q ? [`name or city contains "${parsed.q}"`] : parsed.recognised)
+    setIgnored(parsed.ignored)
   }
 
   const applyChip = (key: string) => {
@@ -110,7 +204,25 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
   const activeChip = QUICK_CHIPS.find((c) => sameList(c.process, filters.process) && sameList(c.cert, filters.cert) && !filters.q)
 
   const summary = describeFilters(params)
+  // Leave out the shop that said no, and list shops that only have a certificate in
+  // training after the ones that hold it (stable: engine order otherwise).
+  const results = React.useMemo(() => {
+    if (!data) return []
+    const rows = data.results.filter((r) => r.shop_id !== excluded)
+    const training = rows.map((r) => hasTrainingOnlyMatch(r, data.query))
+    return rows
+      .map((r, i) => ({ r, i, t: training[i] ? 1 : 0 }))
+      .sort((a, b) => a.t - b.t || a.i - b.i)
+      .map((x) => x.r)
+  }, [data, excluded])
+  const removed = data ? data.results.length - results.length : 0
   const counts = data?.counts
+    ? {
+        total: Math.max(0, data.counts.total - removed),
+        synthetic: Math.max(0, data.counts.synthetic - removed),
+        public: data.counts.public,
+      }
+    : null
 
   return (
     <PortalPage
@@ -137,6 +249,51 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
           See the supplier map →
         </Link>
       </div>
+
+      {jobParam && jobParam !== dismissedJob && ctx ? (
+        <section
+          aria-label="Job to place"
+          data-job-context={ctx.jobId}
+          className="flex flex-col gap-2 rounded-xl border border-blocked/30 bg-blocked-soft p-4 sm:p-5"
+        >
+          {ctx.job ? (
+            <>
+              <p className="flex items-start gap-2 text-base font-semibold text-slate-900">
+                <UserRoundX className="mt-0.5 size-5 shrink-0 text-blocked" aria-hidden />
+                <span>
+                  {ctx.declinedName ? `Replacing ${ctx.declinedName} on ` : "Finding a shop for "}
+                  {ctx.job.id} · {jobTitle(ctx.job)}
+                </span>
+              </p>
+              <p className="text-sm text-slate-800">
+                {ctx.declinedName ? `${ctx.declinedName} said no to this job, so it's left out. ` : ""}
+                Showing shops that do {ctx.job.process_tags.map((p) => processPlain(p).toLowerCase()).join(" + ")}
+                {ctx.job.required_certs.length
+                  ? ` and hold ${ctx.job.required_certs.map((c) => certFirst(c)).join(" + ")}`
+                  : ""}
+                .
+              </p>
+              {ctx.job.controlled ? (
+                <p className="inline-flex w-fit items-center gap-1.5 rounded-full border border-controlled/25 bg-controlled-soft px-2.5 py-0.5 text-xs font-medium text-controlled">
+                  <Lock className="size-3.5" aria-hidden />
+                  Controlled part: only shops with {certFirst("CGP")}
+                </p>
+              ) : null}
+            </>
+          ) : (
+            <p className="text-sm text-slate-800">
+              Couldn&apos;t find job {ctx.jobId} in Northgate&apos;s parts list. Showing the usual search.
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={clearJob}
+            className="w-fit text-sm font-medium text-slate-700 underline underline-offset-4 hover:text-slate-900"
+          >
+            Search all shops instead
+          </button>
+        </section>
+      ) : null}
 
       <section aria-labelledby="need-label" className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:p-5">
         <form onSubmit={onSubmit} className="flex flex-col gap-2" role="search">
@@ -183,10 +340,20 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
           })}
         </div>
         {understood ? (
-          <p className="text-sm text-slate-700" data-understood>
-            <span className="font-medium">Understood as: </span>
-            {understood.length ? understood.join(" · ") : "everything (no filters)"}
-          </p>
+          <div className="flex flex-col gap-1 text-sm text-slate-700" data-understood>
+            <p>
+              <span className="font-medium">Understood as: </span>
+              {understood.length ? understood.join(" · ") : "everything (no filters)"}
+            </p>
+            {ignored.map((place) => (
+              <p key={place} className="flex items-start gap-1.5 text-amber-800" data-ignored-place>
+                <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
+                <span>
+                  Couldn&apos;t use &ldquo;{place}&rdquo;: {COVERAGE_NOTE}.
+                </span>
+              </p>
+            ))}
+          </div>
         ) : null}
       </section>
 
@@ -200,6 +367,7 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
                 setText("")
                 setFilters(EMPTY)
                 setUnderstood(null)
+                setIgnored([])
               }}
               className="text-sm font-medium text-slate-700 underline-offset-4 hover:underline"
             >
@@ -326,7 +494,7 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
               <p className="text-sm text-muted-foreground">
                 {counts.synthetic} synthetic demo shop{counts.synthetic === 1 ? "" : "s"} · {counts.public} real shop
                 {counts.public === 1 ? "" : "s"} (public data){summary ? ` · ${summary}` : ""}
-                {counts.total > (data?.results.length ?? 0) ? ` · showing the top ${data?.results.length}` : ""}
+                {counts.total > results.length ? ` · showing the top ${results.length}` : ""}
               </p>
             ) : null}
           </div>
@@ -345,7 +513,7 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
             </p>
           ) : null}
 
-          {data && data.results.length === 0 ? (
+          {data && results.length === 0 ? (
             <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-muted px-6 py-12 text-center">
               <SearchX className="size-6 text-muted-foreground" aria-hidden />
               <p className="text-lg font-semibold">No shop has all of that yet.</p>
@@ -365,9 +533,9 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
           ) : null}
 
           <div className={cn("grid gap-4 xl:grid-cols-2", loading && "opacity-60 transition-opacity")}>
-            {data?.results.map((s) => (
-              <ShopResultCard key={s.shop_id} shop={s} query={data.query} />
-            ))}
+            {data
+              ? results.map((s) => <ShopResultCard key={s.shop_id} shop={s} query={data.query} />)
+              : null}
           </div>
 
           <SearchExplainer />

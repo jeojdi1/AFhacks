@@ -8,8 +8,12 @@ import { cn } from "@/lib/utils"
 import { useShopBundle } from "@/lib/app/shop-bundle"
 import { openOffers } from "@/lib/app/attention"
 import { t } from "@/lib/app/strings"
-import { TAB_SECTIONS, parseMRoute, shopHref } from "./route"
+import { TAB_SECTIONS, parseMRoute, shopHref, traineeSeatHref } from "./route"
 import { useFromPrime } from "./use-from-prime"
+
+const noopSubscribe = () => () => {}
+const readSearch = () => (typeof window === "undefined" ? "" : window.location.search)
+const serverSearch = () => ""
 
 const TABS = [
   { section: "today", label: "tabs.today", Icon: House },
@@ -64,12 +68,24 @@ export function BottomTabs() {
   // The defence company looking at a supplier's screen from its feed keeps its own tabs.
   if (r.kind === "shop" && fromPrime) return <RoleTabBar tabs={ROLE_TABS.prime} current="" />
   if (r.kind === "shop") return TAB_SECTIONS.includes(r.section) ? <ShopTabBar shopId={r.shopId} section={r.section} /> : null
-  if (r.kind === "prime" || r.kind === "college" || r.kind === "trainee") {
+  if (r.kind === "trainee") return <TraineeTabBar packageId={r.packageId} />
+  if (r.kind === "prime" || r.kind === "college") {
     // The prime's and college's own tabs point at the other screens they use; the
     // current screen's tab is the one with the same id as the route kind.
     return <RoleTabBar tabs={ROLE_TABS[r.kind]} current={r.kind} />
   }
   return null
+}
+
+/** The trainee's tabs: "My seat" keeps the seat and plan in the URL (never jumps to another seat). */
+function TraineeTabBar({ packageId }: { packageId: string | null }) {
+  usePathname() // re-read the query on every client navigation
+  const search = React.useSyncExternalStore(noopSubscribe, readSearch, serverSearch)
+  const tabs = React.useMemo<RoleTab[]>(() => {
+    const seat = new URLSearchParams(search).get("seat")
+    return ROLE_TABS.trainee.map((tab) => (tab.id === "trainee" ? { ...tab, href: traineeSeatHref(packageId, seat) } : tab))
+  }, [packageId, search])
+  return <RoleTabBar tabs={tabs} current="trainee" />
 }
 
 function RoleTabBar({ tabs, current }: { tabs: RoleTab[]; current: string }) {

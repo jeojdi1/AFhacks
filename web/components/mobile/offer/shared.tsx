@@ -146,13 +146,18 @@ export function DecisionChip({ state, decision, className }: { state: OfferState
   )
 }
 
-/** "Accepted Sep 26, 9:41 PM" / "Declined: No capacity" / "Question sent: Lead time". */
-export function decisionLine(state: OfferState, d: OfferDecisionRec | null | undefined): string {
-  if (state === "accepted") return d?.at ? t("o.status.accepted", { date: fmtDateTime(d.at) }) : t("o.status.acceptedNoDate")
+/**
+ * "Accepted Sep 26, 9:41 PM" / "Declined: No capacity" / "Question sent: Lead time".
+ * A simulated decision (the demo simulator answered for this shop) says so:
+ * "Accepted by the demo simulator Sep 26, 9:41 PM".
+ */
+export function decisionLine(state: OfferState, d: OfferDecisionRec | null | undefined, simulated = false): string {
+  const sim = simulated ? "Sim" : ""
+  if (state === "accepted") return d?.at ? t(`o.status.accepted${sim}`, { date: fmtDateTime(d.at) }) : t(`o.status.acceptedNoDate${sim}`)
   if (state === "declined") {
     const r = reasonText(d)
-    return r ? t("o.status.declined", { reason: r }) : t("o.status.declinedNoReason")
+    return r ? t(`o.status.declined${sim}`, { reason: r }) : t(`o.status.declinedNoReason${sim}`)
   }
-  if (state === "question") return t("o.status.question", { question: questionText(d) ?? "" })
+  if (state === "question") return t(`o.status.question${sim}`, { question: questionText(d) ?? "" })
   return t("offer.status.offered")
 }

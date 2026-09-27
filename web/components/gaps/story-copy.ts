@@ -40,6 +40,10 @@ const EXTRA: Record<string, string> = {
   "gaps.fund.primeOnly": "Only Northgate, the defence company, can fund this training.",
   "fund.caption.m":
     "{jobsValue} of work that was stuck can now go ahead. Credit isn't cash: small-business work counts double, and training counts {m}×.",
+  // 10× is the Indigenous workforce-development rate, not a training rate (TP-02).
+  "gaps.eq.credit.sub.m.10": "Indigenous workforce development counts 10×",
+  "fund.caption.m.10":
+    "{jobsValue} of work that was stuck can now go ahead. Credit isn't cash: small-business work counts double, and Indigenous workforce development counts 10×.",
 }
 
 function interpolate(raw: string, vars?: Record<string, string | number>): string {
@@ -49,6 +53,9 @@ function interpolate(raw: string, vars?: Record<string, string | number>): strin
 
 /** Story copy lookup: EXTRA first, then copy.ts. */
 export function sc(key: string, vars?: Record<string, string | number>): string {
+  // Multiplier-aware variant ("….m" with m = 10 → "….m.10"): 10× is Indigenous, not training.
+  const variant = vars && Number(vars.m) === 10 ? EXTRA[`${key}.10`] : undefined
+  if (variant !== undefined) return interpolate(variant, vars)
   const raw = EXTRA[key]
   if (raw !== undefined) return interpolate(raw, vars)
   return c(key, vars)

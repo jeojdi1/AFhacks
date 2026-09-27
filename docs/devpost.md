@@ -19,9 +19,15 @@ Muster is **two-sided**. Primes pay; shops use it free.
 - **Train:** when no shop can take a job (missing certified workers or capacity), Muster proposes an ITB-eligible training package (model terms §7.5.1 categories). "Funding" it adds a pending-training certification and capacity, re-routes, unblocks the job, and earns 5x credit (10x for Indigenous workforce development).
 - **Comply:** every shop shows its certifications (CGP, CPCSC Level 1, ISO 9001, AS9100, Nadcap, CWB W47.1) with source, date verified, status and expiry.
 
+**Four roles, each with its own desk.** A landing page explains Muster in three panels; `/signin` ("Who are you today?") offers four demo accounts: the defence company (Northgate Land Systems, fictional), the supplier (Tallowfield Fabricating, synthetic), the training partner (a regional college, example, not affiliated) and the trainee (a pseudonymous seat, "Seat 3 of 4"). Demo sign-in only: no real authentication. Northgate's desk has **Find suppliers** and a **Supplier map**; Tallowfield's has **Find work** (its offers, jobs one certificate away, and open federal defence tenders).
+
 **The shop side, on the phone** (`/m`): a shop sees defence job offers it would never have found, each offered only to that shop with the credit the prime earns, and accepts or declines with a reason; the prime sees each reply live on its laptop. The shop sees a readiness card ("Get CWB W47.1 → qualify for N more jobs worth $X"), taps "Ask Northgate to fund this", and after funding sees its welders in training on the prime's money. The prime's own phone view shows accepts, declines and funding requests, plus supplier certifications that put credit at risk; each trainee gets an anonymous seat card.
 
-**Network:** alongside the 30 synthetic demo shops, the Network page lists 78 real southwestern Ontario shops across 12 cities (39 list welding) discovered from company websites and StatCan ODBus. They are labelled "Public data — unverified — not affiliated" and are never routed or offered work.
+**The phone is a real phone.** `make demo` serves the web app with a same-origin engine proxy and prints the phone URL; `/phone` on the laptop shows a QR code. Any phone on the same Wi-Fi opens `/m`, picks one of the four roles, and shares the laptop's engine, so an accept on the phone toasts on the laptop within seconds. For a busy demo, the phone's **Fill with demo activity** and **Simulate shops responding** controls play labelled, scripted shop replies that never touch the presenter's shop or the fund moment.
+
+**Supplier search on a graph database.** Northgate types "CWB welding near London" or "welding near London with past defence contracts". Muster turns that into process, certificate, distance and defence-history filters and runs one Cypher query on **Neo4j** (4,490 nodes, 5,808 edges), with the same answer from an in-memory graph when Neo4j is down. The Supplier map walks the same graph.
+
+**Real public data, honestly labelled:** 58,965 National Defence contracts worth $82.9B (2021 to mid-2026, proactive disclosure; Ontario vendors hold 34% of the value going to vendors in Canada), 2,946 manufacturers from StatCan ODBus, 919 open CanadaBuys tender notices (376 defence-related), Job Bank trade outlooks, and 78 real southwestern Ontario shops across 12 cities (39 list welding) discovered from company websites. Real shops are labelled "Public data — unverified — not affiliated", are never routed or offered work, and their National Defence history is a company-name match, not confirmed by the company. The routing demo itself runs on 30 synthetic shops.
 
 **Demo scenario** (fictional prime Northgate Land Systems, $500M contract, SMB target 15%, synthetic shops): a 40-line, ~$42.7M work package routes as **36 assigned ($36.1M, 90% to SMEs), 4 blocked** (all 4 blocked jobs need CWB W47.1 welding). The obligation meter reads 11.5% and SMB-target progress 36.4%. Funding the qualification of 4 welders under CSA W47.1 (TP-01; $96K = 4 new-welder training seats at $24K all-in, assumption): **$96K training → $480K credit (5x) + 3 jobs unblocked (+$9.1M credit)** — those 3 jobs are worth $5.1M of work; the obligation meter moves to 13.4% and SMB progress to 42.5%.
 
@@ -31,15 +37,17 @@ Muster is **two-sided**. Primes pay; shops use it free.
 - **Engine:** Python 3.12, FastAPI, Pydantic/SQLModel, SQLite.
 - **Assignment:** Google OR-Tools CP-SAT maximizes total match score subject to one shop per job and each shop's weekly capacity; a greedy fallback handles the hardest jobs (fewest eligible shops) first.
 - **Tagging:** Claude turns free-text parts-list lines into strict JSON (process tags, material, envelope, tolerance, required certs, controlled). Responses are cached by input hash and committed, with a keyword-rules fallback so the demo never depends on the network.
-- **Data:** the base list of candidate shops comes from Statistics Canada's Open Database of Businesses (Open Government Licence), filtered by manufacturing NAICS codes (3327, 3323, 3321 and others) plus keywords, and 78 real shops discovered from public company websites (unverified, not affiliated, never routed). The routing demo itself runs on 30 labelled synthetic shops.
-- **Phone app:** a mobile-first `/m` route set (shop Today, Offers, Grow, Wallet; prime glance; trainee seat card) on the same engine, so an accept on the phone shows up on the prime's laptop in seconds.
+- **Graph:** a capability graph over shops, processes, certifications, regions, Northgate's jobs, DND vendors and ODBus manufacturers, loaded into **Neo4j** (Cypher, point-distance index) with an identical in-memory fallback; tests check both engines return the same results. Read views are cached per state revision.
+- **Data:** Statistics Canada's Open Database of Businesses (2,946 manufacturers, NAICS 331–336), National Defence proactive-disclosure contracts (58,965 contracts), CanadaBuys open tenders and Job Bank outlooks, all under the Open Government Licence; ITB obligation totals from ISED's web pages (Government of Canada website terms); 78 real shops from public company websites (facts only, unverified, not affiliated, never routed). Entity linking matches shops, ODBus sites and DND vendors by name and location. The routing demo itself runs on 30 labelled synthetic shops.
+- **Phone app:** a mobile-first `/m` route set (four-role picker; shop Today, Offers, Certs, Grow; defence company; college; trainee seat card) on the same engine, reached over Wi-Fi through a same-origin `/engine` proxy, so an accept on the phone shows up on the prime's laptop in seconds.
 - **Rules:** simplified ITB rules (100% obligation, CCV, multipliers, SMB target, training categories) live in versioned JSON with a source for each value. Training costs are labelled assumption.
-- **Quality gates:** pytest for the engine (including "a controlled job is never eligible for a non-CGP shop"), and a `demo_check.py` that walks all 8 demo steps against the live API or the fixtures.
+- **Quality gates:** 416 pytest tests for the engine (including "a controlled job is never eligible for a non-CGP shop" and Neo4j-vs-memory search parity), and a `demo_check.py` that walks all 8 demo steps against the live API or the fixtures.
 
 ## Challenges we ran into
 
 - **Making the numbers real enough to matter.** Per-vehicle quantities made the obligation meter barely move. We switched to fleet-lifetime quantities, so a 40-line package is ~$42.7M and funding training visibly moves the meter.
-- **Open data coverage.** ODBus only includes cities that publish business open data. Our southwestern Ontario ingest returned Kitchener (103) and Hamilton (12), so we added 78 real shops from public company websites (labelled public, unverified, not affiliated) and ran the routing demo on clearly labelled synthetic shops.
+- **Open data coverage.** ODBus only includes cities that publish business open data: our national ingest found 2,946 manufacturers, all in Ontario, British Columbia and Alberta, and none in Waterloo, Cambridge, Woolwich or London. So we added 78 real shops from public company websites (labelled public, unverified, not affiliated) and ran the routing demo on clearly labelled synthetic shops.
+- **Linking public records without overclaiming.** DND vendor names, ODBus sites and company websites don't share an ID. We match on normalized name plus location, keep a confidence level, and label every match "name match, unverified".
 - **Compliance without overreach.** Controlled technical data is itself a controlled good, so we designed Muster to never store drawings and match on metadata only.
 - **Parallel build against a contract.** Two lanes built the engine and web at once against a shared API contract and fixtures.
 
@@ -62,11 +70,12 @@ Muster is **two-sided**. Primes pay; shops use it free.
 - **Pilot (by day 90):** one prime pilot LOI; Route + Credit with that prime's existing suppliers.
 - **Network (months 4–8):** 50–100 verified shops; Train module with one college and one Indigenous-governed institution; CGP registration filed.
 - **Expand (months 8–12):** a second prime, the Comply module, European and SAFE partners.
-- **Outreach order:** DIA ITB team → CME Defence → Waterloo EDC → a regional college (e.g. Conestoga, example, not affiliated) → London primes → CADSI and BDC.
+- **Outreach order:** DIA ITB team → CME Defence → Waterloo EDC → a regional college (e.g. Conestoga, example, not affiliated) → London primes → CADSI and BDC. We have emailed 55 organisations.
+- **Known gaps we'd close first:** the 25% cap on training credit is not yet modelled in the demo ledger, sign-in is demo-only, and none of the public shops has claimed its profile yet.
 
 ## Built with
 
-`next.js` `react` `typescript` `tailwindcss` `shadcn-ui` `leaflet` `react-leaflet` `recharts` `python` `fastapi` `pydantic` `sqlmodel` `sqlite` `or-tools` `cp-sat` `claude` `anthropic-api` `pytest` `statistics-canada-odbus`
+`next.js` `react` `typescript` `tailwindcss` `shadcn-ui` `leaflet` `react-leaflet` `recharts` `python` `fastapi` `pydantic` `sqlmodel` `sqlite` `or-tools` `cp-sat` `neo4j` `cypher` `claude` `anthropic-api` `pytest` `statistics-canada-odbus` `open-government-data`
 
 ## Disclaimers
 
@@ -75,4 +84,5 @@ Muster is **two-sided**. Primes pay; shops use it free.
 - **Training partners are examples, not affiliated** (e.g. "Conestoga College (example, not affiliated)").
 - **Simplified ITB rules for demo.** Credit calculations, SMB progress basis and training costs are simplifications or assumptions, not official ITB determinations. Eligibility of any training credit must be confirmed with the Defence Investment Agency.
 - Muster **never stores drawings** or technical data. It has not yet registered with the Controlled Goods Program and would do so before handling any technical data.
-- Data: Statistics Canada Open Database of Businesses, Open Government Licence – Canada.
+- **Demo sign-in is not real authentication**: four fictional accounts, one shared demo state. Simulated shop activity is scripted and labelled.
+- Data: Statistics Canada Open Database of Businesses, National Defence proactive disclosure (contracts over $10K), CanadaBuys open tender notices and ESDC Job Bank, all under the Open Government Licence – Canada; ISED ITB pages under the Government of Canada website terms; company websites for facts only. National Defence matches are by company name and not confirmed by the companies.

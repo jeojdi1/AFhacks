@@ -478,6 +478,28 @@ function demoGraph(): { nodes: Map<string, GraphNode>; edges: GraphEdge[] } {
       })
     edges.push({ source: "program:northgate", target: id, type: "HAS_JOB", props: {} })
   }
+  // The welding certificate (a /graph start option): jobs that need it and synthetic shops that
+  // declare it. The saved ego only carries the certs Tallowfield touches.
+  const cwb = "cert:CWB_W47.1"
+  if (!nodes.has(cwb))
+    nodes.set(cwb, { id: cwb, type: "Cert", label: "CWB W47.1", props: { label: "CWB W47.1", type: "CWB_W47.1" } })
+  const partsWithCerts = (partsFx as { jobs: (PartFull & { required_certs?: string[] })[] }).jobs
+  for (const j of partsWithCerts)
+    if (j.required_certs?.includes("CWB_W47.1"))
+      edges.push({ source: `job:${j.id}`, target: cwb, type: "NEEDS_CERT", props: { via: "required_certs" } })
+  for (const sh of SYNTHETIC) {
+    const c = sh.cert_summary?.find((x) => x.type === "CWB_W47.1" && x.status !== "unknown")
+    if (!c) continue
+    const sid = `shop:${sh.id}`
+    if (!nodes.has(sid))
+      nodes.set(sid, {
+        id: sid,
+        type: "Shop",
+        label: sh.name,
+        props: { shop_id: sh.id, name: sh.name, city: sh.city, lat: sh.lat, lon: sh.lon, is_sme: sh.is_sme ?? null, source: "synthetic", label_text: "Synthetic" },
+      })
+    edges.push({ source: sid, target: cwb, type: "HOLDS_CERT", props: { status: c.status } })
+  }
   return { nodes, edges }
 }
 

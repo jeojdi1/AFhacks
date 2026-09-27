@@ -16,6 +16,8 @@ export interface JobRow {
   status: RowStatus;
   assignment: Assignment | null;
   blocked: BlockedJob | null;
+  /** The matched shop declined this offer (demo: credit numbers stay as routed). */
+  declined?: boolean;
 }
 
 /**
@@ -101,7 +103,7 @@ export const PINNED_CONTROLLED_JOB = "NG-004";
 
 /**
  * Story mode's 6 rows (§5.2): the stuck jobs, the controlled job (NG-004, else the first
- * controlled one), then the largest matched job. Before matching: the controlled job and
+ * controlled one), then the largest matched job, plus up to 2 jobs a shop declined. Before matching: the controlled job and
  * the largest other lines, up to 6.
  */
 export function pinnedRows(rows: JobRow[], routed: boolean, max = 6): JobRow[] {
@@ -117,6 +119,11 @@ export function pinnedRows(rows: JobRow[], routed: boolean, max = 6): JobRow[] {
     rows.filter((r) => r.status === "blocked").forEach(add);
     add(controlled && controlled.status !== "blocked" ? controlled : undefined);
     add(byValue.find((r) => r.status === "assigned" && !out.includes(r)));
+    // Declined offers need Northgate's attention: pin up to 2 beyond the usual 6.
+    rows
+      .filter((r) => r.declined && !out.includes(r))
+      .slice(0, 2)
+      .forEach((r) => out.push(r));
   } else {
     add(controlled);
     byValue.forEach(add);

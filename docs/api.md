@@ -1,4 +1,4 @@
-# Muster API contract (v0.1; §6 additive v0.2)
+# Muster API contract (v0.1; §6 additive v0.2; §7 v0.3; §8 v0.4)
 
 Owner: Lane B (shared). Source of truth for field names. Any change is a `CONTRACT:` commit that also updates `/data/fixtures` (CLAUDE.md §2).
 
@@ -8,7 +8,42 @@ Owner: Lane B (shared). Source of truth for field names. Any change is a `CONTRA
 - **Money** is CAD dollars as numbers, rounded to cents.
 - **Every `*_pct` field is a fraction in [0, 1]** (`0.15` = 15%). The web formats it.
 - Every credit number is computed as `value_cad × ccv_pct × multiplier` (CLAUDE.md §3.5).
-- **Numbers in the examples below are illustrative.** The consistent, checked numbers live in `/data/fixtures`.
+- **Examples** in §3, §7 and §8 come from real calls to the engine (`MUSTER_DB` on a scratch file, reset → upload → route → fund TP-01, 2026-09-27); timestamps, `elapsed_ms` and lists are trimmed. The consistent, checked numbers live in `/data/fixtures`.
+
+### Endpoint index
+
+Every live route (`engine/app.py`, `engine/simulate.py`; search and graph logic in `engine/search.py` / `engine/graphdb.py`). `{id}` is the program id (`northgate`).
+
+| Method and path | Section | Writes state |
+| --- | --- | --- |
+| `GET /health` | §3 | no |
+| `POST /demo/reset` | §3 | yes |
+| `POST /demo/seed?scenario=populated\|empty` | §8 | yes |
+| `POST /demo/simulate/tick` | §8 | yes |
+| `GET /demo/simulate/status` | §8 | no |
+| `GET /programs/{id}` | §3 | no |
+| `POST /programs/{id}/parts` | §3 | yes |
+| `POST /programs/{id}/route?solver=auto\|ortools\|greedy` | §3 | yes |
+| `GET /programs/{id}/assignments` | §3 | no |
+| `GET /programs/{id}/jobs` | §3 | no |
+| `GET /programs/{id}/ledger` | §3 | no |
+| `GET /programs/{id}/gaps` | §3 | no |
+| `POST /programs/{id}/training/{package_id}/fund` | §3 | yes |
+| `GET /programs/{id}/actions` | §6 | no |
+| `GET /programs/{id}/events?since=&limit=` | §6 | no |
+| `GET /programs/{id}/training/{package_id}/seats/{seat}` | §6 | no |
+| `GET /shops?source=public\|synthetic` | §3 | no |
+| `GET /shops/{shop_id}` | §3 | no |
+| `POST /shops/{shop_id}/offers/{job_id}/decision` | §6 | yes |
+| `POST /shops/{shop_id}/offers/{job_id}/reply` | §6 | yes |
+| `POST /shops/{shop_id}/funding-requests` | §6 | yes |
+| `POST /shops/{shop_id}/capacity` | §6 | yes |
+| `POST /shops/{shop_id}/certifications/{cert_type}` | §6 | yes |
+| `GET /shops/{shop_id}/actions` | §6 | no |
+| `GET /search/shops` | §7 | no |
+| `GET /search/jobs?shop_id=` | §7 | no |
+| `GET /graph/summary` | §7 | no |
+| `GET /graph/ego?id=&depth=&limit=` | §7 | no |
 
 ---
 
@@ -116,13 +151,13 @@ A certification **counts** for the rules if its status is `verified`, `declared`
 ```json
 {
   "job_id": "NG-031", "part_no": "NG-HUL-4410",
-  "description": "Hull side stowage bin weldment, armour steel, CWB W47.1 structural welding",
-  "process_tags": ["welding", "painting"], "required_certs": ["CWB_W47.1"],
-  "value_cad": 1800000.0, "hours_week": 40,
+  "description": "Hull side stowage bin weldment, armour steel plate, press-brake formed sheet metal, structural welding to CWB W47.1",
+  "process_tags": ["welding", "sheet_metal"], "required_certs": ["CWB_W47.1"],
+  "value_cad": 1656000.0, "hours_week": 40,
   "reason_code": "capacity",
-  "reason": "Both CWB W47.1 welding shops in range are at capacity; 3 other welding shops lack CWB W47.1",
+  "reason": "Both CWB W47.1 welding shops are at capacity (18 and 16 h/week free vs 40 needed); 2 other welding shops lack CWB W47.1 (certified-welder shortage)",
   "eligible_shop_count": 2,
-  "failing_filters": { "process": 24, "envelope": 0, "certs": 3, "controlled_cgp": 0, "cpcsc": 0, "capacity": 2 },
+  "failing_filters": { "process": 26, "envelope": 9, "certs": 28, "controlled_cgp": 0, "cpcsc": 0, "capacity": 10 },
   "suggestion_ids": ["TP-01"]
 }
 ```
@@ -144,11 +179,11 @@ Assignments are `direct` (work on the contract): `sme_direct` (2x) if the shop i
 ```json
 {
   "id": "TP-01", "program_id": "northgate",
-  "title": "Certify 4 welders to CWB W47.1 at Example Fabricating (Woolwich)",
+  "title": "Certify 4 welders to CWB W47.1 at Tallowfield Fabricating Ltd. (Woolwich)",
   "blocked_job_ids": ["NG-031", "NG-032", "NG-033"],
-  "shop_id": "syn-012", "shop_name": "Example Fabricating Ltd.", "shop_city": "Woolwich", "shop_source": "synthetic",
+  "shop_id": "syn-012", "shop_name": "Tallowfield Fabricating Ltd.", "shop_city": "Woolwich", "shop_source": "synthetic",
   "gap": { "kind": "cert", "requirement": "CWB_W47.1",
-           "detail": "Has welding cells and free capacity, but no CWB W47.1 certification" },
+           "detail": "Has welding cells and 154 h/week free capacity, but no CWB W47.1 certification" },
   "category": "personal_certification",
   "categories": ["personal_certification", "apprentice_sponsorship"],
   "recipient_type": "college",
@@ -160,7 +195,7 @@ Assignments are `direct` (work on the contract): `sme_direct` (2x) if the shop i
   "est_credit_cad": 480000.0,
   "cert_unlock": "CWB_W47.1",
   "capacity_unlock": { "welding": 80 },
-  "unblocks_value_cad": 5100000.0,
+  "unblocks_value_cad": 5068000.0,
   "eligibility_note": "Personal certification counts only for Canadian citizens or permanent residents (ITB model terms §7.5.1).",
   "flags": ["assumption"],
   "status": "suggested"
@@ -171,9 +206,9 @@ Assignments are `direct` (work on the contract): `sme_direct` (2x) if the shop i
 ### Snapshot (used by fund)
 ```json
 { "assigned": 36, "blocked": 4,
-  "credit_total_cad": 61200000.0, "obligation_met_pct": 0.1224,
-  "direct_credit_cad": 61200000.0, "indirect_credit_cad": 0.0,
-  "smb_achieved_cad": 29700000.0, "smb_progress_pct": 0.396 }
+  "credit_total_cad": 57541497.6, "obligation_met_pct": 0.1150829952,
+  "direct_credit_cad": 57541497.6, "indirect_credit_cad": 0.0,
+  "smb_achieved_cad": 27322644.8, "smb_progress_pct": 0.36430193066666666 }
 ```
 
 ---
@@ -221,18 +256,18 @@ Uploading replaces any previous jobs for the program and clears routing and fund
   "jobs": [ /* Job × 40, status "unrouted" */ ] }
 ```
 
-### `POST /programs/{id}/route`
-Runs rules → scoring → assignment. Returns 400 if no parts are uploaded.
+### `POST /programs/{id}/route?solver=auto`
+Runs rules → scoring → assignment. Returns 400 if no parts are uploaded. `solver` is `auto` (default: CP-SAT, greedy if it fails), `ortools` or `greedy`; anything else is 400 `solver must be one of: auto, greedy, ortools`.
 ```json
 {
-  "program_id": "northgate", "solver": "ortools", "elapsed_ms": 140,
+  "program_id": "northgate", "solver": "ortools", "elapsed_ms": 9,
   "stats": { "jobs": 40, "assigned": 36, "blocked": 4,
-             "assigned_value_cad": 34900000.0, "sme_share_pct": 0.87 },
+             "assigned_value_cad": 36099480.0, "sme_share_pct": 0.900552584136946 },
   "assignments": [ /* Assignment × 36 */ ],
   "blocked": [ /* BlockedJob × 4 */ ]
 }
 ```
-`solver` is `ortools` or `greedy` (fallback). `sme_share_pct` = the assigned value going to SMEs ÷ assigned value.
+The response's `solver` is the one that ran: `ortools` or `greedy` (fallback). `sme_share_pct` = the assigned value going to SMEs ÷ assigned value.
 
 ### `GET /programs/{id}/assignments`
 ```json
@@ -251,16 +286,16 @@ Every uploaded job with its **current** `status` (`unrouted` before routing, the
   "program_id": "northgate",
   "rules_version": "demo-2026-09-26", "rules_label": "Simplified ITB rules for demo",
   "obligation_cad": 500000000.0,
-  "credit_total_cad": 61200000.0,
-  "obligation_met_pct": 0.1224,
-  "direct_credit_cad": 61200000.0,
+  "credit_total_cad": 57541497.6,
+  "obligation_met_pct": 0.1150829952,
+  "direct_credit_cad": 57541497.6,
   "indirect_credit_cad": 0.0,
   "smb": { "target_pct": 0.15, "target_cad": 75000000.0,
-           "achieved_cad": 29700000.0, "progress_pct": 0.396,
+           "achieved_cad": 27322644.8, "progress_pct": 0.36430193066666666,
            "basis": "CCV of SME work before multipliers (assumption)" },
   "multiplier_breakdown": [
-    { "category": "regular", "label": "Regular work", "multiplier": 1, "count": 4, "value_cad": 3500000.0, "credit_cad": 3000000.0 },
-    { "category": "sme_direct", "label": "SME direct work", "multiplier": 2, "count": 32, "value_cad": 31400000.0, "credit_cad": 58200000.0 },
+    { "category": "regular", "label": "Regular work", "multiplier": 1, "count": 4, "value_cad": 3590000.0, "credit_cad": 2896208.0 },
+    { "category": "sme_direct", "label": "SME direct work", "multiplier": 2, "count": 32, "value_cad": 32509480.0, "credit_cad": 54645289.6 },
     { "category": "training", "label": "Skills and training", "multiplier": 5, "count": 0, "value_cad": 0.0, "credit_cad": 0.0 },
     { "category": "indigenous_training", "label": "Indigenous workforce development", "multiplier": 10, "count": 0, "value_cad": 0.0, "credit_cad": 0.0 }
   ],
@@ -278,8 +313,8 @@ Invariants (checked by demo-check):
 ```json
 {
   "program_id": "northgate",
-  "summary": { "blocked_jobs": 4, "blocked_value_cad": 6600000.0,
-               "top_reason": "CWB W47.1 welding capacity" },
+  "summary": { "blocked_jobs": 4, "blocked_value_cad": 6569000.0,
+               "top_reason": "CWB W47.1 welder shortage (certification + capacity)" },
   "blocked": [ /* BlockedJob[] (every one has ≥ 1 suggestion_id) */ ],
   "suggestions": [ /* TrainingPackage[] */ ]
 }
@@ -296,15 +331,16 @@ Simulates funding: adds a `pending_training` certification (`cert_unlock`) and/o
   "unblocked_jobs": [ /* Assignment[] for jobs that were blocked and are now assigned */ ],
   "still_blocked": ["NG-034"],
   "training_txn": { /* CreditTxn, origin "training" */ },
-  "credit_added": 8110000.0,
-  "credit_added_breakdown": { "training_cad": 480000.0, "jobs_cad": 7630000.0 },
-  "headline": "$96K training → $480K credit (5x) + 3 jobs unblocked (+$7.6M credit)"
+  "credit_added": 9602400.0,
+  "credit_added_breakdown": { "training_cad": 480000.0, "jobs_cad": 9122400.0 },
+  "headline": "$96K training → $480K credit (5x) + 3 jobs unblocked (+$9.1M credit)"
 }
 ```
+Real `before` → `after` for TP-01: `assigned` 36 → 39, `blocked` 4 → 1, `credit_total_cad` 57,541,497.60 → 67,143,897.60, `obligation_met_pct` 0.1151 → 0.1343 (the 11.5% → 13.4% meter), `indirect_credit_cad` 0 → 480,000 (training is indirect), `smb_progress_pct` 0.3643 → 0.4251.
 `credit_added` = `after.credit_total_cad − before.credit_total_cad` = `training_cad + jobs_cad`.
 
 ### `GET /shops`
-Query `?source=public|synthetic` (optional).
+Query `?source=public|synthetic` (optional; anything else is 400). Without it: 108 shops, the 30 synthetic ones first, then the 78 public ones (`?source=public` → 78).
 ```json
 { "shops": [ /* Shop[] with cert_summary */ ] }
 ```
@@ -316,15 +352,16 @@ The shop-side view (H3.5): what this shop is offered, what it is missing, and wh
   "shop": { /* Shop */ },
   "certifications": [ /* Certification[] (one per cert_type) */ ],
   "offers": [
-    { "job_id": "NG-021", "part_no": "NG-STW-2210", "description": "Stowage rack, welded steel",
+    { "job_id": "NG-021", "part_no": "NG-STW-2210",
+      "description": "Crew stowage rack, mild steel sheet metal, formed and MIG welded, primed and painted (non-structural)",
       "program_id": "northgate", "prime_name": "Northgate Land Systems",
-      "value_cad": 640000.0, "hours_week": 16, "multiplier": 2, "credit_cad": 1088000.0,
-      "reasons": ["Welding + sheet metal", "SME: 2x direct credit", "97 km from site"],
+      "value_cad": 921600.0, "hours_week": 22, "multiplier": 2, "credit_cad": 1677312.0,
+      "reasons": ["Sheet metal + welding", "88 km from Northgate's London site", "SME: 2x direct credit"],
       "status": "offered" }
   ],
   "readiness": [
     { "kind": "cert", "requirement": "CWB_W47.1",
-      "jobs_unlocked": ["NG-031", "NG-032", "NG-033"], "value_cad": 5100000.0,
+      "jobs_unlocked": ["NG-031", "NG-032", "NG-033"], "value_cad": 5068000.0,
       "message": "Get CWB W47.1 → qualify for 3 more jobs worth $5.1M" }
   ],
   "training": [
@@ -336,7 +373,7 @@ The shop-side view (H3.5): what this shop is offered, what it is missing, and wh
 }
 ```
 - `readiness` lists jobs this shop fails on **exactly one** requirement, grouped by that requirement (`kind`: `cert | capacity | process`).
-- After funding, the unblocked jobs appear in `offers`, the matching readiness item disappears, and the training entry reads e.g. `"status": "funded"`, `"message": "4 welders in training for CWB W47.1"`.
+- After funding, the unblocked jobs appear in `offers` (2 → 5), the matching readiness item disappears (the next one is `"Get ISO 9001 → qualify for 2 more jobs worth $1.2M"`), and the training entry reads `"status": "funded"`, `"message": "4 welders in training for CWB W47.1"`.
 - Before routing, `offers` is `[]`.
 
 ---
@@ -409,6 +446,7 @@ What a shop tells Muster from the phone app (docs/app-spec.md §2.3–§2.8), an
 | `offer_declined` | decision | the assignment's value / credit | `reason_code`, `note?`, `previous?` |
 | `offer_question` | decision | the assignment's value / credit | `question_code`, `note?`, `previous?` |
 | `offer_undo` | decision `undo` | the assignment's value / credit | `previous` (the withdrawn decision) |
+| `offer_reply` | prime's reply to a question | the assignment's value / credit | `reply_code`, `question_code`, `previous_reply_code?` |
 | `funding_requested` | funding request | package `unblocks_value_cad` / `est_credit_cad` | `requirement, est_cost_cad, multiplier, trainees, blocked_job_ids` |
 | `package_funded` | `POST /fund` | Σ value of unblocked jobs / fund `credit_added` | `headline, requirement, trainees, unblocked_job_ids, still_blocked, training_credit_cad` |
 | `capacity_confirmed` | capacity check-in | `null` / `null` | `hours_week, horizon_weeks, accepted_load_hours, offered_load_hours, over_by_hours` |
@@ -435,6 +473,25 @@ What a shop tells Muster from the phone app (docs/app-spec.md §2.3–§2.8), an
 - A code that does not apply to the decision (e.g. `reason_code` on `accepted`) is dropped, stored as `null`.
 - Sending the **same** decision again under a new key returns it with `"event": null` (nothing new for the prime).
 - Errors: 404 `Unknown shop 'syn-999'`; 400 `Route the program first`; 400 `decision must be one of: …`; 400 `reason_code is required when declining`; 400 `question_code is required when asking a question`; 400 `Unknown reason_code '…'` / `Unknown question_code '…'`; 400 `note must be at most 280 characters`; 404 `Job 'NG-099' is not offered to shop 'syn-012'` (also for a job assigned to another shop); 409 `No decision to undo for job 'NG-021' at shop 'syn-012'`.
+
+### `POST /shops/{shop_id}/offers/{job_id}/reply`
+The prime (Northgate) answers the shop's open question on a job, so the answer reaches the shop's phone.
+```json
+{ "reply_code": "yes_date",            // required, ≤ 40 chars (the web's canned-reply id)
+  "text": "Yes, November works",       // required, ≤ 280 chars (shown to the shop)
+  "idempotency_key": "…" }             // optional
+→ 200
+{ "decision": { "shop_id": "syn-012", "job_id": "NG-021", "decision": "question", "reason_code": null,
+                "question_code": "lead_time", "note": null, "at": "2026-09-26T21:41:07Z", "idempotency_key": "…",
+                "reply": { "code": "yes_date", "text": "Yes, November works", "at": "2026-09-26T21:43:10Z" } },
+  "event": { "kind": "offer_reply", "shop_id": "syn-012", "job_id": "NG-021",
+             "message": "Northgate replied to Tallowfield Fabricating Ltd. on NG-021: \"Yes, November works\"",
+             "payload": { "reply_code": "yes_date", "question_code": "lead_time" }, … } }
+```
+- Stored on the question's decision record as `reply: {code, text, at}`. The `reply` key is **absent** until the prime replies, so every other decision shape is unchanged. `GET /shops/{id}/actions` and `GET /programs/{id}/actions` return it inside `decisions[]`.
+- Needs a current `question` decision from that shop on that job. A new decision by the shop (accept / decline / a different question / undo) replaces the record and drops the reply; route, upload, reset and reseed clear it with the decisions. Replying again with a different code or text replaces the reply (`payload.previous_reply_code` names the old one); the same reply again under a new key returns `"event": null`.
+- Never changes the assignment status, routing or the ledger.
+- Errors: 404 `Unknown shop '…'`; 400 `Route the program first`; 404 `Job 'NG-099' is not offered to shop 'syn-012'`; 400 `reply_code is required` / `text is required` (also for missing fields); 400 `reply_code must be at most 40 characters`; 400 `text must be at most 280 characters`; 409 `No open question from shop 'syn-012' on job 'NG-021'`.
 
 ### `POST /shops/{shop_id}/funding-requests`
 "Ask Northgate to fund this" for the suggested training package at this shop whose `gap.requirement` matches.
@@ -469,7 +526,7 @@ Weekly check-in: free hours per week for the next 4 / 8 / 12 weeks. Works before
              "Tallowfield Fabricating Ltd.: 40 h/wk free · accepted 22 h/wk" (+ " · over by 6 h" when over) */ } }
 ```
 - `hours_week` is as given, or the sum of `by_process` when omitted (one of them is required). `by_process` is stored as given (zeros kept) or `null`. `horizon_weeks` defaults to 4.
-- `accepted_load_hours` = Σ `hours_week` of this shop's assignments with status `accepted`; `offered_load_hours` = Σ over all its assignments; `over_by_hours` = max(0, accepted − `hours_week`).
+- `accepted_load_hours` = Σ `hours_week` of this shop's assignments with status `accepted`; `offered_load_hours` = Σ over all its assignments; `over_by_hours` = max(0, accepted − `hours_week`). The phone asks for hours free for *new* work, so the web does not present `over_by_hours` as overbooking; it compares work accepted after the check-in with `hours_week` instead (see `web/lib/app/fit.ts`). Changing the engine field is a pending contract decision.
 - `used_in_routing` is always `false` tonight: routing still uses `capacity_hours_week`.
 - Errors: 404 unknown shop; 400 `hours_week must be between 0 and 2000` (also for each `by_process` value and their sum); 400 `Unknown process_tag '…' in by_process`; 400 `horizon_weeks must be 4, 8 or 12`; 400 `Send hours_week or by_process`.
 
@@ -713,3 +770,65 @@ Generated by `scripts/build_search_fixtures.py` (the real engine in-process on a
 | `jobs_syn-012.json` | `GET /search/jobs?shop_id=syn-012` |
 | `graph_summary.json` | `GET /graph/summary` |
 | `graph_ego_syn-012.json` | `GET /graph/ego?id=syn-012&depth=2&limit=150` |
+
+---
+
+## 8. Demo seed and simulation (additive, v0.4)
+
+Makes the live demo look like a working marketplace instead of an empty one (`engine/simulate.py`, router mounted on the same app; tests: `engine/tests/test_simulate.py`). Callers: `make demo-seed`, and the phone's role picker (`/m`, **Demo version** panel, Live mode only): **Fill with demo activity** (seed) and **Simulate shops responding** (one tick every 8 s; phone events show a **Simulated** chip).
+
+**Guardrails.** Everything goes through the existing §6 shop actions, so routing, jobs, packages and the ledger never change (the demo numbers stay 36 / 4, $57.5M, 11.5%). The presenter's shop **Tallowfield (`syn-012`) is never touched**, so both of its offers stay open, and **no package is ever funded**. The one scripted funding request (TP-02, another shop) waits until the presenter has funded TP-01 and sits last in the queue, so `/gaps` never features another shop's request ahead of TP-01. Every scripted event carries `"simulated": true` (top level and in `payload`) plus `payload.sim_step`; scripted decisions and requests use `idempotency_key = "sim:<step>"`. Progress lives in the event log (`payload.sim_step`), so it survives an engine restart and is cleared by `/demo/reset` or a new upload. Declared certificate dates are relative to today and the renewal rule's act-by lead (`data/rules/renewals.json`), so a seeded renewal never reads as already overdue.
+
+### `POST /demo/seed?scenario=populated|empty`
+`populated` (default): reset, upload the demo parts list, route (the `routed` event is back-dated 47 minutes), then apply a scripted history of 9 events spread over that hour: 4 other shops accept, 1 declines ("No capacity this month"), 1 asks "Can delivery start in November?", 2 capacity check-ins, 1 certificate declaration whose renewal is due soon (Nadcap chemical processing, act by in 24 days). `empty` is `POST /demo/reset` plus three fields. Anything else is 400 `scenario must be one of: populated, empty`.
+```json
+{ "ok": true, "scenario": "populated", "program_id": "northgate", "stage": "routed",
+  "counts": { "jobs": 40, "assigned": 36, "blocked": 4, "shops_with_offers": 22,
+              "accepted": 4, "declined": 1, "questions": 1, "capacity_checkins": 2,
+              "cert_declarations": 1, "funding_requests": 0, "packages_funded": 0,
+              "demo_shop_open_offers": ["NG-021", "NG-022"] },
+  "events_added": 9, "demo_shop_id": "syn-012", "simulated": true,
+  "message": "Demo seeded with simulated shop activity. Tallowfield's two offers are open and no training is funded." }
+```
+`scenario=empty`:
+```json
+{ "ok": true, "program_id": "northgate", "shops": 30, "jobs": 0,
+  "message": "Demo reset: shops and program seeded; no parts uploaded.",
+  "scenario": "empty", "stage": "empty", "events_added": 0 }
+```
+After a populated seed, `GET /programs/northgate/events?since=0` starts:
+```
+1  routed          Northgate Land Systems routed 36 of 40 jobs to 22 shops · 4 blocked
+2  offer_accepted  Tessellate Precision Machining Inc. accepted NG-004 (+$5.06M credit)   (simulated)
+3  offer_accepted  Bitmesh Electronics Assembly Inc. accepted NG-024 (+$5.59M credit)     (simulated)
+```
+
+### `POST /demo/simulate/tick`
+Applies the next applicable event of a fixed 12-step queue (another shop accepts, a question, a capacity check-in, a new declaration, a decline, and last a funding request). Steps that no longer apply are skipped (the job was re-routed, the shop already answered, or the funding request is waiting for TP-01). Returns the new §6 Event (or `null` when nothing is left; that writes nothing) and how many applicable steps remain. 400 `Route the program first (or POST /demo/seed?scenario=populated)` before routing.
+```json
+{ "event": { "seq": 11, "ts": "2026-09-27T07:10:29Z", "kind": "offer_accepted",
+             "shop_id": "syn-014", "shop_name": "Carapace Coatings Inc.", "job_id": "NG-017", "package_id": null,
+             "value_cad": 1267200.0, "credit_cad": 2331648.0,
+             "message": "Carapace Coatings Inc. accepted NG-017 (+$2.33M credit)",
+             "payload": { "simulated": true, "sim_step": "tick-01" }, "simulated": true },
+  "remaining": 10 }
+```
+The last step, after TP-01 is funded:
+```json
+{ "event": { "seq": 23, "kind": "funding_requested", "shop_id": "syn-026", "shop_name": "Keelbar Heavy Fabrication Ltd.",
+             "package_id": "TP-02", "value_cad": 1501000.0, "credit_cad": 400000.0,
+             "message": "Keelbar Heavy Fabrication Ltd. asked Northgate to fund welding capacity (TP-02) · $40K → $400K credit",
+             "payload": { "requirement": "welding", "est_cost_cad": 40000.0, "multiplier": 10, "trainees": 2,
+                          "blocked_job_ids": ["NG-034"], "simulated": true, "sim_step": "tick-12" },
+             "simulated": true, "…": "…" },
+  "remaining": 0 }
+```
+Before TP-01 is funded, the queue runs out after 11 ticks: `{"event": null, "remaining": 0}`.
+
+### `GET /demo/simulate/status`
+```json
+{ "queue_length": 12, "applied": 1, "remaining": 10,
+  "next": { "step": "tick-02", "type": "decision", "shop_id": "syn-006", "job_id": "NG-002" },
+  "seeded": true, "stage": "routed" }
+```
+`remaining` counts only steps that can run now (the waiting funding request is not counted until TP-01 is funded; then `next` is `{"step": "tick-12", "type": "funding", "shop_id": "syn-026", "job_id": null}`). Before routing: `{"queue_length": 12, "applied": 0, "remaining": 0, "next": null, "seeded": false, "stage": "empty"}`.

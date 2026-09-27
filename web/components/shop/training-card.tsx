@@ -75,7 +75,7 @@ export function TrainingCard({ training, shopId }: { training: TrainingT[]; shop
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <TrainingStatusBadge status={t.status} />
-                      <span className="font-mono text-xs text-zinc-400">{t.package_id}</span>
+                      <span className="font-mono text-xs text-zinc-600">{t.package_id}</span>
                     </div>
                     <p className="mt-1.5 text-lg font-semibold leading-snug tracking-tight text-zinc-900">
                       {headline(t)}

@@ -67,6 +67,19 @@ export function parentHref(pathname: string | null, fromPrime = false): string |
   }
 }
 
+/** The demo trainee's seat (the role picker's "Trainee": Seat 3 of TP-01). */
+export const DEFAULT_TRAINEE_SEAT = { packageId: "TP-01", seat: 3 } as const
+
+/**
+ * The trainee's "My seat" link: the plan and seat in the current URL, else the demo seat.
+ * A non-numeric ?seat falls back to the demo seat.
+ */
+export function traineeSeatHref(packageId: string | null, seat: string | null): string {
+  const pkg = packageId || DEFAULT_TRAINEE_SEAT.packageId
+  const n = seat && /^\d+$/.test(seat) && Number(seat) > 0 ? Number(seat) : DEFAULT_TRAINEE_SEAT.seat
+  return `/m/trainee/${encodeURIComponent(pkg)}?seat=${n}`
+}
+
 /** The shop the desktop desk shows (web/components/portal/shop-desk.tsx SHOP_ID: Tallowfield). */
 const DESKTOP_SHOP_ID = "syn-012"
 

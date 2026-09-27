@@ -3,6 +3,7 @@
 What a shop tells Muster from the phone app, and what the prime hears back:
 
 - offer decisions: accept / decline (with a reason) / ask a templated question / undo;
+- the prime's reply to a shop's question (stored on the question's decision record);
 - funding requests ("Ask Northgate to fund this") for a suggested training package;
 - a weekly capacity check-in (free hours per week);
 - shop-declared certification expiry dates;
@@ -56,6 +57,7 @@ EVENT_KINDS = (
     "offer_declined",
     "offer_question",
     "offer_undo",
+    "offer_reply",
     "funding_requested",
     "package_funded",
     "capacity_confirmed",
@@ -73,6 +75,7 @@ SEAT_STAGES = (
 )
 
 NOTE_MAX = 280
+REPLY_CODE_MAX = 40
 CERT_NUMBER_MAX = 40
 KEY_MAX = 128
 HOURS_MAX = 2000
@@ -413,6 +416,60 @@ def decide(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, boo
     )
     resp = {"decision": copy.deepcopy(rec), "assignment_status": a["status"], "event": ev}
     _remember(state, key, "decision", fp, resp)
+    return resp, True
+
+
+def reply(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, bool]:
+    """``POST /shops/{shop_id}/offers/{job_id}/reply``: the prime answers the shop's
+    current question on this job. Stored on the decision record as
+    ``decision["reply"] = {code, text, at}`` (the key is absent until the prime replies),
+    so ``GET /shops/{id}/actions`` carries it back to the shop. A new decision by the shop
+    replaces the record and so drops the reply; reset / route / reseed clear it with the
+    decisions."""
+    shop = _shop(state, shop_id)
+    _require_routed(state)
+    code = _opt_str(body, "reply_code", REPLY_CODE_MAX)
+    if code is None:
+        raise ActionError(400, "reply_code is required")
+    text = _opt_str(body, "text", NOTE_MAX)
+    if text is None:
+        raise ActionError(400, "text is required")
+
+    a = state.assignments.get(job_id)
+    if a is None or a.get("shop_id") != shop_id:
+        raise ActionError(404, f"Job '{job_id}' is not offered to shop '{shop_id}'")
+
+    key = _idem_key(body)
+    norm = {"reply_code": code, "text": text}
+    fp = _fingerprint("reply", (shop_id, job_id), norm)
+    stored = _replay(state, key, "reply", fp)
+    if stored is not None:
+        return stored, False
+
+    current = (getattr(state, "offer_decisions", None) or {}).get(_decision_key(shop_id, job_id))
+    if current is None or current.get("decision") != "question":
+        raise ActionError(409, f"No open question from shop '{shop_id}' on job '{job_id}'")
+
+    prev = current.get("reply")
+    if prev is not None and prev.get("code") == code and prev.get("text") == text:
+        # Same reply again under a new key: nothing new to tell the shop.
+        resp = {"decision": copy.deepcopy(current), "event": None}
+        _remember(state, key, "reply", fp, resp)
+        return resp, True
+
+    current["reply"] = {"code": code, "text": text, "at": _now()}
+    prime = (state.program.get("prime_name") or "The prime").split()[0]
+    payload: dict = {"reply_code": code, "question_code": current.get("question_code")}
+    if prev is not None:
+        payload["previous_reply_code"] = prev.get("code")
+    ev = emit(
+        state, "offer_reply",
+        f'{prime} replied to {shop["name"]} on {job_id}: "{text}"',
+        shop_id=shop_id, job_id=job_id,
+        value_cad=a["value_cad"], credit_cad=a["credit_cad"], payload=payload,
+    )
+    resp = {"decision": copy.deepcopy(current), "event": ev}
+    _remember(state, key, "reply", fp, resp)
     return resp, True
 
 

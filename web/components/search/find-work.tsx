@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Check,
   CircleDashed,
+  Clock,
   ExternalLink,
   Inbox,
   Landmark,
@@ -31,7 +32,7 @@ import { EmptyState } from "@/components/muster/empty-state"
 import { Details } from "@/components/muster/details"
 import { Term } from "@/components/muster/term"
 import { useJobSearch } from "@/lib/search/client"
-import { fixtureShop } from "@/lib/search/local"
+import { fixtureShop, fundedUnlocks } from "@/lib/search/local"
 import { PROCESS_KEYS, canadaBuysSearchUrl, certFirst, fmtDate, processPlain } from "@/lib/search/labels"
 import type { EligibleJob, MissingReq, NearMissJob, Tender } from "@/lib/search/types"
 import { TermText } from "./term-text"
@@ -42,6 +43,32 @@ const selectCls =
 
 function reqLabel(m: MissingReq): string {
   return m.kind === "cert" ? certFirst(m.requirement) : `${processPlain(m.requirement)} (a process the shop doesn't do yet)`
+}
+
+/** Certificate names as they appear in routing reasons ("Welding + CWB W47.1"). */
+const CERT_IN_REASON: [RegExp, string][] = [
+  [/\bCWB W47\.1\b/, "CWB_W47.1"],
+  [/\bCGP\b/, "CGP"],
+  [/\bCPCSC Level 1\b/, "CPCSC_L1"],
+  [/\bAS9100\b/, "AS9100"],
+  [/\bISO 9001\b/, "ISO9001"],
+  [/\bNadcap\b/i, "NADCAP"],
+]
+
+/** The certificate a reason names that this shop only has in training (pending_training), or null. */
+function reasonTrainingCert(r: string, inTraining: Set<string>): string | null {
+  for (const [re, type] of CERT_IN_REASON) {
+    if (!re.test(r)) continue
+    if (type === "NADCAP") {
+      const hit = [...inTraining].find((t) => t.startsWith("NADCAP"))
+      if (hit) return hit
+    } else if (inTraining.has(type)) return type
+  }
+  return null
+}
+
+function plainReason(r: string): string {
+  return r.replace(/SME: 2x direct credit/, "small business: counts double")
 }
 
 function StatusChip({ job }: { job: EligibleJob }) {
@@ -75,7 +102,7 @@ function StatusChip({ job }: { job: EligibleJob }) {
   )
 }
 
-function WorkRow({ job, shopId }: { job: EligibleJob; shopId: string }) {
+function WorkRow({ job, shopId, inTraining }: { job: EligibleJob; shopId: string; inTraining: Set<string> }) {
   const wp = useWithParams()
   const mine = job.status === "offered_to_you"
   return (
@@ -111,7 +138,28 @@ function WorkRow({ job, shopId }: { job: EligibleJob; shopId: string }) {
       {mine ? (
         <div className="flex flex-wrap items-center justify-between gap-2">
           {job.reasons.length ? (
-            <p className="text-sm text-muted-foreground">Why you: {job.reasons.join(" · ").replace(/SME: 2x direct credit/, "small business: counts double")}</p>
+            <p className="text-sm text-muted-foreground" data-why-you>
+              Why you:{" "}
+              {job.reasons.map((r, i) => {
+                const training = reasonTrainingCert(r, inTraining)
+                return (
+                  <React.Fragment key={r}>
+                    {i ? " · " : null}
+                    {training ? (
+                      <span className="inline-flex items-center gap-1 text-amber-800" data-reason-training>
+                        <Clock className="size-3.5 shrink-0" aria-hidden />
+                        <span>
+                          <TermText text={plainReason(r)} /> ({training.startsWith("CWB") ? "welders" : "staff"} in training,{" "}
+                          not held yet)
+                        </span>
+                      </span>
+                    ) : (
+                      <TermText text={plainReason(r)} />
+                    )}
+                  </React.Fragment>
+                )
+              })}
+            </p>
           ) : (
             <span />
           )}
@@ -221,7 +269,7 @@ function TenderRow({ t, kind }: { t: Tender; kind?: Exclude<TenderKind, "fits"> 
 }
 
 export function FindWork() {
-  const { demoShopId, stage, ready } = useDemo()
+  const { demoShopId, stage, ready, fundedIds, gaps } = useDemo()
   const wp = useWithParams()
   const shopId = demoShopId ?? "syn-012"
   const shop = fixtureShop(shopId)
@@ -234,7 +282,17 @@ export function FindWork() {
   const filtering = !!q.trim() || !!process
   const totals = (filtering ? allData : data) ?? allData ?? null
 
-  const offered = data?.eligible.filter((e) => e.status === "offered_to_you") ?? []
+  // Certificates this shop has only in training (a funded package): they count for matching,
+  // but are not held yet.
+  const inTraining = React.useMemo(
+    () => new Set(fundedUnlocks(fundedIds, gaps?.suggestions).get(shopId) ?? []),
+    [fundedIds, gaps, shopId]
+  )
+
+  // "Offered to you" = open or accepted offers, the same set as the tile above. Declined ones
+  // are listed apart: they are not work for you.
+  const offered = data?.eligible.filter((e) => e.status === "offered_to_you" && e.offer_status !== "declined") ?? []
+  const turnedDown = data?.eligible.filter((e) => e.status === "offered_to_you" && e.offer_status === "declined") ?? []
   const others = data?.eligible.filter((e) => e.status !== "offered_to_you") ?? []
   const oneStep = data?.near_miss.filter((n) => n.missing.length === 1) ?? []
   const twoSteps = data?.near_miss.filter((n) => n.missing.length > 1) ?? []
@@ -369,15 +427,25 @@ export function FindWork() {
               {offered.length ? (
                 <ul className="flex flex-col gap-2">
                   {offered.map((j) => (
-                    <WorkRow key={j.job_id} job={j} shopId={shopId} />
+                    <WorkRow key={j.job_id} job={j} shopId={shopId} inTraining={inTraining} />
                   ))}
                 </ul>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  {filtering ? "No offers match this search." : "No offers yet."}
+                  {filtering ? "No offers match this search." : turnedDown.length ? "No open offers." : "No offers yet."}
                 </p>
               )}
             </div>
+            {turnedDown.length ? (
+              <div data-turned-down>
+                <h3 className="mb-2 text-sm font-semibold text-slate-700">You said no ({turnedDown.length})</h3>
+                <ul className="flex flex-col gap-2">
+                  {turnedDown.map((j) => (
+                    <WorkRow key={j.job_id} job={j} shopId={shopId} inTraining={inTraining} />
+                  ))}
+                </ul>
+              </div>
+            ) : null}
             <div>
               <h3 className="mb-2 text-sm font-semibold text-slate-700">
                 You qualify, but it went to another shop or isn&apos;t matched yet ({others.length})
@@ -385,7 +453,7 @@ export function FindWork() {
               {others.length ? (
                 <ul className="flex flex-col gap-2">
                   {others.map((j) => (
-                    <WorkRow key={j.job_id} job={j} shopId={shopId} />
+                    <WorkRow key={j.job_id} job={j} shopId={shopId} inTraining={inTraining} />
                   ))}
                 </ul>
               ) : (

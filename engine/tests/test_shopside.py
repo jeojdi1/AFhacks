@@ -265,6 +265,84 @@ def test_decision_idempotency(client):
     assert kinds(client) == ["routed", "offer_declined"]
 
 
+def reply(c, job_id, reply_code="yes_date", text="Yes, November works", shop=DEMO_SHOP, **kw):
+    return c.post(f"/shops/{shop}/offers/{job_id}/reply",
+                  json={"reply_code": reply_code, "text": text, **kw})
+
+
+def test_prime_reply_reaches_the_shop(client):
+    ledger_before = client.get("/programs/northgate/ledger").content
+    ok(decide(client, "NG-021", "question", question_code="lead_time", idempotency_key="q-1"))
+    body = ok(reply(client, "NG-021", idempotency_key="r-1"))
+    assert set(body) == {"decision", "event"}
+    d = body["decision"]
+    assert set(d) == DECISION_KEYS | {"reply"}
+    assert d["decision"] == "question" and d["question_code"] == "lead_time"
+    assert d["reply"] == {"code": "yes_date", "text": "Yes, November works", "at": "2026-09-26T21:30:00Z"}
+    ev = body["event"]
+    assert set(ev) == EVENT_KEYS and ev["kind"] == "offer_reply"
+    assert ev["shop_id"] == DEMO_SHOP and ev["job_id"] == "NG-021"
+    assert ev["message"] == 'Northgate replied to Tallowfield Fabricating Ltd. on NG-021: "Yes, November works"'
+    assert ev["payload"] == {"reply_code": "yes_date", "question_code": "lead_time"}
+    # the shop sees it on its actions and the prime on the program actions
+    shop_d = ok(client.get(f"/shops/{DEMO_SHOP}/actions"))["decisions"]
+    assert [x.get("reply") for x in shop_d] == [d["reply"]]
+    prog_d = ok(client.get("/programs/northgate/actions"))["decisions"]
+    assert [x.get("reply") for x in prog_d] == [d["reply"]]
+    assert kinds(client) == ["routed", "offer_question", "offer_reply"]
+    assert assignment(client, "NG-021")["status"] == "offered"
+    assert client.get("/programs/northgate/ledger").content == ledger_before
+    # replay: same key, same body -> byte-identical, no write, no event
+    rev = revision()
+    assert ok(reply(client, "NG-021", idempotency_key="r-1")) == body
+    assert revision() == rev
+    assert "already used" in err(reply(client, "NG-021", text="No", idempotency_key="r-1"), 409)
+    # same reply under a new key: nothing new
+    again = ok(reply(client, "NG-021", idempotency_key="r-2"))
+    assert again["event"] is None and again["decision"] == d
+    # a changed reply replaces it and names the previous code
+    changed = ok(reply(client, "NG-021", reply_code="no_date", text="December at the earliest"))
+    assert changed["decision"]["reply"]["code"] == "no_date"
+    assert changed["event"]["payload"] == {"reply_code": "no_date", "question_code": "lead_time",
+                                           "previous_reply_code": "yes_date"}
+    # the shop answering again replaces the record and so drops the reply
+    ok(decide(client, "NG-021", "accepted"))
+    acc = ok(client.get(f"/shops/{DEMO_SHOP}/actions"))["decisions"]
+    assert acc[0]["decision"] == "accepted" and "reply" not in acc[0]
+    assert "No open question" in err(reply(client, "NG-021"), 409)
+
+
+def test_prime_reply_persists_and_route_clears_it(client):
+    ok(decide(client, "NG-021", "question", question_code="first_article"))
+    ok(reply(client, "NG-021"))
+    before = ok(client.get(f"/shops/{DEMO_SHOP}/actions"))
+    st.save_state(st.load_state("northgate"))
+    cache_cleared = ok(client.get(f"/shops/{DEMO_SHOP}/actions"))
+    assert cache_cleared == before and before["decisions"][0]["reply"]["text"] == "Yes, November works"
+    ok(client.post("/programs/northgate/route"))
+    assert ok(client.get(f"/shops/{DEMO_SHOP}/actions"))["decisions"] == []
+
+
+def test_prime_reply_errors(client):
+    assert "No open question" in err(reply(client, "NG-021"), 409)
+    ok(decide(client, "NG-022", "declined", reason_code="capacity"))
+    assert "No open question" in err(reply(client, "NG-022"), 409)
+    ok(decide(client, "NG-021", "question", question_code="lead_time"))
+    assert err(reply(client, "NG-021", shop="syn-999"), 404) == "Unknown shop 'syn-999'"
+    assert "is not offered to shop" in err(reply(client, "NG-099"), 404)
+    assert err(reply(client, "NG-021", reply_code="x" * 41), 400) == "reply_code must be at most 40 characters"
+    assert err(reply(client, "NG-021", text="x" * 281), 400) == "text must be at most 280 characters"
+    assert err(reply(client, "NG-021", text="   "), 400) == "text is required"
+    assert err(reply(client, "NG-021", reply_code=" "), 400) == "reply_code is required"
+    r = client.post(f"/shops/{DEMO_SHOP}/offers/NG-021/reply", json={"text": "hi"})
+    assert err(r, 400) == "reply_code is required"
+    assert kinds(client) == ["routed", "offer_declined", "offer_question"]
+
+
+def test_prime_reply_before_routing_400(uploaded):
+    assert err(reply(uploaded, "NG-021"), 400) == "Route the program first"
+
+
 def test_decisions_do_not_change_fund_response(client, templates, tmp_path, monkeypatch):
     ok(decide(client, "NG-021", "accepted"))
     ok(decide(client, "NG-022", "declined", reason_code="price"))

@@ -10,7 +10,7 @@
 import { COUNTING_CERT_STATUSES, type CertStatus } from "@/lib/api/types"
 import { CERT_LABEL, MATERIAL_LABEL, PROCESS_LABEL, label } from "@/lib/format"
 import { certPlain } from "@/lib/ui/plain"
-import type { CertWithDates, Job, Shop } from "./types"
+import type { CapacityCheckin, CertWithDates, Job, ProcessTag, Shop } from "./types"
 
 export type FitResult = "pass" | "fail" | "warn"
 
@@ -31,12 +31,27 @@ export interface FitItem {
   assumption?: boolean
 }
 
+/** One of the shop's other accepted jobs, for the capacity row. */
+export interface AcceptedJobLoad {
+  job_id: string
+  hours_week: number
+  process_tags: readonly string[]
+  /** When the shop accepted it (its decision's `at`); null when unknown (treated as booked before any check-in). */
+  accepted_at: string | null
+}
+
 export interface FitOptions {
   /**
-   * Weekly hours the shop confirmed in its capacity check-in (T7). When given,
-   * the capacity row uses it instead of the profile figure and says so.
+   * The shop's capacity check-in (T7): FREE hours per week for new work, not counting
+   * work already booked ("Hours you could take on new work, not hours already booked").
+   * When given, the capacity row compares this job (plus jobs accepted after the check-in)
+   * with those free hours, per process when the check-in has by_process.
    */
+  confirmedCapacity?: Pick<CapacityCheckin, "hours_week" | "by_process" | "confirmed_at"> | null
+  /** Weekly free hours from a check-in, without its details (older callers). */
   confirmedCapacityHours?: number | null
+  /** The shop's other accepted jobs (needed to count work accepted after the check-in). */
+  acceptedJobs?: readonly AcceptedJobLoad[]
   /** Jobs the shop has already accepted (for the capacity detail line). */
   acceptedCount?: number
 }
@@ -170,34 +185,81 @@ export function fitChecklist(
     })
   }
 
-  // 6. Capacity after accepting
-  const confirmed = opts.confirmedCapacityHours
-  const cap = typeof confirmed === "number" && confirmed >= 0 ? confirmed : shop.capacity_hours_week
+  // 6. Capacity
+  items.push(capacityItem(job, shop, acceptedLoadHours, opts))
+
+  return items
+}
+
+function capacityItem(job: Job, shop: Shop, acceptedLoadHours: number, opts: FitOptions): FitItem {
+  const checkin =
+    opts.confirmedCapacity && typeof opts.confirmedCapacity.hours_week === "number" && opts.confirmedCapacity.hours_week >= 0
+      ? opts.confirmedCapacity
+      : typeof opts.confirmedCapacityHours === "number" && opts.confirmedCapacityHours >= 0
+        ? { hours_week: opts.confirmedCapacityHours, by_process: null, confirmed_at: null as string | null }
+        : null
+  const grade = (after: number, cap: number): FitResult => (after > cap ? "fail" : cap > 0 && after / cap >= CAPACITY_WARN_SHARE ? "warn" : "pass")
+
+  if (checkin) {
+    // Free hours already leave out booked work, so only this job, plus jobs accepted AFTER the
+    // check-in, count against them. Per process when the check-in says hours per process: a
+    // welding + sheet-metal job is compared with the free welding + sheet-metal hours.
+    const by = checkin.by_process ?? null
+    const tags = job.process_tags ?? []
+    const procs: string[] = by ? tags.filter((p) => typeof by[p as ProcessTag] === "number") : []
+    const perProcess = procs.length > 0
+    const free = perProcess ? procs.reduce((sum, p) => sum + (by?.[p as ProcessTag] ?? 0), 0) : checkin.hours_week
+    const since = checkin.confirmed_at
+    const newer = (opts.acceptedJobs ?? []).filter(
+      (a) =>
+        !!since &&
+        !!a.accepted_at &&
+        a.accepted_at > since &&
+        (!perProcess || a.process_tags.some((p) => procs.includes(p)))
+    )
+    const newerHours = newer.reduce((sum, a) => sum + Math.max(0, a.hours_week), 0)
+    const after = newerHours + job.hours_week
+    const scope = perProcess ? ` (${list(procs.map((p) => label(PROCESS_LABEL, p).toLowerCase()))})` : ""
+    const parts = [
+      `${fmtHours(job.hours_week)} h/wk for this job`,
+      newerHours > 0
+        ? `+ ${fmtHours(newerHours)} h/wk accepted since your check-in (${newer.length} job${newer.length === 1 ? "" : "s"})`
+        : null,
+    ].filter(Boolean)
+    return {
+      key: "capacity",
+      kind: "capacity",
+      result: grade(after, free),
+      label: `Hours needed: ${fmtHours(after)} of your ${fmtHours(free)} free h/wk${scope}`,
+      detail: `${parts.join(" ")} · free hours from your check-in; work booked before it is already left out`,
+      assumption: true,
+    }
+  }
+
+  // No check-in: this job plus everything accepted against the profile capacity.
+  const cap = shop.capacity_hours_week
   const after = Math.max(0, acceptedLoadHours) + job.hours_week
-  const share = cap > 0 ? after / cap : Infinity
-  const capResult: FitResult = after > cap ? "fail" : share >= CAPACITY_WARN_SHARE ? "warn" : "pass"
   const n = opts.acceptedCount ?? null
   const already =
     acceptedLoadHours > 0
       ? `${fmtHours(acceptedLoadHours)} h/wk already accepted${n ? ` (${n} job${n === 1 ? "" : "s"})` : ""} + ${fmtHours(job.hours_week)} h/wk for this job`
       : `${fmtHours(job.hours_week)} h/wk for this job; nothing else accepted yet`
-  items.push({
+  return {
     key: "capacity",
     kind: "capacity",
-    result: capResult,
+    result: grade(after, cap),
     label: `Your load after accepting: ${fmtHours(after)} / ${fmtHours(cap)} h/wk`,
-    detail: `${already} · ${typeof confirmed === "number" ? "capacity from your check-in" : "capacity from your shop profile"}`,
+    detail: `${already} · capacity from your shop profile`,
     assumption: true,
-  })
-
-  return items
+  }
 }
 
 function fmtHours(h: number): string {
   return Math.round(h).toLocaleString("en-US")
 }
 
-const lowerFirst = (x: string) => (x ? x.charAt(0).toLowerCase() + x.slice(1) : x)
+// Leaves acronyms alone ("AS9100", "CNC"): only "Welding …" → "welding …".
+const lowerFirst = (x: string) => (x && !/^[A-Z0-9]{2}/.test(x) ? x.charAt(0).toLowerCase() + x.slice(1) : x)
 const upperFirst = (x: string) => (x ? x.charAt(0).toUpperCase() + x.slice(1) : x)
 const CERT_BY_LABEL = new Map(Object.entries(CERT_LABEL).map(([k, v]) => [v.toLowerCase(), k]))
 
@@ -207,9 +269,10 @@ const CERT_BY_LABEL = new Map(Object.entries(CERT_LABEL).map(([k, v]) => [v.toLo
  *   "Welding + sheet metal + CWB W47.1" → "Welding, sheet metal and welding certification (CWB W47.1)"
  * A certificate the shop only has as pending_training says "welders in training", never held.
  */
-export function plainReason(r: string, certs: CertWithDates[] = [], prime = "Northgate"): string {
-  if (/^SME: 2x/i.test(r)) return `Small business: your work counts double (2×) for ${prime}`
-  if (/^Large firm: 1x/i.test(r)) return `Your work counts 1× toward what ${prime} owes`
+export function plainReason(r: string, certs: CertWithDates[] = [], prime = "Northgate", reader: "shop" | "prime" = "shop"): string {
+  // The defence company reads the same reasons about the shop, addressed to itself.
+  if (/^SME: 2x/i.test(r)) return reader === "prime" ? "Small business: its work counts double (2×) toward what you owe" : `Small business: your work counts double (2×) for ${prime}`
+  if (/^Large firm: 1x/i.test(r)) return reader === "prime" ? "Its work counts 1× toward what you owe" : `Your work counts 1× toward what ${prime} owes`
   if (/^Only qualified shop in range/i.test(r)) return "The only qualified shop in range (counts 1×)"
   if (/^CGP-registered/i.test(r)) return "Security-cleared (Controlled Goods) for this controlled part"
   if (!r.includes(" + ")) return r
@@ -218,7 +281,8 @@ export function plainReason(r: string, certs: CertWithDates[] = [], prime = "Nor
     const ct = CERT_BY_LABEL.get(part.trim().toLowerCase())
     if (!ct) return lowerFirst(part.trim())
     const p = certPlain(ct)
-    const name = p.first !== p.label ? `${lowerFirst(p.label)} (${certShortName(ct)})` : certShortName(ct)
+    const short = certShortName(ct)
+    const name = p.first !== p.label && p.label !== short ? `${lowerFirst(p.label)} (${short})` : short
     return status.get(ct) === "pending_training" ? `${name}: welders in training` : name
   })
   const joined = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}` : parts[0]

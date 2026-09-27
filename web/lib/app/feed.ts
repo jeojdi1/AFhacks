@@ -58,6 +58,8 @@ extendStrings("en", {
   "feed.question": "{shop} asked a question on {job}: “{text}”",
   "feed.question.topic": "About: {question}",
   "feed.undo": "{shop} withdrew its answer on {job}",
+  "feed.reply": "You replied to {shop} on {job}: “{text}”",
+  "feed.reply.detail": "About: {question}",
   "feed.undo.detail": "Offer is open again",
   "feed.funding": "{shop} asked you to fund {requirement} training",
   "feed.funding.detail": "{cost} → {credit} credit",
@@ -67,7 +69,6 @@ extendStrings("en", {
   "feed.capacity": "{shop} has {hours} hrs/wk free",
   "feed.capacity.detail": "{accepted} hrs/wk already taken by accepted jobs",
   "feed.capacity.detailNone": "No accepted jobs yet",
-  "feed.capacity.over": "{accepted} hrs/wk taken by accepted jobs · {over} hrs over",
   "feed.cert": "{shop} added a {cert} expiry date",
   "feed.cert.detail": "{date} · shop-declared",
   "feed.pctOfObligation": "{pct} of what's owed",
@@ -80,7 +81,6 @@ extendStrings("en", {
   // --- actions -----------------------------------------------------------------
   "feed.action.view": "View",
   "feed.action.reroute": "Find another shop",
-  "feed.action.rerouteSoon": "coming soon",
   "feed.action.reply": "Reply by email",
   "feed.action.noEmail": "No contact on file",
   "feed.action.review": "Review in Gaps",
@@ -274,6 +274,12 @@ function questionText(code: unknown): string {
   return c ? lower(t(`question.${c}`)) : "the offer"
 }
 
+/** The quoted reply in the engine's offer_reply message ('Northgate replied to X on NG-021: "Yes, November works"'). */
+function replyText(message: string | null | undefined): string | null {
+  const m = /:\s*"(.+)"\s*$/.exec(message ?? "")
+  return m ? m[1] : null
+}
+
 function pct(n: number): string {
   const v = n * 100
   return `${v < 0.1 && v > 0 ? v.toFixed(2) : v.toFixed(1)}%`
@@ -289,6 +295,9 @@ export function withFromPrime(href: string): string {
   return `${path}${sep}from=prime${hash !== undefined ? `#${hash}` : ""}`
 }
 
+/** Desktop supplier search, started from a declined job (the phone adds ?api/?mode when it renders the link). */
+export const findAnotherShopHref = (jobId: string) => `/prime/suppliers?job=${encodeURIComponent(jobId)}`
+
 export const shopOfferHref = (shopId: string, jobId: string) =>
   `/m/shops/${encodeURIComponent(shopId)}/offers/${encodeURIComponent(jobId)}`
 export const shopCertHref = (shopId: string, certType: string) =>
@@ -298,8 +307,10 @@ function mailto(to: string, subject: string): string {
   return `mailto:${to}?subject=${encodeURIComponent(subject)}`
 }
 
-function capacityDetail(accepted: number, over: number): string {
-  if (over > 0) return t("feed.capacity.over", { accepted, over })
+// The check-in asks for hours free for NEW work (on top of accepted jobs), so the engine's
+// over_by_hours (accepted − free) is not an overbooking signal; the phone's Today card checks
+// work accepted after the check-in instead.
+function capacityDetail(accepted: number): string {
   return accepted > 0 ? t("feed.capacity.detail", { accepted }) : t("feed.capacity.detailNone")
 }
 
@@ -354,7 +365,7 @@ export function eventItem(e: AppEvent, ledger: LedgerResponse | null, ctx: FeedC
         tone: "danger",
         title: t("feed.declined", { shop, job: e.job_id ?? "", reason: reasonText(p.reason_code) }),
         detail: t("feed.declined.detail"),
-        action: { label: t("feed.action.reroute"), href: null, disabled: true, note: t("feed.action.rerouteSoon") },
+        action: e.job_id ? { label: t("feed.action.reroute"), href: findAnotherShopHref(e.job_id) } : null,
       }
     case "offer_question": {
       const email = e.shop_id ? (ctx.shopEmail?.(e.shop_id) ?? null) : null
@@ -372,6 +383,17 @@ export function eventItem(e: AppEvent, ledger: LedgerResponse | null, ctx: FeedC
               external: true,
             }
           : { label: t("feed.action.reply"), href: null, disabled: true, note: t("feed.action.noEmail") },
+      }
+    }
+    case "offer_reply": {
+      const text = str(p.text) ?? replyText(e.message)
+      const qc = str(p.question_code)
+      return {
+        ...base,
+        tone: "info",
+        title: t("feed.reply", { shop, job: e.job_id ?? "", text: text ?? "…" }),
+        detail: qc ? t("feed.reply.detail", { question: lower(t(`question.${qc}`)) }) : null,
+        action: null,
       }
     }
     case "offer_undo":
@@ -410,12 +432,11 @@ export function eventItem(e: AppEvent, ledger: LedgerResponse | null, ctx: FeedC
     case "capacity_confirmed": {
       const hours = num(p.hours_week) ?? 0
       const accepted = num(p.accepted_load_hours) ?? 0
-      const over = num(p.over_by_hours) ?? Math.max(0, accepted - hours)
       return {
         ...base,
-        tone: over > 0 ? "warn" : "info",
+        tone: "info",
         title: t("feed.capacity", { shop, hours }),
-        detail: capacityDetail(accepted, over),
+        detail: capacityDetail(accepted),
         action: null,
       }
     }
@@ -555,11 +576,10 @@ export function eventToast(e: AppEvent, ctx: FeedContext = {}): { title: string;
     case "capacity_confirmed": {
       const accepted = num(p.accepted_load_hours) ?? 0
       const hours = num(p.hours_week) ?? 0
-      const over = num(p.over_by_hours) ?? Math.max(0, accepted - hours)
       return {
         title: t("bell.toast.capacity", { shop, hours, weeks: num(p.horizon_weeks) ?? 4 }),
-        description: capacityDetail(accepted, over),
-        tone: over > 0 ? "warn" : "info",
+        description: capacityDetail(accepted),
+        tone: "info",
       }
     }
     case "cert_declared":

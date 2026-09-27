@@ -6,6 +6,7 @@
 
 import * as React from "react"
 import { useDemo } from "@/lib/data/store"
+import { useAppActions } from "@/lib/app/actions-store"
 import {
   DEMO_JOBS_SHOP_ID,
   SearchInputError,
@@ -151,22 +152,42 @@ export function useShopSearch(params: ShopSearchParams, dnd: Record<string, DndH
 
 export function useJobSearch(shopId: string, q: string, process: string[]): Loaded<JobSearchResponse> {
   const { stage, assignments, offerStatus, fundedIds } = useDemo()
+  const actions = useAppActions()
   const unlocks = useUnlocks()
   const qs = new URLSearchParams({ shop_id: shopId, include_near_miss: "true" })
   if (q.trim()) qs.set("q", q.trim())
   for (const p of process) qs.append("process", p)
-  const decided = Object.entries(offerStatus)
-    .filter(([k]) => k.startsWith(`${shopId}:`))
+  // This shop's answers: the desktop overlay (useDemo().offerStatus), corrected by the phone's
+  // answers (actions store). An undo removes the phone decision but cannot clear the overlay,
+  // so the latest offer_* event per job decides (same rule as lib/app/shop-bundle.ts).
+  const effective = React.useMemo(() => {
+    const prefix = `${shopId}:`
+    const out: Record<string, string> = {}
+    for (const [k, v] of Object.entries(offerStatus)) if (k.startsWith(prefix)) out[k] = v
+    const lastKind: Record<string, string> = {}
+    for (const e of actions.events)
+      if (e.job_id && e.shop_id === shopId && e.kind.startsWith("offer_")) lastKind[e.job_id] = e.kind
+    for (const [job, kind] of Object.entries(lastKind)) if (kind === "offer_undo") delete out[`${prefix}${job}`]
+    for (const [k, d] of Object.entries(actions.decisions)) {
+      if (!k.startsWith(prefix)) continue
+      if (d.decision === "accepted" || d.decision === "declined") out[k] = d.decision
+      else delete out[k]
+    }
+    return out
+  }, [shopId, offerStatus, actions.events, actions.decisions])
+  const decided = Object.entries(effective)
     .map(([k, v]) => `${k}=${v}`)
     .sort()
     .join(",")
+  // Refetch (live) on every offer answer, including an undo or one sent from another device.
+  const offerSeq = actions.events.reduce((m, e) => (e.kind.startsWith("offer_") ? Math.max(m, e.seq) : m), 0)
   return useEngineGet<JobSearchResponse>(
     `/search/jobs?${qs.toString()}`,
     () =>
       shopId === DEMO_JOBS_SHOP_ID
-        ? localSearchJobs({ shopId, stage, assignments, offerStatus, unlocks, q, process })
+        ? localSearchJobs({ shopId, stage, assignments, offerStatus: effective, unlocks, q, process })
         : null,
-    [qs.toString(), stage, fundedIds.join(","), assignments.length, decided]
+    [qs.toString(), stage, fundedIds.join(","), assignments.length, decided, offerSeq]
   )
 }
 

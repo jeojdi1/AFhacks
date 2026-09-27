@@ -27,17 +27,18 @@ import { useDemo } from "@/lib/data/store"
 import type { TrainingPackage } from "@/lib/api/types"
 import { shopInfo, useAppActions } from "@/lib/app/actions-store"
 import { fmtTime } from "@/lib/app/today"
-import { fundingNeed, shortShopName } from "@/lib/app/feed"
-import { replyKey, sendPrimeReply, usePrimeReplies } from "@/lib/app/prime-replies"
-import { isSimulatedEvent } from "@/lib/app/sim-flag"
+import { findAnotherShopHref, fundingNeed, shortShopName } from "@/lib/app/feed"
+import { replyForDecision, sendPrimeReply, usePrimeReplies, useSyncRepliesWithRouting } from "@/lib/app/prime-replies"
+import { isSimulatedEvent, isSimulatedRecord } from "@/lib/app/sim-flag"
 import { extendStrings, t } from "@/lib/app/strings"
-import type { OfferDecisionRec } from "@/lib/app/types"
+import type { FundingRequestRec, OfferDecisionRec, QuestionCode } from "@/lib/app/types"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
 import { ShopLabelChip } from "@/components/mobile/shell/m-header"
 import { SimulatedChip } from "@/components/mobile/shell/simulation"
 import { BottomSheet } from "@/components/mobile/offer/bottom-sheet"
 import { NoBreakIds } from "@/components/mobile/prime/activity-item"
+import { usePhoneHref } from "@/components/mobile/shell/use-phone-href"
 
 extendStrings("en", {
   "pa.title": "What you can do now",
@@ -51,7 +52,7 @@ extendStrings("en", {
   "pa.fund.title": "Fund welder training",
   "pa.fund.subtitle": "Jobs are stuck because shops lack qualified welders. Training fixes that and earns Canada work credit (ITB).",
   "pa.fund.none": "Every suggested training plan is funded.",
-  "pa.fund.cert": "Certify {count} welders to {cert}",
+  "pa.fund.cert": "Qualify {count} welders under {cert}",
   "pa.fund.apprentice": "Sponsor {count} welding apprentices",
   "pa.fund.costCredit": "{cost} training → {credit} credit ({mult}x)",
   "pa.fund.unblocks": "Unblocks {count} jobs · {value} of work",
@@ -79,11 +80,15 @@ extendStrings("en", {
   "pa.q.title": "Shop questions",
   "pa.q.none": "No open questions from shops.",
   "pa.q.row": "{shop} asked a question on {job}",
-  "pa.q.reply1": "Yes, November works",
-  "pa.q.reply2": "We'll confirm by Friday",
+  "pa.q.reply.lead_time": "Yes, November works",
+  "pa.q.reply.quantity_split": "Yes, two lots is fine",
+  "pa.q.reply.material_supply": "We'll supply the material",
+  "pa.q.reply.first_article": "Yes, send a first article",
+  "pa.q.reply.generic": "We'll confirm by Friday",
   "pa.q.sent": "Reply sent",
+  "pa.q.sentBody": "{shop} sees it on its phone.",
   "pa.q.sentDemo": "Reply sent (demo)",
-  "pa.q.sentDemoBody": "Recorded on this phone. Replies are not part of the engine yet.",
+  "pa.q.sentDemoBody": "Recorded on this device only: this engine has no reply route.",
   "pa.q.failed": "Could not send the reply",
 
   "pa.req.title": "Funding requests",
@@ -100,9 +105,36 @@ extendStrings("en", {
 
 const lower = (s: string) => (s ? s.charAt(0).toLowerCase() + s.slice(1) : s)
 
+/** Canned replies for a question: one that answers its topic, then a generic holding reply. */
+const REPLY_CODES: Record<QuestionCode, string> = {
+  lead_time: "yes_date",
+  quantity_split: "yes_split",
+  material_supply: "we_supply",
+  first_article: "yes_fai",
+}
+function replyTemplates(q: QuestionCode | null): { code: string; text: string }[] {
+  const out: { code: string; text: string }[] = []
+  if (q && REPLY_CODES[q]) out.push({ code: REPLY_CODES[q], text: t(`pa.q.reply.${q}`) })
+  out.push({ code: "confirm_friday", text: t("pa.q.reply.generic") })
+  return out
+}
+
+/** A request the demo simulator made (its idempotency key, or a simulated funding_requested event). */
+function requestSimulated(r: FundingRequestRec | undefined, events: { kind: string; package_id: string | null }[]): boolean {
+  if (!r) return false
+  if (isSimulatedRecord(r)) return true
+  for (let i = events.length - 1; i >= 0; i--) {
+    const e = events[i]
+    if (e.kind === "funding_requested" && e.package_id === r.package_id) return isSimulatedEvent(e)
+  }
+  return false
+}
+
+const questionId = (d: OfferDecisionRec) => `q-${d.shop_id}-${d.job_id}`.replace(/[^A-Za-z0-9_-]/g, "_")
+
 function pkgTitle(p: TrainingPackage): string {
   if (p.category === "apprentice_sponsorship") return t("pa.fund.apprentice", { count: p.trainees })
-  if (p.cert_unlock) return t("pa.fund.cert", { count: p.trainees, cert: CERT_LABEL[p.cert_unlock] ?? p.cert_unlock })
+  if (p.cert_unlock) return t("pa.fund.cert", { count: p.trainees, cert: p.cert_unlock === "CWB_W47.1" ? "CSA W47.1" : (CERT_LABEL[p.cert_unlock] ?? p.cert_unlock) })
   return p.title
 }
 
@@ -132,6 +164,9 @@ export function PrimeActions() {
   const demo = useDemo()
   const actions = useAppActions()
   const replies = usePrimeReplies()
+  const phoneHref = usePhoneHref()
+  useSyncRepliesWithRouting(actions.routedAt, actions.ready)
+  const [focusId, setFocusId] = React.useState<string | null>(null)
   const [confirm, setConfirm] = React.useState<TrainingPackage | null>(null)
   const [funding, setFunding] = React.useState(false)
   const [headlines, setHeadlines] = React.useState<Record<string, string>>({})
@@ -208,20 +243,31 @@ export function PrimeActions() {
     }
   }
 
-  const reply = async (d: OfferDecisionRec, text: string) => {
-    const k = replyKey(d.shop_id, d.job_id)
+  const reply = async (d: OfferDecisionRec, code: string, text: string) => {
+    const k = questionId(d)
     setReplying(k)
     try {
       const engine = demo.mode === "live" && actions.source === "engine" ? demo.apiUrl : null
-      const r = await sendPrimeReply(engine, d.shop_id, d.job_id, text)
-      if (r.via === "engine") toast.success(t("pa.q.sent"), { description: `“${text}”` })
+      const r = await sendPrimeReply(engine, d, code, text)
+      if (r.via === "engine") toast.success(t("pa.q.sent"), { description: `“${text}” · ${t("pa.q.sentBody", { shop: shopName(d.shop_id) })}` })
       else toast.success(t("pa.q.sentDemo"), { description: t("pa.q.sentDemoBody") })
+      setFocusId(k)
     } catch (e) {
       toast.error(t("pa.q.failed"), { description: e instanceof Error ? e.message : String(e) })
     } finally {
       setReplying(null)
     }
   }
+
+  // After a reply, move focus to the card's result line (the buttons it replaced are gone).
+  React.useEffect(() => {
+    if (!focusId) return
+    const el = document.getElementById(`${focusId}-result`)
+    if (el) {
+      el.focus()
+      queueMicrotask(() => setFocusId(null))
+    }
+  }, [focusId, replies, actions.decisions])
 
   const loading = !demo.ready || !actions.ready
 
@@ -256,7 +302,8 @@ export function PrimeActions() {
             <p className="text-sm text-muted-foreground">{t("pa.fund.subtitle")}</p>
             {unfunded.length === 0 && fundedPkgs.length > 0 ? <Hint>{t("pa.fund.none")}</Hint> : null}
             {unfunded.map((p) => {
-              const asked = Object.values(actions.fundingRequests).some((r) => r.package_id === p.id)
+              const askedRec = Object.values(actions.fundingRequests).find((r) => r.package_id === p.id)
+              const asked = !!askedRec
               return (
                 <div key={p.id} className={card} data-testid="fund-card" data-pkg={p.id}>
                   <div className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
@@ -270,6 +317,7 @@ export function PrimeActions() {
                         {t("pa.fund.requested")}
                       </span>
                     ) : null}
+                    {asked && requestSimulated(askedRec, actions.events) ? <SimulatedChip /> : null}
                   </div>
                   <p className="text-base leading-snug font-semibold">{pkgTitle(p)}</p>
                   <p className="flex flex-wrap items-center gap-1.5 text-lg leading-snug font-semibold tabular-nums">
@@ -307,11 +355,11 @@ export function PrimeActions() {
 
           {/* 2. Shop questions */}
           <div className="flex flex-col gap-2" data-testid="pa-questions">
-            <SubHeading Icon={CircleHelp} title={t("pa.q.title")} count={questions.filter((d) => !answered(replies, d)).length} />
+            <SubHeading Icon={CircleHelp} title={t("pa.q.title")} count={questions.filter((d) => !replyForDecision(d, replies)).length} />
             {questions.length === 0 ? <Hint>{t("pa.q.none")}</Hint> : null}
             {questions.map((d) => {
-              const k = replyKey(d.shop_id, d.job_id)
-              const done = answered(replies, d) ? replies[k] : null
+              const k = questionId(d)
+              const done = replyForDecision(d, replies)
               return (
                 <div key={k} className={card} data-testid="question-card">
                   <div className="flex items-start gap-2">
@@ -328,9 +376,13 @@ export function PrimeActions() {
                       <span className="block text-xs">{t("feed.question.topic", { question: lower(t(`question.${d.question_code}`)) })}</span>
                     ) : null}
                   </p>
-                  {simulatedFor(d, "offer_question") ? <SimulatedChip className="self-start" /> : null}
+                  {isSimulatedRecord(d) || simulatedFor(d, "offer_question") ? <SimulatedChip className="self-start" /> : null}
                   {done ? (
-                    <p className="flex items-start gap-2 rounded-lg border border-assigned/25 bg-assigned-soft px-3 py-2 text-sm text-assigned">
+                    <p
+                      id={`${k}-result`}
+                      tabIndex={-1}
+                      className="flex items-start gap-2 rounded-lg border border-assigned/25 bg-assigned-soft px-3 py-2 text-sm text-assigned outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                    >
                       <MessageSquareReply className="mt-0.5 size-4 shrink-0" aria-hidden />
                       <span>
                         <span className="font-semibold">{done.via === "engine" ? t("pa.q.sent") : t("pa.q.sentDemo")}:</span> “{done.text}”
@@ -338,14 +390,14 @@ export function PrimeActions() {
                     </p>
                   ) : (
                     <div className="grid grid-cols-1 gap-2 min-[380px]:grid-cols-2">
-                      {[t("pa.q.reply1"), t("pa.q.reply2")].map((text) => (
+                      {replyTemplates(d.question_code).map(({ code, text }) => (
                         <Button
-                          key={text}
+                          key={code}
                           size="touch"
                           variant="outline"
                           className="h-auto min-h-12 whitespace-normal"
                           disabled={replying === k}
-                          onClick={() => void reply(d, text)}
+                          onClick={() => void reply(d, code, text)}
                           data-testid="reply-template"
                         >
                           {text}
@@ -364,7 +416,6 @@ export function PrimeActions() {
             {requests.length === 0 ? <Hint>{t("pa.req.none")}</Hint> : null}
             {requests.map((r) => {
               const p = pkgById.get(r.package_id) ?? null
-              const ev = [...actions.events].reverse().find((e) => e.kind === "funding_requested" && e.package_id === r.package_id)
               return (
                 <div key={r.package_id} className={card} data-testid="request-card">
                   <div className="flex items-start gap-2">
@@ -385,7 +436,7 @@ export function PrimeActions() {
                       })}
                     </p>
                   ) : null}
-                  {ev && isSimulatedEvent(ev) ? <SimulatedChip className="self-start" /> : null}
+                  {requestSimulated(r, actions.events) ? <SimulatedChip className="self-start" /> : null}
                   <Button size="touch-lg" className="w-full" disabled={!p || r.pending} onClick={() => p && setConfirm(p)} data-testid="request-approve">
                     <CircleCheck className="size-5" aria-hidden />
                     {t("pa.req.cta")}
@@ -415,9 +466,9 @@ export function PrimeActions() {
                 </div>
                 {d.note ? <p className="text-sm break-words text-muted-foreground">“{d.note}”</p> : null}
                 <p className="text-sm text-muted-foreground">{t("pa.dec.detail")}</p>
-                {simulatedFor(d, "offer_declined") ? <SimulatedChip className="self-start" /> : null}
+                {isSimulatedRecord(d) || simulatedFor(d, "offer_declined") ? <SimulatedChip className="self-start" /> : null}
                 <a
-                  href={`/prime/suppliers?job=${encodeURIComponent(d.job_id)}`}
+                  href={phoneHref(findAnotherShopHref(d.job_id))}
                   className={cn(buttonVariants({ variant: "outline", size: "touch" }), "w-full")}
                   data-testid="find-another"
                 >
@@ -435,10 +486,6 @@ export function PrimeActions() {
   )
 }
 
-function answered(replies: Record<string, { at: string }>, d: OfferDecisionRec): boolean {
-  const r = replies[replyKey(d.shop_id, d.job_id)]
-  return !!r && r.at >= d.at
-}
 
 function Row({ label, value, sub }: { label: string; value: React.ReactNode; sub?: React.ReactNode }) {
   return (
