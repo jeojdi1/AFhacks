@@ -26,9 +26,9 @@ export function EngineUnreachable({ className }: { className?: string }) {
       <div className="flex size-11 items-center justify-center rounded-full border border-border bg-background text-muted-foreground">
         <WifiOff className="size-5" aria-hidden />
       </div>
-      <div className="text-lg font-semibold text-foreground">Can&apos;t reach Muster right now</div>
+      <div className="text-lg font-semibold text-foreground">Can&apos;t reach Shieldworks right now</div>
       <p className="max-w-md text-sm text-muted-foreground">
-        The numbers will appear here when it&apos;s back. Muster keeps trying on its own.
+        The numbers will appear here when it&apos;s back. Shieldworks keeps trying on its own.
       </p>
       <Button variant="outline" size="lg" className="mt-2 bg-background px-4" onClick={() => setMode("fixtures")}>
         Use demo data instead

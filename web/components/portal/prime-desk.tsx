@@ -10,6 +10,7 @@ import { toast } from "sonner"
 import {
   Activity,
   ClipboardList,
+  FilePen,
   Gauge,
   Inbox,
   Loader2,
@@ -37,6 +38,7 @@ import { PortalPage, Panel, BigAction } from "./portal-page"
 import { PromiseMeter } from "./promise-meter"
 import { StartDemo, useRouted } from "./start-demo"
 import { useWithParams } from "@/lib/ui/use-with-params"
+import { AwardsDeskList } from "@/components/mobile/prime/awards"
 
 const OBLIGATION_FALLBACK = 500_000_000
 
@@ -196,7 +198,7 @@ export function PrimeDesk() {
       </Panel>
 
       {!routed ? (
-        <StartDemo message="Northgate hasn't posted a parts list yet. Load its 40-part list and Muster matches each job to one qualified small shop (about 5 seconds)." />
+        <StartDemo message="Northgate hasn't posted a parts list yet. Load its 40-part list and Shieldworks matches each job to one qualified small shop (about 5 seconds)." />
       ) : null}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -332,6 +334,16 @@ export function PrimeDesk() {
         </Panel>
       </div>
 
+      {routed ? (
+        <Panel title="Awards in progress" icon={FilePen} testId="panel-awards">
+          <p className="-mt-1 text-sm text-muted-foreground">
+            When a shop accepts, it signs the job&apos;s paperwork and books a kickoff call with Northgate. Nothing here changes
+            the credit numbers.
+          </p>
+          <AwardsDeskList withParams={wp} />
+        </Panel>
+      ) : null}
+
       <section aria-labelledby="prime-next" className="flex flex-col gap-3">
         <h2 id="prime-next" className="text-lg font-semibold tracking-tight">
           What do you want to do?
@@ -345,7 +357,7 @@ export function PrimeDesk() {
                 ? `Your parts list: ${assignments.length} of ${jobs.length || assignments.length + blocked.length} matched`
                 : "Post a parts list"
             }
-            hint={routed ? "See where each job went, on a map" : "Muster splits it into jobs and matches each to a shop"}
+            hint={routed ? "See where each job went, on a map" : "Shieldworks splits it into jobs and matches each to a shop"}
             primary={!routed}
           />
           <BigAction href="/prime/suppliers" icon={Search} label="Find suppliers" hint="Small Canadian shops that can make your parts" />

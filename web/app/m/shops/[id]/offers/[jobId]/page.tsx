@@ -3,7 +3,7 @@ import { OfferCard } from "@/components/mobile/offer/offer-card"
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string; jobId: string }> }): Promise<Metadata> {
   const { jobId } = await params
-  return { title: `Offer ${decodeURIComponent(jobId)} · Muster` }
+  return { title: `Offer ${decodeURIComponent(jobId)} · Shieldworks` }
 }
 
 export default async function ShopOfferPage({ params }: { params: Promise<{ id: string; jobId: string }> }) {

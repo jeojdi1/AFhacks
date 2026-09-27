@@ -3,7 +3,7 @@ import { GrowList } from "@/components/mobile/grow/grow-list"
 import { decodeParam } from "@/lib/app/readiness"
 
 export const metadata: Metadata = {
-  title: "Grow · Muster",
+  title: "Grow · Shieldworks",
 }
 
 /**

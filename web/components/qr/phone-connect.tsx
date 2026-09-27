@@ -150,7 +150,7 @@ export function PhoneConnect() {
 
         <div className="rounded-xl border border-border bg-secondary/60 p-4 text-sm leading-relaxed text-slate-700">
           <p>
-            The phone uses this laptop&apos;s live Muster engine through the web server, so anything you do on the phone
+            The phone uses this laptop&apos;s live Shieldworks engine through the web server, so anything you do on the phone
             (like taking an offer) shows up here too. Nothing is installed on the phone.
           </p>
         </div>

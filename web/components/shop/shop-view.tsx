@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils"
 import { CapabilitiesCard } from "./capabilities-card"
 import { CertificationsCard } from "./certifications-card"
 import { OfferInbox, type InboxDecision } from "./offer-inbox"
+import { useGoTo, useGoToAward } from "@/components/award/use-go-to-award"
 import { decisionIsSimulated } from "@/lib/app/sim-flag"
 import { withCertDates } from "@/lib/app/shop-bundle"
 import { ReadinessCard } from "./readiness-card"
@@ -161,6 +162,8 @@ function RoutableShopView({ id }: { id: string }) {
   const appActions = useAppActions()
   const shopActions = useShopActions(id)
   const viaEngine = appActions.source === "engine"
+  const goToAward = useGoToAward(false)
+  const goTo = useGoTo()
 
   // Keep the latest loader in a ref so an unstable function identity never re-triggers the fetch.
   const getShopRef = useRef(demo.getShop)
@@ -333,14 +336,20 @@ function RoutableShopView({ id }: { id: string }) {
     if (r && !r.pending) toast.message("Answer withdrawn", { description: `${jobId} is open again.` })
   }
   const accept = async (jobId: string) => {
-    if (!viaEngine) return setOfferStatus(shop.id, jobId, "accepted")
+    if (!viaEngine) {
+      setOfferStatus(shop.id, jobId, "accepted")
+      goToAward(shop.id, jobId)
+      return
+    }
     const r = await shopActions.decide(jobId, { decision: "accepted" })
     if (!r || r.pending) return
     toast.success("Accepted", {
       description: `${prime} sees it now. Undo within 10 seconds.`,
       duration: UNDO_MS,
-      action: { label: "Undo", onClick: () => void undo(jobId) },
+      // Undo from the award page: withdraw the answer and return to the offers.
+      action: { label: "Undo", onClick: () => void undo(jobId).then(() => goTo(`/shops/${encodeURIComponent(shop.id)}`)) },
     })
+    goToAward(shop.id, jobId)
   }
   const decline = async (jobId: string, reason: ReasonCode, note: string | null) => {
     if (!viaEngine) return setOfferStatus(shop.id, jobId, "declined")
@@ -427,6 +436,7 @@ function RoutableShopView({ id }: { id: string }) {
               certifications={certifications}
               onAccept={accept}
               onDecline={decline}
+              shopId={shop.id}
               routed={routed}
             />
           ) : (

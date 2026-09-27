@@ -52,7 +52,7 @@ export function CapabilitiesCard({ shop }: { shop: ShopT }) {
       <header className="border-b border-zinc-100 px-5 py-5 sm:px-6">
         <h2 className="text-lg font-semibold tracking-tight text-zinc-900">Capabilities</h2>
         <p className="mt-0.5 text-sm text-zinc-500">
-          What Muster matches jobs against: processes, part size, weekly hours and lead time.
+          What Shieldworks matches jobs against: processes, part size, weekly hours and lead time.
         </p>
       </header>
 

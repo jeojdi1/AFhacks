@@ -1,4 +1,4 @@
-# Muster research notes
+# Shieldworks research notes
 
 Compiled 2026-09-26 for the AF Hacks "Growing Canada" team and anyone reviewing the project. Every fact below links to a source and gives a date: either the publication date or "as of" the date we read it. Where a page shows no date we write "accessed 2026-09-26".
 
@@ -7,7 +7,7 @@ Labels:
 - **I** (inferred): our own reasoning.
 - **U** (unknown): we could not confirm it.
 
-Every claim here was fact-checked against its source on 2026-09-26. Claims that failed the check were corrected or removed. Muster's demo prime, Northgate Land Systems, is fictional. Its demo shops are synthetic, and the ITB rules in the app are simplified for the demo.
+Every claim here was fact-checked against its source on 2026-09-26. Claims that failed the check were corrected or removed. Shieldworks' demo prime, Northgate Land Systems, is fictional. Its demo shops are synthetic, and the ITB rules in the app are simplified for the demo.
 
 ---
 
@@ -96,7 +96,7 @@ Every claim here was fact-checked against its source on 2026-09-26. Claims that 
 
 ### Controlled Goods (V)
 - A subcontractor must register with the Controlled Goods Program only if the part itself, or the technical data it receives, is a controlled good. Receiving non-controlled blueprints does not trigger registration. [When subcontractors must register](https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/about-program/register/when-subcontractors-must-register.html) (modified 2026-02-02)
-- In Muster, `controlled=true` should mean "the job involves controlled goods or controlled technical data" (I).
+- In Shieldworks, `controlled=true` should mean "the job involves controlled goods or controlled technical data" (I).
 - Registration terms: no fee, valid up to 5 years, 32 business days as the standard (currently "significantly longer" due to a surge), and the organization must be incorporated or authorized in Canada. [Register](https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/about-program/register.html) (modified 2026-03-11)
 
 ---
@@ -184,7 +184,7 @@ Source for all three: [ITB model terms](https://ised-isde.canada.ca/site/ised/en
 ### Honest positioning line
 > "Each piece exists on its own. Directories and Goverly help primes find ready suppliers. OMX and ITB consultants track obligations. Irving funds welders for its own yard. As of September 2026 we haven't found anyone who connects them job by job: assign each job to a qualified shop, show the ITB credit that job earns, and when no shop can take it, turn the gap into a training package the prime funds for 5x credit, which unblocks the job."
 
-What makes Muster different:
+What makes Shieldworks different:
 - It assigns each line item of a parts list under hard constraints (CGP, certifications, capacity).
 - It computes per-job credit with multipliers.
 - It turns an unplaced job into a 5x or 10x training package.
@@ -216,7 +216,7 @@ Upcoming events (V):
 
 ### Compliance
 - **CGP (V):** the cloud guidance requires a provider that "examine[s] or possess[es]" customer controlled data to register. It strongly advises Canadian data residency (offshore storage means consulting Global Affairs Canada on export permits), recommends encryption in transit and at rest, and limits access to security-assessed personnel. [CGP cloud guidance](https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/program-requirements/guidance-using-providing-cloud-solutions.html) (modified 2025-05-08)
-  - (I) Because Muster never stores drawings, it likely doesn't need to register yet. Job metadata could itself be controlled technical data, so this needs legal confirmation.
+  - (I) Because Shieldworks never stores drawings, it likely doesn't need to register yet. Job metadata could itself be controlled technical data, so this needs legal confirmation.
 - **Hosting (V):**
   - Microsoft Canada is CGP-registered for Azure Core Services in Canada Central and Canada East; it recommends Customer Lockbox. [Microsoft](https://learn.microsoft.com/en-us/compliance/regulatory/offering-canada-controlled-goods) (updated 2026-09-11)
   - The Canadian Centre for Cyber Security assessed 162 AWS services under its Protected B High Value Asset criteria (as of 2025-09-12). [AWS](https://aws.amazon.com/compliance/pbhva/)
@@ -224,7 +224,7 @@ Upcoming events (V):
 - **CPCSC (V):**
   - Level 1 is a free self-assessment against 13 controls.
   - Level 2 enters select contracts from spring 2027.
-  - (I) Muster should complete Level 1 now as a trust signal to primes.
+  - (I) Shieldworks should complete Level 1 now as a trust signal to primes.
 
 ### Pricing benchmarks
 
@@ -235,7 +235,7 @@ Upcoming events (V):
 | ICN Gateway | Free for suppliers and project owners | V, [ICN](https://gateway.icn.org.au/join) |
 | ITB consulting fees | not public | U |
 
-**Model (I):** shops use Muster free. Primes pay about $50K–$150K per program per year. A training-coordination fee is charged separately and likely earns no ITB credit.
+**Model (I):** shops use Shieldworks free. Primes pay about $50K–$150K per program per year. A training-coordination fee is charged separately and likely earns no ITB credit.
 
 ### 90-day plan (gate: 3 primes say "we'd pilot", 15 shop interviews, DIA ITB team has reviewed the concept)
 

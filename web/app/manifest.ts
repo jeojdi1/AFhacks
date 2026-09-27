@@ -4,8 +4,8 @@ import type { MetadataRoute } from "next"
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: "Muster",
-    short_name: "Muster",
+    name: "Shieldworks",
+    short_name: "Shieldworks",
     description: "Defence job offers, certifications and training for small Canadian shops. No bidding, no drawings stored.",
     start_url: "/m?src=pwa",
     scope: "/",

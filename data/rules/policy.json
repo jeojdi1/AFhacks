@@ -96,7 +96,7 @@
   },
   "compliance_gates": {
     "controlled_goods": {
-      "description": "Controlled technical data is itself a controlled good. `controlled=true` means the job involves controlled goods or controlled technical data. Muster never stores drawings. A controlled job may only go to a CGP-registered shop.",
+      "description": "Controlled technical data is itself a controlled good. `controlled=true` means the job involves controlled goods or controlled technical data. Shieldworks never stores drawings. A controlled job may only go to a CGP-registered shop.",
       "source": "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/find-individuals-organizations-registered-program.html",
       "sources": [
         "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/find-individuals-organizations-registered-program.html",

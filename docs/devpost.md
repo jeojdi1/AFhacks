@@ -1,6 +1,6 @@
-# Devpost submission text: Muster
+# Devpost submission text: Shieldworks
 
-**Tagline:** Muster turns defence contracts into work and workers for small Canadian factories.
+**Tagline:** Shieldworks turns defence contracts into work and workers for small Canadian factories.
 
 ---
 
@@ -12,20 +12,20 @@ Yet the two sides of that obligation can't find each other. Primes can't find qu
 
 ## What it does
 
-Muster is **two-sided**. Primes pay; shops use it free.
+Shieldworks is **two-sided**. Primes pay; shops use it free.
 
-- **Route:** a prime uploads a parts list. Muster tags each line (processes, material, envelope, required certifications, controlled or not), filters shops on hard rules, scores the rest, and assigns each job to a qualified small Canadian shop. Controlled jobs only go to Controlled Goods Program-registered shops, and every assignment shows its top 3 reasons.
+- **Route:** a prime uploads a parts list. Shieldworks tags each line (processes, material, envelope, required certifications, controlled or not), filters shops on hard rules, scores the rest, and assigns each job to a qualified small Canadian shop. Controlled jobs only go to Controlled Goods Program-registered shops, and every assignment shows its top 3 reasons.
 - **Credit:** a live ITB ledger. Credit = value × Canadian content (CCV) × multiplier. Direct vs indirect, SME 2x, SMB share vs target, and % of obligation met.
-- **Train:** when no shop can take a job (missing certified workers or capacity), Muster proposes an ITB-eligible training package (model terms §7.5.1 categories). "Funding" it adds a pending-training certification and capacity, re-routes, unblocks the job, and earns 5x credit (10x for Indigenous workforce development).
+- **Train:** when no shop can take a job (missing certified workers or capacity), Shieldworks proposes an ITB-eligible training package (model terms §7.5.1 categories). "Funding" it adds a pending-training certification and capacity, re-routes, unblocks the job, and earns 5x credit (10x for Indigenous workforce development).
 - **Comply:** every shop shows its certifications (CGP, CPCSC Level 1, ISO 9001, AS9100, Nadcap, CWB W47.1) with source, date verified, status and expiry.
 
-**Four roles, each with its own desk.** A landing page explains Muster in three panels; `/signin` ("Who are you today?") offers four demo accounts: the defence company (Northgate Land Systems, fictional), the supplier (Tallowfield Fabricating, synthetic), the training partner (a regional college, example, not affiliated) and the trainee (a pseudonymous seat, "Seat 3 of 4"). Demo sign-in only: no real authentication. Northgate's desk has **Find suppliers** and a **Supplier map**; Tallowfield's has **Find work** (its offers, jobs one certificate away, and open federal defence tenders).
+**Four roles, each with its own desk.** A landing page explains Shieldworks in three panels; `/signin` ("Who are you today?") offers four demo accounts: the defence company (Northgate Land Systems, fictional), the supplier (Tallowfield Fabricating, synthetic), the training partner (a regional college, example, not affiliated) and the trainee (a pseudonymous seat, "Seat 3 of 4"). Demo sign-in only: no real authentication. Northgate's desk has **Find suppliers** and a **Supplier map**; Tallowfield's has **Find work** (its offers, jobs one certificate away, and open federal defence tenders).
 
 **The shop side, on the phone** (`/m`): a shop sees defence job offers it would never have found, each offered only to that shop with the credit the prime earns, and accepts or declines with a reason; the prime sees each reply live on its laptop. The shop sees a readiness card ("Get CWB W47.1 → qualify for N more jobs worth $X"), taps "Ask Northgate to fund this", and after funding sees its welders in training on the prime's money. The prime's own phone view shows accepts, declines and funding requests, plus supplier certifications that put credit at risk; each trainee gets an anonymous seat card.
 
 **The phone is a real phone.** `make demo` serves the web app with a same-origin engine proxy and prints the phone URL; `/phone` on the laptop shows a QR code. Any phone on the same Wi-Fi opens `/m`, picks one of the four roles, and shares the laptop's engine, so an accept on the phone toasts on the laptop within seconds. For a busy demo, the phone's **Fill with demo activity** and **Simulate shops responding** controls play labelled, scripted shop replies that never touch the presenter's shop or the fund moment.
 
-**Supplier search on a graph database.** Northgate types "CWB welding near London" or "welding near London with past defence contracts". Muster turns that into process, certificate, distance and defence-history filters and runs one Cypher query on **Neo4j** (4,490 nodes, 5,808 edges), with the same answer from an in-memory graph when Neo4j is down. The Supplier map walks the same graph.
+**Supplier search on a graph database.** Northgate types "CWB welding near London" or "welding near London with past defence contracts". Shieldworks turns that into process, certificate, distance and defence-history filters and runs one Cypher query on **Neo4j** (4,490 nodes, 5,808 edges), with the same answer from an in-memory graph when Neo4j is down. The Supplier map walks the same graph.
 
 **Real public data, honestly labelled:** 58,965 National Defence contracts worth $82.9B (2021 to mid-2026, proactive disclosure; Ontario vendors hold 34% of the value going to vendors in Canada), 2,946 manufacturers from StatCan ODBus, 919 open CanadaBuys tender notices (376 defence-related), Job Bank trade outlooks, and 78 real southwestern Ontario shops across 12 cities (39 list welding) discovered from company websites. Real shops are labelled "Public data — unverified — not affiliated", are never routed or offered work, and their National Defence history is a company-name match, not confirmed by the company. The routing demo itself runs on 30 synthetic shops.
 
@@ -48,7 +48,7 @@ Muster is **two-sided**. Primes pay; shops use it free.
 - **Making the numbers real enough to matter.** Per-vehicle quantities made the obligation meter barely move. We switched to fleet-lifetime quantities, so a 40-line package is ~$42.7M and funding training visibly moves the meter.
 - **Open data coverage.** ODBus only includes cities that publish business open data: our national ingest found 2,946 manufacturers, all in Ontario, British Columbia and Alberta, and none in Waterloo, Cambridge, Woolwich or London. So we added 78 real shops from public company websites (labelled public, unverified, not affiliated) and ran the routing demo on clearly labelled synthetic shops.
 - **Linking public records without overclaiming.** DND vendor names, ODBus sites and company websites don't share an ID. We match on normalized name plus location, keep a confidence level, and label every match "name match, unverified".
-- **Compliance without overreach.** Controlled technical data is itself a controlled good, so we designed Muster to never store drawings and match on metadata only.
+- **Compliance without overreach.** Controlled technical data is itself a controlled good, so we designed Shieldworks to never store drawings and match on metadata only.
 - **Parallel build against a contract.** Two lanes built the engine and web at once against a shared API contract and fixtures.
 
 ## Accomplishments that we're proud of
@@ -83,6 +83,6 @@ Muster is **two-sided**. Primes pay; shops use it free.
 - **Demo shops are synthetic** and labelled "Synthetic" in the data and UI. Any real company shown is labelled "Public data — unverified — not affiliated". No real company is a customer or partner.
 - **Training partners are examples, not affiliated** (e.g. "Conestoga College (example, not affiliated)").
 - **Simplified ITB rules for demo.** Credit calculations, SMB progress basis and training costs are simplifications or assumptions, not official ITB determinations. Eligibility of any training credit must be confirmed with the Defence Investment Agency.
-- Muster **never stores drawings** or technical data. It has not yet registered with the Controlled Goods Program and would do so before handling any technical data.
+- Shieldworks **never stores drawings** or technical data. It has not yet registered with the Controlled Goods Program and would do so before handling any technical data.
 - **Demo sign-in is not real authentication**: four fictional accounts, one shared demo state. Simulated shop activity is scripted and labelled.
 - Data: Statistics Canada Open Database of Businesses, National Defence proactive disclosure (contracts over $10K), CanadaBuys open tender notices and ESDC Job Bank, all under the Open Government Licence – Canada; ISED ITB pages under the Government of Canada website terms; company websites for facts only. National Defence matches are by company name and not confirmed by the companies.

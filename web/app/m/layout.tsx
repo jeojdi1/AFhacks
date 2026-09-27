@@ -9,7 +9,7 @@ import { LiveStepSync } from "@/components/mobile/shell/live-step-sync"
 import { SimulationRunner } from "@/components/mobile/shell/simulation"
 
 export const metadata: Metadata = {
-  title: "Muster",
+  title: "Shieldworks",
 }
 
 /**

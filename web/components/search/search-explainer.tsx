@@ -21,7 +21,7 @@ export function SearchExplainer() {
             <li>The part fits its machines (size).</li>
             <li>It holds the certificates the job asks for.</li>
             <li>
-              Controlled parts go only to <Term k="CGP" first /> shops. Muster never stores drawings.
+              Controlled parts go only to <Term k="CGP" first /> shops. Shieldworks never stores drawings.
             </li>
             <li>It has free capacity (hours a week) for the job.</li>
           </ol>

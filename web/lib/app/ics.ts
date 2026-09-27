@@ -32,7 +32,7 @@ export function buildIcs(e: IcsEvent, now: Date = new Date()): string {
   const lines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Muster//Phone app//EN",
+    "PRODID:-//Shieldworks//Phone app//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",

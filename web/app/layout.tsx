@@ -23,8 +23,8 @@ export const metadata: Metadata = {
   title: COPY["app.title"],
   // The one plain-language sentence the whole app repeats (docs/ux-simplification.md §1).
   description: COPY["app.sentence"],
-  applicationName: "Muster",
-  appleWebApp: { capable: true, title: "Muster", statusBarStyle: "default" },
+  applicationName: "Shieldworks",
+  appleWebApp: { capable: true, title: "Shieldworks", statusBarStyle: "default" },
 }
 
 export const viewport: Viewport = {

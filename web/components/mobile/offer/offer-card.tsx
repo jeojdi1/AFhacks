@@ -43,6 +43,8 @@ import {
   type OfferState,
 } from "./shared"
 import "./strings"
+import { useGoTo, useGoToAward } from "@/components/award/use-go-to-award"
+import { AwardLink } from "@/components/award/award-link"
 
 const UNDO_MS = 10_000
 
@@ -102,10 +104,17 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
   }, [job, b.shop, b.offers, b.certs, b.actions.decisions, b.actions.capacity, b.jobsById, jobId])
 
   const decide = b.actions.decide
+  const goToAward = useGoToAward(true)
+  const goTo = useGoTo()
   const undo = React.useCallback(async () => {
     const r = await decide(jobId, { decision: "undo" })
     if (r && !r.pending) toast.message(t("o.toast.undone"), { description: t("o.toast.undoneBody", { job: jobId }) })
   }, [decide, jobId])
+  // Undo from the award page: withdraw the answer and return to the offer.
+  const undoAccept = React.useCallback(async () => {
+    await undo()
+    goTo(`/m/shops/${encodeURIComponent(shopId)}/offers/${encodeURIComponent(jobId)}`)
+  }, [undo, goTo, shopId, jobId])
 
   const run = React.useCallback(
     async (fn: () => Promise<unknown>) => {
@@ -128,8 +137,9 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
       toast.success(t("o.toast.accepted"), {
         description: t("o.toast.acceptedBody", { prime }),
         duration: UNDO_MS,
-        action: { label: t("decision.undo"), onClick: () => void undo() },
+        action: { label: t("decision.undo"), onClick: () => void undoAccept() },
       })
+      goToAward(shopId, jobId)
     })
 
   const decline = (reason: ReasonCode, note: string | null) =>
@@ -368,6 +378,8 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
             hours={offer.hours_week}
             replyBy={replyBy}
           />
+
+          {state === "accepted" ? <AwardLink shopId={shopId} jobId={jobId} phone className="self-start" /> : null}
 
           <DecisionBar
             state={state}

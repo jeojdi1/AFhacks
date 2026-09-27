@@ -56,7 +56,11 @@ const ROUTES = [
 
 // Desktop pages in ROUTES: checked for console errors and sideways scroll only. Their header
 // controls are desktop-sized (36 px), so the 44 px phone tap-target rule does not apply.
-const DESKTOP = new Set(["/phone?to=%2Fm%2Fshops%2Fsyn-012"])
+const DESKTOP = new Set(["/phone?to=%2Fm%2Fshops%2Fsyn-012", "/shops/syn-012/offers/NG-021/award"])
+
+// Phase 3 (after the shop accepts NG-021): the award package (paperwork + kickoff call) on the
+// phone and on the desktop shop view, plus the prime's phone desk that lists it.
+const ACCEPTED_ROUTES = ["/m/shops/syn-012/offers/NG-021/award", "/shops/syn-012/offers/NG-021/award", "/m/prime"]
 
 function loadPlaywright() {
   const req = createRequire(import.meta.url)
@@ -88,8 +92,11 @@ function withQuery(path) {
   return `${BASE}${path}${path.includes("?") ? "&" : "?"}${q}`
 }
 
-async function engine(path) {
-  const r = await fetch(API + path, { method: "POST" })
+async function engine(path, body) {
+  const r = await fetch(API + path, {
+    method: "POST",
+    ...(body ? { headers: { "content-type": "application/json" }, body: JSON.stringify(body) } : {}),
+  })
   if (!r.ok) throw new Error(`POST ${path} -> ${r.status} ${await r.text()}`)
   return r.json()
 }
@@ -116,14 +123,14 @@ async function measure(page) {
   }, MIN)
 }
 
-async function visitAll(ctx, phase, results) {
+async function visitAll(ctx, phase, results, routes = ROUTES) {
   const page = await ctx.newPage()
   let errors = []
   page.on("console", (m) => {
     if (m.type() === "error") errors.push(m.text().slice(0, 240))
   })
   page.on("pageerror", (e) => errors.push(`pageerror: ${e.message.slice(0, 240)}`))
-  for (const route of ROUTES) {
+  for (const route of routes) {
     errors = []
     await page.goto(withQuery(route), { waitUntil: "networkidle" })
     await page.waitForTimeout(900)
@@ -188,6 +195,18 @@ try {
     await desk.close()
   }
   await visitAll(ctx, "routed", results)
+
+  // Phase 3: the shop accepts NG-021 (Accept jumps to the award package).
+  if (MODE === "live") {
+    await engine("/shops/syn-012/offers/NG-021/decision", { decision: "accepted" })
+  } else {
+    const phone = await ctx.newPage()
+    await phone.goto(withQuery("/m/shops/syn-012/offers/NG-021"), { waitUntil: "networkidle" })
+    await phone.getByRole("button", { name: /^Accept/ }).first().click()
+    await phone.waitForURL(/\/offers\/NG-021\/award/, { timeout: 15000 })
+    await phone.close()
+  }
+  await visitAll(ctx, "accepted", results, ACCEPTED_ROUTES)
   await ctx.close()
 } finally {
   await browser.close()

@@ -1,6 +1,6 @@
 "use client"
 
-// Muster demo data layer. One provider holds the whole demo flow
+// Shieldworks demo data layer. One provider holds the whole demo flow
 // (reset → upload → route → fund → shop view) against either the live engine
 // or the checked-in fixtures, and persists enough to replay after a reload.
 
@@ -61,7 +61,7 @@ export interface DemoState {
   ready: boolean
   /**
    * Live, and the engine could not be reached at load with no earlier live flow saved in this
-   * browser: the empty flow on screen is not a fact. Views show "Can't reach Muster right now"
+   * browser: the empty flow on screen is not a fact. Views show "Can't reach Shieldworks right now"
    * instead of their empty-step copy. Cleared as soon as the engine answers (or on demo data).
    */
   loadFailed: boolean
@@ -1258,8 +1258,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
         toast.message("Not connected to the live engine", {
           id: "engine-offline",
           description: cached
-            ? "Showing the last live data. Muster reconnects on its own and sends anything waiting."
-            : "Muster reconnects on its own and sends anything waiting.",
+            ? "Showing the last live data. Shieldworks reconnects on its own and sends anything waiting."
+            : "Shieldworks reconnects on its own and sends anything waiting.",
           action: { label: "Use demo data", onClick: () => setModeRef.current("fixtures") },
           duration: 10000,
         })

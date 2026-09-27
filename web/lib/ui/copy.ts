@@ -17,11 +17,11 @@ const BASE: Record<string, string> = {
   // -------------------------------------------------------------------------
   // §8.1 Global
   "app.sentence":
-    "Big defence companies owe Canada business equal to their contracts. Muster sends that work to small Canadian shops, and when shops are short of qualified welders, the defence company pays to train them.",
+    "Big defence companies owe Canada business equal to their contracts. Shieldworks sends that work to small Canadian shops, and when shops are short of qualified welders, the defence company pays to train them.",
   "app.tagline": "Defence work for small Canadian shops",
   "app.creditExplainer":
     "Credit isn't cash. It's how the government counts Northgate's Canadian business toward the $500M it owes. Small-business work counts double. Training counts 5×.",
-  "app.title": "Muster — defence work for small Canadian shops",
+  "app.title": "Shieldworks — defence work for small Canadian shops",
 
   "nav.step1": "Parts list",
   "nav.step2": "Where the work goes",
@@ -39,7 +39,7 @@ const BASE: Record<string, string> = {
   "nav.findSuppliers": "Find suppliers",
   "nav.findWork": "Find work",
   "nav.graph": "Supplier map",
-  "nav.home": "Muster home",
+  "nav.home": "Shieldworks home",
   "nav.stepsAria": "The 5-step demo story",
 
   "bar.promise.empty": "Northgate owes Canada **{obligation}** of business",
@@ -92,7 +92,7 @@ const BASE: Record<string, string> = {
   "landing.p1.body":
     "Win a $500M contract, and you must do $500M of business in Canada. Work with small businesses counts double.",
   "landing.p1.caption": "Canada's ITB rule, simplified for this demo",
-  "landing.p2.title": "Muster finds small shops that can make the parts.",
+  "landing.p2.title": "Shieldworks finds small shops that can make the parts.",
   "landing.p2.body":
     "It reads the parts list, checks each shop's machines and certificates, and offers each job to one qualified shop. No bidding.",
   "landing.p3.title": "Short of qualified welders? The defence company pays to train them.",
@@ -103,7 +103,7 @@ const BASE: Record<string, string> = {
   "landing.flow.n1.title": "Northgate",
   "landing.flow.n1.tag": "fictional defence company",
   "landing.flow.n1.body": "owes Canada $500M of business",
-  "landing.flow.n2.title": "Muster",
+  "landing.flow.n2.title": "Shieldworks",
   "landing.flow.n2.body": "reads the parts list, checks shops, offers each job to one shop",
   "landing.flow.n3.title": "Small Canadian shops",
   "landing.flow.n3.body": "{assigned} jobs · {shops} shops",
@@ -170,7 +170,7 @@ const BASE: Record<string, string> = {
   "why.scoring": "How the match is scored",
   "why.factors": "Right machines {a} · Distance {b} · Can start soon {c} · Credit earned {d}",
   "why.credit": "Credit: {value} of work × {ccv} Canadian content × {mult} ({multLabel}) = **{credit}**",
-  "why.controlled": "Drawings are never stored in Muster. It matches on basic job details only.",
+  "why.controlled": "Drawings are never stored in Shieldworks. It matches on basic job details only.",
 
   // -------------------------------------------------------------------------
   // §8.4 Scorecard
@@ -209,7 +209,7 @@ const BASE: Record<string, string> = {
   // §8.5 Gaps and Fund
   "gaps.h1": "Fix the welder gap",
   "gaps.b":
-    "**{n} welding jobs ({value}) are stuck.** The certified welding shops on Muster are full, and the others don't have the certification. Real shops found in public data can't be sent work until they claim their profile. **Training 4 welders at {shop} unsticks {k} of them.**",
+    "**{n} welding jobs ({value}) are stuck.** The certified welding shops on Shieldworks are full, and the others don't have the certification. Real shops found in public data can't be sent work until they claim their profile. **Training 4 welders at {shop} unsticks {k} of them.**",
   "gaps.b.look": "The training card: what Northgate pays, and what it gets back.",
   "gaps.next.fund": "↓ Fund the training below",
   "gaps.b.funded":
@@ -321,7 +321,7 @@ const BASE: Record<string, string> = {
   "landing.signin.title": "Or sign in as…",
   "landing.signin.sub":
     "Each side of a defence contract has its own desk: the defence company, the small shop, the college and the trainee.",
-  "landing.flow.aria": "How Muster works",
+  "landing.flow.aria": "How Shieldworks works",
 
   // Program (§5.1, §5.2)
   "program.b2.allMatched":
@@ -335,7 +335,7 @@ const BASE: Record<string, string> = {
   "program.upload.or": "or",
   "program.loaded": "Parts list loaded",
   "program.loaded.file": "Parts list loaded: {file}",
-  "program.drawings": "Muster never stores drawings. It matches on basic job details only.",
+  "program.drawings": "Shieldworks never stores drawings. It matches on basic job details only.",
   "program.map.site": "Northgate's plant (fictional)",
   "program.map.sub.unrouted": "The shops in southwestern Ontario. Match the jobs to draw a line to each shop.",
   "program.map.legend.site": "Red diamond: Northgate's plant (fictional)",
@@ -381,7 +381,7 @@ const BASE: Record<string, string> = {
 
   // -------------------------------------------------------------------------
   // Scorecard (Agent C): keys §8 does not list, merged from copy-c.ts
-  "score.meta.title": "Credit earned · Muster",
+  "score.meta.title": "Credit earned · Shieldworks",
   "score.meta.description":
     "How much of the $500M Northgate owes Canada its first parts list covers, what counts double, and what training adds. Simplified ITB rules for demo.",
 
@@ -470,7 +470,7 @@ const BASE: Record<string, string> = {
 
   // -------------------------------------------------------------------------
   // Gaps & Fund (Agent D): keys §8 does not list, merged from copy-d.ts
-  "gaps.meta.title": "Fix the welder gap · Muster",
+  "gaps.meta.title": "Fix the welder gap · Shieldworks",
   "gaps.meta.description":
     "Why 4 welding jobs are stuck, and what $96K of welder training paid by the defence company fixes.",
 
@@ -481,7 +481,7 @@ const BASE: Record<string, string> = {
 
   // Hero card
   "gaps.hero.requested": "Shop requested · {time}",
-  "gaps.hero.requested.tip": "The shop asked Northgate to fund this from the Muster phone app ({requirement})",
+  "gaps.hero.requested.tip": "The shop asked Northgate to fund this from the Shieldworks phone app ({requirement})",
   "gaps.hero.funded": "Funded",
   "gaps.hero.pending": "Funding…",
   "gaps.hero.seeShop": "See it from the shop's side →",
@@ -498,7 +498,7 @@ const BASE: Record<string, string> = {
   "gaps.stat.unstuck.sub.none": "Fund the training above",
   "gaps.stat.unstuck.sub": "+{credit} credit added",
   "gaps.allPlaced.title": "Every job found a shop",
-  "gaps.allPlaced.body": "Muster found a qualified shop with free capacity for every job. No training is needed.",
+  "gaps.allPlaced.body": "Shieldworks found a qualified shop with free capacity for every job. No training is needed.",
 
   // Stuck reasons, rewritten from the engine's reason codes in plain words.
   "gaps.reason.both": "both certified welding shops are full ({a} and {b} hrs/wk free, {need} needed)",
@@ -636,17 +636,17 @@ const BASE: Record<string, string> = {
 
   // §5.6 Discovered profile (/shops/pub-*)
   "pub.b":
-    "**{name}** is a real manufacturer in {city}, found in public data. It is **not onboarded**: Muster has never sent it work.",
+    "**{name}** is a real manufacturer in {city}, found in public data. It is **not onboarded**: Shieldworks has never sent it work.",
   "pub.b.look": "What the company says it can do, and where each fact comes from.",
   "pub.chip.real": "Real shop · public data",
   "pub.notOnboarded.body":
-    "This company was discovered in public data and is not affiliated with Muster or Northgate. It is not offered work until it claims and verifies its profile.",
+    "This company was discovered in public data and is not affiliated with Shieldworks or Northgate. It is not offered work until it claims and verifies its profile.",
   "pub.claim.title": "Claim this profile",
   "pub.claim.close": "Close",
   "pub.caps.title": "Capabilities",
   "pub.caps.sub": "As described on the company's own website. Unverified.",
   "pub.certs.title": "Certificates",
-  "pub.certs.sub": "What the company says about itself. Muster has not verified any of it.",
+  "pub.certs.sub": "What the company says about itself. Shieldworks has not verified any of it.",
   "pub.certs.none": "No certificates stated on the company website.",
   "pub.certs.selfReported": "Stated on the company website (unverified)",
   "pub.certs.directory": "Listed in a public directory (unverified)",
@@ -654,7 +654,7 @@ const BASE: Record<string, string> = {
   "pub.certs.notStated":
     "Not publicly stated: {list}. The cyber-security self-check (CPCSC L1) is self-assessed with no public registry, so only the shop can declare it.",
   "pub.sources.sub":
-    "Every field keeps its source. Muster stores facts only: no drawings, no personal names, no contact details.",
+    "Every field keeps its source. Shieldworks stores facts only: no drawings, no personal names, no contact details.",
   "pub.sources.base":
     "Base list: Statistics Canada Open Database of Businesses (Open Government Licence – Canada), plus each company's own website.",
   "pub.size.smb": "Small business (estimated)",
@@ -697,7 +697,7 @@ const BASE: Record<string, string> = {
   "pub.claim.step1": "Show you work there, with an email address at the company's own domain.",
   "pub.claim.step2": "Confirm what the shop can make and how many hours a week it has free.",
   "pub.claim.step3": "Add proof of your certificates (for example, a registry listing or a certificate copy).",
-  "pub.claim.never": "Never upload drawings or controlled technical data. Muster doesn't need them to claim a profile.",
+  "pub.claim.never": "Never upload drawings or controlled technical data. Shieldworks doesn't need them to claim a profile.",
   "pub.claim.email": "Work email",
   "pub.claim.email.placeholder": "you@yourcompany.ca",
   "pub.claim.email.hint": "Use your email at the company's own domain.",

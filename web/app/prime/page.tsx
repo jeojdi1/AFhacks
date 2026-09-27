@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { PrimeDesk } from "@/components/portal/prime-desk"
 
 export const metadata: Metadata = {
-  title: "Northgate's desk · Muster",
+  title: "Northgate's desk · Shieldworks",
   description: "Northgate Land Systems (fictional): credit toward the $500M it owes, stuck jobs and shop replies.",
 }
 

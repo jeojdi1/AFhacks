@@ -3,6 +3,7 @@
 import type * as React from "react"
 import { ArrowDown, ArrowRight, Building2, ChevronUp, Factory, HardHat, RotateCcw } from "lucide-react"
 
+import { ShieldTile } from "@/components/shell/brand-mark"
 import { useDemo } from "@/lib/data/store"
 import { c } from "@/lib/ui/copy"
 import { cn } from "@/lib/utils"
@@ -19,9 +20,9 @@ interface FlowNode {
 }
 
 /**
- * How Muster works, in four boxes (docs/ux-simplification.md §7.1). HTML + CSS only.
- * Northgate → Muster → Small Canadian shops → Welder training, with a green return arrow
- * from training back to the shops ("unsticks work"). Neutral slate; brand only on Muster.
+ * How Shieldworks works, in four boxes (docs/ux-simplification.md §7.1). HTML + CSS only.
+ * Northgate → Shieldworks → Small Canadian shops → Welder training, with a green return arrow
+ * from training back to the shops ("unsticks work"). Neutral slate; brand only on Shieldworks.
  * Stacks vertically below 640 px. One role="img" with the §1 sentence as its label.
  */
 export function FlowDiagram({ compact = false, className }: { compact?: boolean; className?: string }) {
@@ -43,7 +44,7 @@ export function FlowDiagram({ compact = false, className }: { compact?: boolean;
       key: "muster",
       title: c("landing.flow.n2.title"),
       body: c("landing.flow.n2.body"),
-      icon: <MusterGlyph compact={compact} />,
+      icon: <BrandGlyph compact={compact} />,
       tone: "brand",
     },
     {
@@ -181,19 +182,7 @@ function ReturnArrow({ compact }: { compact: boolean }) {
   )
 }
 
-/** The Muster mark (three stacked bars), sized for a flow node. Brand colour only here. */
-function MusterGlyph({ compact }: { compact: boolean }) {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "flex flex-col items-start justify-center gap-[3px] rounded-md bg-brand px-[6px]",
-        compact ? "size-7" : "size-9"
-      )}
-    >
-      <span className="h-[3px] w-full rounded-full bg-white" />
-      <span className="h-[3px] w-3/4 rounded-full bg-white/85" />
-      <span className="h-[3px] w-1/2 rounded-full bg-white/70" />
-    </span>
-  )
+/** The Shieldworks mark (shield tile), sized for a flow node. Brand colour only here. */
+function BrandGlyph({ compact }: { compact: boolean }) {
+  return <ShieldTile className={compact ? "size-7 rounded-md" : "size-9 rounded-md"} />
 }

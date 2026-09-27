@@ -74,7 +74,7 @@ export function ModeBadge({ className }: { className?: string }) {
       ? t("header.mode.offlineTitle")
       : t("header.mode.notConnectedTitle")
     : mode === "live"
-      ? "Talking to the Muster engine"
+      ? "Talking to the Shieldworks engine"
       : "Checked-in demo data; no engine needed"
   return (
     <span
@@ -143,7 +143,7 @@ export function MHeader() {
         ) : (
           <Link
             href="/m"
-            aria-label="Muster home"
+            aria-label="Shieldworks home"
             className="inline-flex h-12 shrink-0 items-center rounded-lg px-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             <BrandMark />

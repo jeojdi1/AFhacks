@@ -21,7 +21,7 @@
     },
     {
       "code": "controlled_cgp",
-      "description": "A controlled job (controlled: true; technical data is a controlled good) may only go to a shop whose CGP registration counts. Muster never stores drawings."
+      "description": "A controlled job (controlled: true; technical data is a controlled good) may only go to a shop whose CGP registration counts. Shieldworks never stores drawings."
     },
     {
       "code": "cpcsc",

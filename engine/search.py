@@ -494,7 +494,7 @@ def search_shops(state: Any, sq: ShopQuery, engine: str | None = None) -> dict:
         },
         "results": rows[: sq.limit],
         "notes": [
-            "Synthetic shops are Muster's fictional demo shops.",
+            "Synthetic shops are Shieldworks' fictional demo shops.",
             ("Public shops: Public data — unverified — not affiliated. Discovered, not onboarded: "
              "never offered work."),
             ("Certifications count when verified, declared or pending training "

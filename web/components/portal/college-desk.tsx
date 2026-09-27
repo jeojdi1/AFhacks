@@ -3,7 +3,7 @@
 // /college: training coordinator at a regional college (example, not affiliated).
 // The training plans Northgate funds or could fund (TP-01, TP-02), their seats,
 // and the records the college keeps so the training can count toward Northgate's
-// promise. Muster stores none of those records: nothing is collected here.
+// promise. Shieldworks stores none of those records: nothing is collected here.
 
 import * as React from "react"
 import Link from "next/link"
@@ -49,7 +49,7 @@ const EVIDENCE: EvidenceItem[] = [
   {
     id: "eligibility",
     title: "Eligibility: Canadian citizen or permanent resident",
-    body: "Personal certification counts only for citizens or permanent residents. The college checks this; Muster never sees the documents.",
+    body: "Personal certification counts only for citizens or permanent residents. The college checks this; Shieldworks never sees the documents.",
     basis: "Model terms §7.5.1",
     // The shop's yes/no attestation comes before a seat is funded; the trainee's stepper shows it Done.
     state: (f) => (f ? "done" : "todo"),
@@ -183,7 +183,7 @@ function EvidencePanel({ plan, funded }: { plan: TrainingPackage; funded: boolea
       <p className="text-sm text-slate-700">
         For training plan {plan.id}
         {funded ? "" : " (not funded yet: this is what the college would keep)"}. Keep these on file; Northgate reports
-        them to claim credit. Muster stores none of these documents.
+        them to claim credit. Shieldworks stores none of these documents.
       </p>
       <ol className="flex flex-col gap-2">
         {evidence.map((e) => {

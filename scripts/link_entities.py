@@ -1,4 +1,4 @@
-"""N4: link the Muster datasets (entity resolution) and emit a Neo4j graph seed.
+"""N4: link the Shieldworks datasets (entity resolution) and emit a Neo4j graph seed.
 
 Inputs (already produced by other scripts; nothing is downloaded here)
 ---------------------------------------------------------------------
@@ -831,7 +831,7 @@ def main() -> int:
         f"Open Licence for JVWS; ISED ITB rows: {GC_TERMS}; shops_public.json facts "
         "come from company websites "
         "(facts only, labelled 'Public data - unverified - not affiliated'); "
-        "synthetic shops are Muster's own."
+        "synthetic shops are Shieldworks' own."
     )
     links = {
         "source_urls": source_urls,
@@ -839,7 +839,7 @@ def main() -> int:
         "retrieved": RETRIEVED,
         "as_of": as_of,
         "notes": [
-            "Entity resolution across Muster datasets (scripts/link_entities.py).",
+            "Entity resolution across Shieldworks datasets (scripts/link_entities.py).",
             (
                 "Confidence: high = exact normalized name + city agreement; medium = "
                 "exact name + same province, or difflib token-set ratio >= 0.90 + "
@@ -1105,7 +1105,7 @@ def main() -> int:
                 "count(rel). Create id indexes per label first."
             ),
             (
-                "Shop.source: public (78 researched), synthetic (30, Muster-made, "
+                "Shop.source: public (78 researched), synthetic (30, Shieldworks-made, "
                 "label 'Synthetic'), odbus (ODBus manufacturer sites, no street "
                 "address). Real companies are 'Public data - unverified - not "
                 "affiliated'."

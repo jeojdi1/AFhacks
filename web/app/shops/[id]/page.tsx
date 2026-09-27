@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const shopId = decodeURIComponent(id)
   const name = shopName(shopId)
   return {
-    title: name ? `${name} · Muster` : shopId.startsWith("pub-") ? "Shop profile · Muster" : "The shop's side · Muster",
+    title: name ? `${name} · Shieldworks` : shopId.startsWith("pub-") ? "Shop profile · Shieldworks" : "The shop's side · Shieldworks",
   }
 }
 

@@ -1,4 +1,4 @@
-"""Muster Engine FastAPI app (H2.8).
+"""Shieldworks Engine FastAPI app (H2.8).
 
 Thin HTTP layer over ``engine.pipeline``. Every request runs under ``STATE_LOCK``.
 Mutating requests load the program State from SQLite, delegate to the pipeline and save
@@ -24,7 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ConfigDict
 
-from engine import cache, graphdb, pipeline, search, shopside, simulate, tagger
+from engine import award, cache, graphdb, pipeline, search, shopside, simulate, tagger
 from engine.state import (
     DEFAULT_PROGRAM_ID,
     DEMO_PARTS_CSV,
@@ -42,7 +42,7 @@ SHOP_SOURCES = {"public", "synthetic"}
 
 log = logging.getLogger(__name__)
 
-app = FastAPI(title="Muster Engine", version=VERSION)
+app = FastAPI(title="Shieldworks Engine", version=VERSION)
 
 app.add_middleware(
     CORSMiddleware,
@@ -183,6 +183,7 @@ def demo_reset() -> dict:
 
 
 app.include_router(simulate.router)  # /demo/seed, /demo/simulate/* (engine/simulate.py)
+app.include_router(award.router)  # /shops/{id}/offers/{job}/award* (engine/award.py, §6.1)
 
 
 @app.get("/programs/{program_id}")

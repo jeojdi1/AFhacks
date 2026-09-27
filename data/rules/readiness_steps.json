@@ -62,7 +62,7 @@
         },
         {
           "label": "Dates and fees",
-          "detail": "Test centres set their own dates and fees. Muster does not show a cost or a schedule for this certification; ask CWB or your test centre.",
+          "detail": "Test centres set their own dates and fees. Shieldworks does not show a cost or a schedule for this certification; ask CWB or your test centre.",
           "source_url": null,
           "time_stated": null,
           "cost_stated": null,
@@ -74,7 +74,7 @@
     "CGP": {
       "title": "Controlled Goods Program registration",
       "kind": "registration",
-      "summary": "Registration lets a shop examine, possess or transfer controlled goods, including technical data. Muster never stores drawings; the prime releases them through its own channel.",
+      "summary": "Registration lets a shop examine, possess or transfer controlled goods, including technical data. Shieldworks never stores drawings; the prime releases them through its own channel.",
       "source_url": "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/about-program/register.html",
       "registry_url": "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/find-individuals-organizations-registered-program.html",
       "steps": [
@@ -119,7 +119,7 @@
     "CPCSC_L1": {
       "title": "CPCSC Level 1 (cyber security)",
       "kind": "self_assessment",
-      "summary": "An annual self-assessment against 13 security controls. There is no public registry, so in Muster it is always shop-declared.",
+      "summary": "An annual self-assessment against 13 security controls. There is no public registry, so in Shieldworks it is always shop-declared.",
       "source_url": "https://www.canada.ca/en/public-services-procurement/news/2026/04/canadian-program-for-cyber-security-certification-level-1.html",
       "registry_url": null,
       "steps": [
@@ -146,7 +146,7 @@
     "AS9100": {
       "title": "AS9100 quality management",
       "kind": "quality_system",
-      "summary": "An aerospace and defence quality system built on ISO 9001, certified by an accredited registrar. Muster shows no cost figures for it.",
+      "summary": "An aerospace and defence quality system built on ISO 9001, certified by an accredited registrar. Shieldworks shows no cost figures for it.",
       "source_url": "https://www.p-r-i.org/registrar/resources/general-policies-and-procedures/certification",
       "registry_url": null,
       "steps": [
@@ -182,7 +182,7 @@
     "ISO9001": {
       "title": "ISO 9001 quality management",
       "kind": "quality_system",
-      "summary": "A general quality management system, certified by an accredited certification body. Muster shows no cost figures for it.",
+      "summary": "A general quality management system, certified by an accredited certification body. Shieldworks shows no cost figures for it.",
       "source_url": "https://www.iafcertsearch.org/",
       "registry_url": "https://www.iafcertsearch.org/",
       "steps": [
@@ -218,7 +218,7 @@
     "NADCAP": {
       "title": "Nadcap special-process accreditation",
       "kind": "accreditation",
-      "summary": "Accreditation for one special process (heat treat, chemical processing, coatings), run by PRI. Muster does not compute merit tiers or costs.",
+      "summary": "Accreditation for one special process (heat treat, chemical processing, coatings), run by PRI. Shieldworks does not compute merit tiers or costs.",
       "source_url": "https://www.p-r-i.org/",
       "registry_url": null,
       "steps": [

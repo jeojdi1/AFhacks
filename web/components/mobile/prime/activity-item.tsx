@@ -5,10 +5,12 @@
 
 import Link from "next/link"
 import {
+  CalendarCheck,
   CircleCheck,
   CircleHelp,
   CircleX,
   Clock,
+  FilePen,
   HandCoins,
   Info,
   MessageSquareReply,
@@ -56,6 +58,10 @@ function KindIcon({ item }: { item: FeedItem }) {
       return <ShieldCheck className={cls} aria-hidden />
     case "routed":
       return <Route className={cls} aria-hidden />
+    case "paperwork_done":
+      return <FilePen className={cls} aria-hidden />
+    case "kickoff_booked":
+      return <CalendarCheck className={cls} aria-hidden />
     default:
       return <Info className={cls} aria-hidden />
   }

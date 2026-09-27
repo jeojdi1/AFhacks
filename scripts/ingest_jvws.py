@@ -66,7 +66,7 @@ def post(method: str, body: list) -> list:
         data=json.dumps(body).encode(),
         headers={
             "Content-Type": "application/json",
-            "User-Agent": "Muster-research/0.1",
+            "User-Agent": "Shieldworks-research/0.1",
         },
     )
     with urllib.request.urlopen(req, timeout=120) as resp:

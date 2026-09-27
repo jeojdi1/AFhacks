@@ -95,7 +95,7 @@ export interface GrowItem {
   jobs: string[]
   value_cad: number
   tier: GrowTier
-  /** The prime-fundable training package for it, if Muster proposed one. */
+  /** The prime-fundable training package for it, if Shieldworks proposed one. */
   pkg: TrainingPackage | null
   training: ShopTraining | null
   request: FundingRequestRec | null

@@ -1,1 +1,1 @@
-"""Muster engine package."""
+"""Shieldworks engine package."""

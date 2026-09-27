@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { TraineeHome } from "@/components/portal/trainee-home"
 
 export const metadata: Metadata = {
-  title: "Training seat · Muster",
+  title: "Training seat · Shieldworks",
   robots: { index: false, follow: false },
 }
 

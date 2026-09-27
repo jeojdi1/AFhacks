@@ -14,6 +14,23 @@ import { extendStrings, t } from "./strings"
 import { fmtDay } from "./today"
 import type { AppEvent, EventKind, Renewal, RenewalStage } from "./types"
 import { isSimulatedEvent } from "./sim-flag"
+import { awardHref, fmtSlot } from "@/lib/award/summary"
+
+/** Award events (shop paperwork and kickoff call after an accept, docs/api.md §6). Additive kinds. */
+export const AWARD_EVENT_KINDS = ["paperwork_done", "kickoff_booked"] as const
+export type AwardEventKind = (typeof AWARD_EVENT_KINDS)[number]
+export const isAwardEventKind = (k: string): k is AwardEventKind => (AWARD_EVENT_KINDS as readonly string[]).includes(k)
+
+const PAPERWORK_KEYS = new Set(["subcontract", "nda", "cgp", "cpcsc", "quality", "fai", "ccv", "insurance"])
+
+/** What the shop did for one award document, worded to follow the shop name ("signed the subcontract"). */
+export function paperworkDid(key: unknown): string {
+  const k = typeof key === "string" && PAPERWORK_KEYS.has(key) ? key : "other"
+  return t(`feed.paperwork.did.${k}`)
+}
+
+/** A kickoff slot as "Tue Sep 29, 10:00 AM" (local time); shared with the award pages. */
+export { fmtSlot }
 
 extendStrings("en", {
   // --- /m/prime page -------------------------------------------------------
@@ -80,6 +97,19 @@ extendStrings("en", {
   "feed.renewal.lapsed": "{shop} · {cert} lapsed {date}",
   "feed.renewal.detail": "{jobs} · {credit} credit at risk",
   "feed.renewal.detailNoJobs": "No assigned work depends on it",
+  "feed.paperwork": "{shop} {did} ({job}) · paperwork {done} of {total}",
+  "feed.paperwork.complete": "All paperwork done · demo: no real signatures or files",
+  "feed.paperwork.did.subcontract": "signed the subcontract",
+  "feed.paperwork.did.nda": "signed the non-disclosure agreement",
+  "feed.paperwork.did.cgp": "signed the Controlled Goods declaration",
+  "feed.paperwork.did.cpcsc": "signed the cyber-security self-check",
+  "feed.paperwork.did.quality": "attached its quality certificates",
+  "feed.paperwork.did.fai": "uploaded the first article inspection plan",
+  "feed.paperwork.did.ccv": "signed the Canadian content declaration",
+  "feed.paperwork.did.insurance": "uploaded its certificate of insurance",
+  "feed.paperwork.did.other": "completed a document",
+  "feed.kickoff": "{shop} booked a kickoff call: {when} ({job})",
+  "feed.kickoff.detail": "With {prime} supplier development · demo: no real invite sent",
 
   // --- actions -----------------------------------------------------------------
   "feed.action.view": "View",
@@ -135,7 +165,7 @@ export interface FeedItem {
   seq: number
   /** ISO time of the event; null for supplier rows. */
   ts: string | null
-  kind: EventKind | "renewal_risk"
+  kind: EventKind | AwardEventKind | "renewal_risk"
   tone: FeedTone
   title: string
   detail: string | null
@@ -339,6 +369,33 @@ export function eventItem(e: AppEvent, ledger: LedgerResponse | null, ctx: FeedC
     href: null,
     simulated: isSimulatedEvent(e),
   }
+  const kind = e.kind as string
+  if (kind === "paperwork_done" || kind === "kickoff_booked") {
+    const job = e.job_id ?? str(p.job_id) ?? ""
+    const view = e.shop_id && job ? { label: t("feed.action.view"), href: withFromPrime(awardHref(e.shop_id, job, true)) } : null
+    if (kind === "paperwork_done") {
+      const done = num(p.done)
+      const total = num(p.total)
+      return {
+        ...base,
+        kind,
+        job_id: job || null,
+        tone: done !== null && total !== null && done >= total ? "success" : "info",
+        title: t("feed.paperwork", { shop, did: paperworkDid(p.key), job, done: done ?? "—", total: total ?? "—" }),
+        detail: done !== null && total !== null && done >= total ? t("feed.paperwork.complete") : null,
+        action: view,
+      }
+    }
+    return {
+      ...base,
+      kind,
+      job_id: job || null,
+      tone: "success",
+      title: t("feed.kickoff", { shop, when: fmtSlot(str(p.slot)), job }),
+      detail: t("feed.kickoff.detail", { prime }),
+      action: view,
+    }
+  }
   const creditPct = (c: number | null) => (c && obligation > 0 ? t("feed.pctOfObligation", { pct: pct(c / obligation) }) : null)
   const join = (...parts: (string | null)[]) => parts.filter(Boolean).join(" · ") || null
 
@@ -541,7 +598,7 @@ export function feedItems(
 // Desktop toasts
 
 /** Events that come from a shop (the laptop did not cause them itself). */
-export const SHOP_EVENT_KINDS: readonly EventKind[] = [
+export const SHOP_EVENT_KINDS: readonly string[] = [
   "offer_accepted",
   "offer_declined",
   "offer_question",
@@ -549,6 +606,7 @@ export const SHOP_EVENT_KINDS: readonly EventKind[] = [
   "funding_requested",
   "capacity_confirmed",
   "cert_declared",
+  ...AWARD_EVENT_KINDS,
 ]
 
 /**
@@ -561,6 +619,11 @@ export function eventToast(e: AppEvent, ctx: FeedContext = {}): { title: string;
   const shop = e.shop_name ?? e.shop_id ?? ""
   const job = e.job_id ?? ""
   const p = e.payload ?? {}
+  if (isAwardEventKind(e.kind)) {
+    // Same sentence as the feed row, with the full shop name.
+    const it = eventItem({ ...e, shop_name: shop }, null, ctx)
+    return it ? { title: it.title, description: it.detail, tone: it.tone } : null
+  }
   switch (e.kind) {
     case "offer_accepted":
       return { title: t("bell.toast.accepted", { shop, job, credit: fmtCredit(e.credit_cad) }), description: null, tone: "success" }

@@ -19,6 +19,8 @@ import { OfferListCard } from "./offer-list-card"
 import { DeclineSheet } from "./decline-sheet"
 import { needsReply, offerState, replyByFrom, routedAtFrom, useNewOfferIds, type OfferView } from "./shared"
 import "./strings"
+import { useGoTo, useGoToAward } from "@/components/award/use-go-to-award"
+import { AwardLink } from "@/components/award/award-link"
 
 /** /m/shops/[id]/offers: unanswered first (new ones on top), then answered ones, muted. */
 export function OfferList({ shopId }: { shopId: string }) {
@@ -66,6 +68,8 @@ export function OfferList({ shopId }: { shopId: string }) {
     [decide]
   )
 
+  const goToAward = useGoToAward(true)
+  const goTo = useGoTo()
   const accept = React.useCallback(
     async (jobId: string) => {
       setBusyId(jobId)
@@ -75,13 +79,19 @@ export function OfferList({ shopId }: { shopId: string }) {
         toast.success(`${t("o.toast.accepted")} · ${jobId}`, {
           description: t("o.toast.acceptedBody", { prime }),
           duration: UNDO_MS,
-          action: { label: t("decision.undo"), onClick: () => void undo(jobId) },
+          // Undo from the award page: withdraw the answer and return to the offer.
+          action: {
+            label: t("decision.undo"),
+            onClick: () =>
+              void undo(jobId).then(() => goTo(`/m/shops/${encodeURIComponent(shopId)}/offers/${encodeURIComponent(jobId)}`)),
+          },
         })
+        goToAward(shopId, jobId)
       } finally {
         setBusyId(null)
       }
     },
-    [decide, prime, undo]
+    [decide, prime, undo, goTo, goToAward, shopId]
   )
 
   const decline = React.useCallback(
@@ -185,6 +195,7 @@ export function OfferList({ shopId }: { shopId: string }) {
             {answered.map((v) => (
               <li key={v.offer.job_id}>
                 <OfferListCard shopId={shopId} view={v} replyBy={replyBy} />
+                {v.state === "accepted" ? <AwardLink shopId={shopId} jobId={v.offer.job_id} phone className="mt-1 px-1" /> : null}
               </li>
             ))}
           </ul>

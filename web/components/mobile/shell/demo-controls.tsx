@@ -30,7 +30,7 @@ extendStrings("en", {
   "demo.subtitle": "Everything here is example data: a fictional defence company and synthetic shops.",
   "demo.mode.label": "Where the data comes from",
   "demo.mode.live": "Live (shared with the laptop)",
-  "demo.mode.liveBody": "Answers go to the Muster engine, so the laptop sees them within seconds.",
+  "demo.mode.liveBody": "Answers go to the Shieldworks engine, so the laptop sees them within seconds.",
   "demo.mode.fixtures": "Demo data (this phone only)",
   "demo.mode.fixturesBody": "Built-in example data. No engine needed; nothing leaves this phone.",
   "demo.mode.current": "In use",

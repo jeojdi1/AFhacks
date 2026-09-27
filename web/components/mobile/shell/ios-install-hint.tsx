@@ -42,7 +42,7 @@ function isStandalone(): boolean {
 }
 
 /**
- * "Add Muster to your Home Screen" (iPhone/iPad only). Shows once the user has
+ * "Add Shieldworks to your Home Screen" (iPhone/iPad only). Shows once the user has
  * opened an offer, when not already installed; dismissal is remembered. Never
  * relies on beforeinstallprompt (iOS has none).
  */

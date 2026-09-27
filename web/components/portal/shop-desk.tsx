@@ -122,7 +122,7 @@ export function ShopDesk() {
     >
       {!routed && demo.ready ? (
         <StartDemo
-          message="Northgate hasn't sent offers yet. Load its parts list and Muster matches each job to one qualified shop, then your offers appear here."
+          message="Northgate hasn't sent offers yet. Load its parts list and Shieldworks matches each job to one qualified shop, then your offers appear here."
           roleMessage={c("empty.role.shop")}
         />
       ) : null}
@@ -353,7 +353,7 @@ export function ShopDesk() {
         ) : (
           <div className="h-16 animate-pulse rounded-lg bg-muted motion-reduce:animate-none" aria-hidden />
         )}
-        <p className="text-xs text-muted-foreground">Synthetic demo shop: made up for this demo. Muster never stores drawings.</p>
+        <p className="text-xs text-muted-foreground">Synthetic demo shop: made up for this demo. Shieldworks never stores drawings.</p>
       </Panel>
     </PortalPage>
   )

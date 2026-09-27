@@ -168,7 +168,7 @@ FILTERS_RULES = {
                          "the cpcsc filter checks) has a counting status at the shop.")},
         {"code": "controlled_cgp",
          "description": ("A controlled job (controlled: true; technical data is a controlled good) may "
-                         "only go to a shop whose CGP registration counts. Muster never stores drawings.")},
+                         "only go to a shop whose CGP registration counts. Shieldworks never stores drawings.")},
         {"code": "cpcsc",
          "description": ("If CPCSC_L1 is in the job's required_certs, the shop's CPCSC_L1 must count "
                          "(self-assessed, shop-declared).")},
@@ -298,7 +298,7 @@ POLICY = {
     },
     "compliance_gates": {
         "controlled_goods": {
-            "description": ("Technical data counts as a controlled good. Muster never stores drawings. "
+            "description": ("Technical data counts as a controlled good. Shieldworks never stores drawings. "
                             "A controlled job may only go to a CGP-registered shop."),
             "source": SRC_CGP,
         },

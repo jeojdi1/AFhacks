@@ -1,5 +1,5 @@
-// Muster app icon for next/og ImageResponse (manifest icons, apple-icon).
-// Same mark as BrandMark: a brand-red square with three stacked white bars.
+// Shieldworks app icon for next/og ImageResponse (manifest icons, apple-icon).
+// Same mark as BrandMark: a brand-red square with a white shield and two work bars.
 // Inline styles only (satori); every multi-child div is display:flex.
 
 export const BRAND_RED = "#b42318"
@@ -10,28 +10,23 @@ export const BRAND_RED = "#b42318"
  *               need the mark inside the central 80% safe zone)
  */
 export function IconArt({ size, inset = 0.22 }: { size: number; inset?: number }) {
-  const pad = Math.round(size * inset)
-  const bar = Math.max(4, Math.round(size * 0.085))
-  const gap = Math.round(bar * 0.9)
-  const radius = Math.round(bar / 2)
+  const mark = Math.round(size * (1 - inset * 2) * 1.1)
   return (
     <div
       style={{
         width: size,
         height: size,
         display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-start",
+        alignItems: "center",
         justifyContent: "center",
-        gap,
         background: BRAND_RED,
-        paddingLeft: pad,
-        paddingRight: pad,
       }}
     >
-      <div style={{ width: "100%", height: bar, borderRadius: radius, background: "#ffffff" }} />
-      <div style={{ width: "75%", height: bar, borderRadius: radius, background: "rgba(255,255,255,0.88)" }} />
-      <div style={{ width: "50%", height: bar, borderRadius: radius, background: "rgba(255,255,255,0.74)" }} />
+      <svg width={mark} height={mark} viewBox="0 0 24 24">
+        <path d="M12 1.8l8.2 3.1v6.3c0 5.2-3.5 9.7-8.2 11-4.7-1.3-8.2-5.8-8.2-11V4.9L12 1.8z" fill="#ffffff" />
+        <rect x="8" y="9" width="8" height="1.8" rx="0.9" fill={BRAND_RED} />
+        <rect x="8" y="12.4" width="5.5" height="1.8" rx="0.9" fill={BRAND_RED} />
+      </svg>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-"""Muster demo gate (CLAUDE.md section 6.4).
+"""Shieldworks demo gate (CLAUDE.md section 6.4).
 
 Runs the 8 demo steps against the live API (default) or against the offline
 fixtures in data/fixtures (``--fixtures``). The assertions are identical in both
@@ -778,7 +778,7 @@ def run(src) -> int:
 def main(argv=None) -> int:
     with contextlib.suppress(AttributeError, ValueError):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    ap = argparse.ArgumentParser(description="Muster demo gate: 8 steps, live API or offline fixtures.")
+    ap = argparse.ArgumentParser(description="Shieldworks demo gate: 8 steps, live API or offline fixtures.")
     ap.add_argument("--api", default=os.environ.get("API_URL") or "http://localhost:8000",
                     help="API base URL for live mode (default: $API_URL or http://localhost:8000)")
     ap.add_argument("--fixtures", nargs="?", const=str(DEFAULT_FIXTURES), default=None, metavar="DIR",

@@ -252,7 +252,7 @@ export function TodayView({ shopId }: { shopId: string }) {
   }
 
   const shop = detail?.shop ?? null
-  // Live mode and Muster can't be reached: never pass an empty fallback off as
+  // Live mode and Shieldworks can't be reached: never pass an empty fallback off as
   // "Northgate hasn't sent offers yet" (and hide the action cards and $0 stats).
   const unreachable = conn.unreachable || (conn.live && !!bundle.error)
   const blind = unreachable && !routed

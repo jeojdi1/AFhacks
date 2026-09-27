@@ -1,6 +1,6 @@
 """Shop-side actions and the program activity log (docs/api.md §6, docs/app-spec.md §2.3–§2.8).
 
-What a shop tells Muster from the phone app, and what the prime hears back:
+What a shop tells Shieldworks from the phone app, and what the prime hears back:
 
 - offer decisions: accept / decline (with a reason) / ask a templated question / undo;
 - the prime's reply to a shop's question (stored on the question's decision record);
@@ -848,7 +848,7 @@ def _declared(state: Any, shop_id: str | None = None) -> list[dict]:
 
 
 def shop_actions(state: Any, shop_id: str) -> dict:
-    """``GET /shops/{shop_id}/actions``: everything this shop has told Muster."""
+    """``GET /shops/{shop_id}/actions``: everything this shop has told Shieldworks."""
     _shop(state, shop_id)
     cap = (getattr(state, "capacity_checkins", None) or {}).get(shop_id)
     return {
@@ -892,7 +892,7 @@ def events_view(state: Any, since: int = 0, limit: int = 100) -> dict:
 
 def trainee_seat(state: Any, package_id: str, seat: int) -> dict:
     """``GET /programs/{id}/training/{package_id}/seats/{seat}``: a pseudonymous seat card.
-    No personal data exists anywhere in Muster; a seat is "Seat 3 of 4 · TP-01"."""
+    No personal data exists anywhere in Shieldworks; a seat is "Seat 3 of 4 · TP-01"."""
     pkg = state.packages.get(package_id)
     if pkg is None:
         raise ActionError(404, f"Unknown training package '{package_id}'")

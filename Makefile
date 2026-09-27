@@ -51,7 +51,7 @@ demo: web-build
 	sleep 3; \
 	IP=$$(ipconfig getifaddr en0 2>/dev/null || hostname -I 2>/dev/null | cut -d' ' -f1); \
 	echo ""; \
-	echo "Muster demo (laptop): http://localhost:3000/  (engine: http://localhost:8000)"; \
+	echo "Shieldworks demo (laptop): http://localhost:3000/  (engine: http://localhost:8000)"; \
 	echo "Phone on the same Wi-Fi: http://$$IP:3000/m   (or open http://localhost:3000/phone for a QR code)"; \
 	echo "Recording tip: click Start over first. Filled demo instead: make demo-seed"; \
 	echo ""; \

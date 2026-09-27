@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils"
 import { FlowDiagram } from "./flow-diagram"
 
 /**
- * The landing page `/` (docs/ux-simplification.md §4): what Muster does in 3 panels,
+ * The landing page `/` (docs/ux-simplification.md §4): what Shieldworks does in 3 panels,
  * the flow diagram, then one button. Everything above the fold at 1280×720; the demo
  * sign-in cards sit below the fold ("Or sign in as…").
  */

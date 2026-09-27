@@ -3,7 +3,7 @@ import { SupplierSearch } from "@/components/search/supplier-search"
 import { dndHistoryByShop } from "@/lib/search/dnd"
 
 export const metadata: Metadata = {
-  title: "Find suppliers · Muster",
+  title: "Find suppliers · Shieldworks",
   description:
     "Search small Canadian shops by process, certificate, distance and National Defence contract history. Demo shops are synthetic; real shops are public data — unverified — not affiliated.",
 }

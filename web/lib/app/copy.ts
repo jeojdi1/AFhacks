@@ -1,7 +1,7 @@
 // Wording owned by Agent R (docs/app-spec.md §2.5, §2.8): the W47.1 wording fix
 // (packageTitle), requirement names, and the /m Grow and Trainee strings.
 //
-// W47.1 is a *company* certification: Muster qualifies welders under the shop's
+// W47.1 is a *company* certification: Shieldworks qualifies welders under the shop's
 // W47.1, it does not "certify welders to W47.1". The engine and fixture strings
 // keep the old wording until after the freeze (roadmap wk 1, a CONTRACT: commit),
 // so the UI rewrites them here.
@@ -126,7 +126,7 @@ extendStrings("en", {
   "grow.tier.qualified": "Qualified",
   "grow.tier.inTraining": "Funded · training under way",
   "grow.empty": "No one-step gaps right now",
-  "grow.emptyBody": "Muster lists a requirement here when it is the only thing stopping you from a Northgate job.",
+  "grow.emptyBody": "Shieldworks lists a requirement here when it is the only thing stopping you from a Northgate job.",
   "grow.capacityRow": "Confirm capacity",
   "grow.capacityRowBody": "Free hours per week for the next 4 weeks.",
   "grow.capacityRowDone": "Confirmed {date} · {hours} h/wk free",
@@ -152,7 +152,7 @@ extendStrings("en", {
   "ready.primeFundsGeneric": "Northgate can fund this: {cost} → {credit} ITB credit ({mult}x)",
   "ready.primeFundsBody": "{trainees} trainees with {provider}. Costs are demo estimates.",
   "ready.noPackage": "No prime-funded package for this yet",
-  "ready.noPackageBody": "Northgate funds the training packages Muster proposes. This requirement doesn't have one.",
+  "ready.noPackageBody": "Northgate funds the training packages Shieldworks proposes. This requirement doesn't have one.",
   "ready.alsoEligible": "May also be eligible",
   "ready.stackingUnknown": "Stacking with prime funding: not confirmed",
   "ready.cta": "Ask Northgate to fund this",
@@ -184,7 +184,7 @@ extendStrings("en", {
   "seat.missingNoTotal": "This seat does not exist on {pkg}",
   "seat.missingBody": "Check the link you were sent. Seats are numbered from 1, never named.",
   "seat.pick": "Seat {seat} of {total}",
-  "seat.private": "Private link. Muster never shows your name.",
+  "seat.private": "Private link. Shieldworks never shows your name.",
   "seat.stage": "Your stage",
   "seat.stageNote": "Demo simulation: funding puts every seat at \"enrolled\".",
   "seat.current": "Now",
@@ -205,12 +205,12 @@ extendStrings("en", {
   "seat.path": "Path to work",
   "seat.pathLine": "Your ticket helps unlock {count} jobs at your shop: {jobs} ({value})",
   "seat.pathLine_one": "Your ticket helps unlock 1 job at your shop: {jobs} ({value})",
-  "seat.eligibility": "Personal certification credit applies to Canadian citizens and permanent residents. Your shop records a yes/no attestation only; Muster stores no ID documents (ITB model terms §7.5.1).",
+  "seat.eligibility": "Personal certification credit applies to Canadian citizens and permanent residents. Your shop records a yes/no attestation only; Shieldworks stores no ID documents (ITB model terms §7.5.1).",
   "seat.notFunded": "This seat isn't funded yet.",
   "seat.notFundedAsked": "This seat isn't funded yet. Your shop has asked Northgate.",
   "seat.notFundedBody": "When Northgate funds package {pkg}, this card shows your stage, test date and the jobs your ticket helps unlock.",
   "seat.unknownPkg": "No training package {pkg}",
   "seat.unknownPkgBody": "The link may be old, or Northgate hasn't routed its parts list yet.",
   "seat.icsTitle": "CWB welder test (example date) · {pkg}",
-  "seat.icsBody": "Example date from Muster: funding date plus 6 weeks (assumption). Your training provider confirms the real date.",
+  "seat.icsBody": "Example date from Shieldworks: funding date plus 6 weeks (assumption). Your training provider confirms the real date.",
 })

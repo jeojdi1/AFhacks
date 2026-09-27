@@ -5,10 +5,10 @@ import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 
 export const metadata: Metadata = {
-  title: "Page not found · Muster",
+  title: "Page not found · Shieldworks",
 }
 
-/** Any unknown route. Renders inside the Muster shell (header and footer come from the root layout). */
+/** Any unknown route. Renders inside the Shieldworks shell (header and footer come from the root layout). */
 export default function NotFound() {
   return (
     <div className="mx-auto flex w-full max-w-[720px] flex-1 flex-col items-start gap-5 px-4 py-12 sm:px-6 sm:py-16">

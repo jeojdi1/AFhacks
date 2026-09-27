@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { OfferList } from "@/components/mobile/offer/offer-list"
 
 export const metadata: Metadata = {
-  title: "Offers · Muster",
+  title: "Offers · Shieldworks",
 }
 
 /**

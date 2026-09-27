@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Load Muster's property graph into Neo4j (``make graph-load``; docs/api.md §7).
+"""Load Shieldworks' property graph into Neo4j (``make graph-load``; docs/api.md §7).
 
 Wipes the database, creates constraints + indexes (unique ``id`` per kind, a point index
 on shop / manufacturer ``location``), then writes the graph built by
@@ -49,7 +49,7 @@ def wait_reachable(seconds: float) -> bool:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Load Muster's property graph into Neo4j.")
+    ap = argparse.ArgumentParser(description="Load Shieldworks' property graph into Neo4j.")
     ap.add_argument("--ping", action="store_true", help="only check that Neo4j is reachable")
     ap.add_argument("--wait", type=float, default=0.0, metavar="S", help="wait up to S seconds for Neo4j")
     ap.add_argument("--if-stale", action="store_true", help="skip the load if the graph is current")
@@ -74,7 +74,7 @@ def main() -> int:
     counts = graphdb.load(g)
     secs = time.perf_counter() - t0
     want_nodes, want_edges = g.summary()
-    print(f"Loaded Muster graph into {uri} in {secs:.1f}s (data {g.data_hash})")
+    print(f"Loaded Shieldworks graph into {uri} in {secs:.1f}s (data {g.data_hash})")
     print(f"Nodes: {sum(counts['nodes'].values())}")
     for k, v in counts["nodes"].items():
         print(f"  {k:<14} {v:>6}")

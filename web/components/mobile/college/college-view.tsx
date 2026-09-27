@@ -51,7 +51,7 @@ extendStrings("en", {
   "col.seatsPrivacy": "Seats are numbered, never named.",
   "col.headline": "What funding did",
   "col.evidence": "Proof Northgate needs for the training credit",
-  "col.evidenceSub": "Northgate claims Canada work credit (ITB) for training it pays for. You send the proof; Muster never stores personal records.",
+  "col.evidenceSub": "Northgate claims Canada work credit (ITB) for training it pays for. You send the proof; Shieldworks never stores personal records.",
   "col.evidenceNote": "This checklist is a demo assumption. The Defence Investment Agency sets the evidence it accepts.",
   "col.ev.enrolment": "Enrolment confirmation for each seat",
   "col.ev.attendance": "Attendance records",

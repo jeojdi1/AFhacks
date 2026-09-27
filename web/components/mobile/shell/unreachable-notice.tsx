@@ -9,7 +9,7 @@ import { t } from "@/lib/app/strings"
 import { Button } from "@/components/ui/button"
 
 /**
- * "Can't reach Muster right now" with a Try again button. Screens show it instead of
+ * "Can't reach Shieldworks right now" with a Try again button. Screens show it instead of
  * their "Northgate hasn't sent offers yet" empty state when the data could not load
  * (live mode, phone offline or engine down), and above stale data otherwise.
  * `stale`: data from an earlier load is on screen (the body says when it was saved).

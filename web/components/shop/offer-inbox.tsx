@@ -13,6 +13,7 @@ import { t } from "@/lib/app/strings"
 import { DECISION_NOTE_MAX, REASON_CODES, type ReasonCode } from "@/lib/app/types"
 import { SimulatedChip } from "@/components/mobile/shell/simulation"
 import type { CertT, OfferT } from "./types"
+import { AwardLink } from "@/components/award/award-link"
 
 /**
  * Engine routing reasons in plain words (docs/ux-simplification.md §2): "SME: 2x direct credit"
@@ -67,6 +68,7 @@ export function OfferInbox({
   onAccept,
   onDecline,
   routed,
+  shopId,
 }: {
   offers: OfferT[]
   newJobIds: Set<string>
@@ -76,6 +78,8 @@ export function OfferInbox({
   onAccept: (jobId: string) => void | Promise<unknown>
   onDecline: (jobId: string, reason: ReasonCode, note: string | null) => void | Promise<unknown>
   routed: boolean
+  /** When given, accepted offers link to their award package. */
+  shopId?: string
 }) {
   const [declining, setDeclining] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -205,6 +209,7 @@ export function OfferInbox({
                       {dec?.simulated ? <SimulatedChip /> : null}
                       <span className="text-sm text-zinc-500">{ce("shop.inbox.accepted.note", { h: o.hours_week })}</span>
                       {dec?.pending ? <WillSend /> : null}
+                      {shopId ? <AwardLink shopId={shopId} jobId={o.job_id} className="ml-auto" /> : null}
                     </>
                   ) : status === "declined" ? (
                     <>

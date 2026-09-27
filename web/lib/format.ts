@@ -1,4 +1,4 @@
-// Shared display formatting for Muster. Every page formats numbers through here
+// Shared display formatting for Shieldworks. Every page formats numbers through here
 // so the video shows one consistent style.
 
 function trimZero(s: string): string {

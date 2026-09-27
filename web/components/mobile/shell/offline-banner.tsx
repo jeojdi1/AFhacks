@@ -8,7 +8,7 @@ import { t } from "@/lib/app/strings"
 
 /**
  * "Offline · showing 9:42 PM data · 2 actions waiting" while the phone is offline,
- * "Can't reach Muster · …" while it is online but the engine is not answering, or
+ * "Can't reach Shieldworks · …" while it is online but the engine is not answering, or
  * "Sending 2 actions…" while the outbox drains. Icon + text, never colour alone.
  * With nothing saved yet it says so instead of showing a placeholder time.
  */

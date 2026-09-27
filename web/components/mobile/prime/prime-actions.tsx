@@ -42,6 +42,7 @@ import { NoBreakIds } from "@/components/mobile/prime/activity-item"
 import { usePhoneHref } from "@/components/mobile/shell/use-phone-href"
 import { TrainingCapNote } from "@/components/scorecard/training-cap"
 import type { LedgerResponse } from "@/lib/api/types"
+import { AwardsPhoneSection } from "./awards"
 
 extendStrings("en", {
   "pa.title": "What you can do now",
@@ -462,6 +463,9 @@ export function PrimeActions() {
               </div>
             ))}
           </div>
+
+          {/* 5. Paperwork and kickoff calls for accepted jobs */}
+          <AwardsPhoneSection />
         </>
       )}
 

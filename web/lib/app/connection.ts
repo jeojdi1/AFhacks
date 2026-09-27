@@ -1,6 +1,6 @@
 "use client"
 
-// One answer to "is this phone talking to Muster right now?", shared by the
+// One answer to "is this phone talking to Shieldworks right now?", shared by the
 // header badge, the offline banner and the screens that would otherwise show
 // an empty "nothing routed yet" state when the data simply could not load.
 
@@ -41,7 +41,7 @@ export interface Connection {
   unreachable: boolean
   /** Why: "device" (phone offline) or "engine" (online, engine not answering). */
   reason: "device" | "engine" | null
-  /** When data was last read from Muster (null: nothing saved on this phone yet). */
+  /** When data was last read from Shieldworks (null: nothing saved on this phone yet). */
   lastSyncAt: string | null
   retry(): Promise<void>
 }

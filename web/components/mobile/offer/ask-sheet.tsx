@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { BottomSheet, ChoiceChips } from "./bottom-sheet"
 import "./strings"
 
-/** Ask the prime a templated question. No free text, so no technical data lands in Muster. */
+/** Ask the prime a templated question. No free text, so no technical data lands in Shieldworks. */
 export function AskSheet({
   open,
   onOpenChange,

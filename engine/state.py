@@ -68,6 +68,8 @@ class State:
     events: list[dict] = field(default_factory=list)  # Event, oldest first
     event_seq: int = 0  # last Event seq issued (kept across upload clears; a reset restarts it)
     idempotency: dict[str, dict] = field(default_factory=dict)  # idempotency_key → stored response
+    # Award onboarding progress after an accept (engine/award.py, docs/api.md §6.1). Additive.
+    awards: dict[str, dict] = field(default_factory=dict)  # "shop:job" → paperwork + kickoff call
 
 
 def db_path() -> Path:

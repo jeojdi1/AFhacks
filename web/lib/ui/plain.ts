@@ -96,7 +96,7 @@ export const PLAIN: Record<PlainKey, Plain> = {
   CONTROLLED: {
     first: "Controlled part",
     label: "controlled",
-    tip: "A controlled defence part. Only security-cleared shops may make it. Muster never stores drawings; it matches on basic job details only.",
+    tip: "A controlled defence part. Only security-cleared shops may make it. Shieldworks never stores drawings; it matches on basic job details only.",
   },
   "CWB_W47.1": {
     first: "Welding certification (CWB W47.1)",
@@ -131,7 +131,7 @@ export const PLAIN: Record<PlainKey, Plain> = {
   MATCH: {
     first: "match",
     label: "matched",
-    tip: "Muster offers each job to one qualified shop. There is no bidding.",
+    tip: "Shieldworks offers each job to one qualified shop. There is no bidding.",
   },
   STUCK: {
     first: "stuck",

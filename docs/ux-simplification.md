@@ -1,4 +1,4 @@
-# Muster UX simplification spec: understood in 5 seconds per screen
+# Shieldworks UX simplification spec: understood in 5 seconds per screen
 
 Status: buildable spec, 2026-09-26 (night before the freeze).
 
@@ -16,7 +16,7 @@ Status: buildable spec, 2026-09-26 (night before the freeze).
 **Hard constraint.** No engine number, fixture value, API shape or URL changes. This is copy, layout, and a few new presentational components.
 
 **What the three personas agreed on**
-1. **No "why".** Nothing says what problem Muster solves. `/` redirects straight into a CSV upload.
+1. **No "why".** Nothing says what problem Shieldworks solves. `/` redirects straight into a CSV upload.
 2. **Jargon without glosses.** ITB, SMB/SME (three names for one idea), CGP, CCV, CWB W47.1, "fixtures", "prime", "tagged", "routed".
 3. **Numbers without meaning.**
    - "11.5%" reads as failing.
@@ -47,7 +47,7 @@ Status: buildable spec, 2026-09-26 (night before the freeze).
 
 **The sentence** (landing page, `<meta description>`, footer tagline, video title card):
 
-> **Big defence companies owe Canada business equal to their contracts. Muster sends that work to small Canadian shops, and when shops are short of qualified welders, the defence company pays to train them.**
+> **Big defence companies owe Canada business equal to their contracts. Shieldworks sends that work to small Canadian shops, and when shops are short of qualified welders, the defence company pays to train them.**
 
 **Short form** (header tagline, ≤ 7 words):
 
@@ -103,14 +103,14 @@ Status: buildable spec, 2026-09-26 (night before the freeze).
 | multiplier 1×/2×/5×/10× | counts 1× / counts double (2×) / counts 5× / counts 10× | same | Some work counts extra toward what's owed: small-business work on the contract 2×, the company's cash for eligible training 5×, Indigenous workforce development 10×. |
 | `CCV` | Canadian content | Canadian content | The share of a job's value made in Canada. Only that share earns credit. |
 | `CGP` | Security-cleared (Controlled Goods) | security-cleared | Controlled Goods Program: federal registration a shop needs before it may handle controlled defence parts. |
-| `controlled` (badge text stays "Controlled") | Controlled part | controlled | A controlled defence part. Only security-cleared shops may make it. Muster never stores drawings; it matches on basic job details only. |
+| `controlled` (badge text stays "Controlled") | Controlled part | controlled | A controlled defence part. Only security-cleared shops may make it. Shieldworks never stores drawings; it matches on basic job details only. |
 | `CWB W47.1` | Welding certification (CWB W47.1) | welding certification | Canadian Welding Bureau company certification for structural welding. The shop is certified, it needs a qualified supervisor and approved procedures, and each welder passes a test for their own ticket. |
 | `CPCSC L1` | Cyber-security self-check (CPCSC L1) | cyber self-check | Canadian Program for Cyber Security Certification, level 1: 13 controls, self-assessed, no public registry. |
 | `AS9100` | Aerospace quality certificate (AS9100) | AS9100 | Quality standard for aerospace and defence suppliers. |
 | `ISO9001` | Quality certificate (ISO 9001) | ISO 9001 | Baseline quality-management certificate. |
 | `NADCAP` | Special-process accreditation (Nadcap) | Nadcap | Aerospace accreditation for processes such as heat treating and coatings. |
 | `prime` | defence company (the "prime") | defence company | The company that won the government contract. Here: Northgate Land Systems, which is fictional. |
-| `route` / `routed` / `assigned` | match / matched | matched | Muster offers each job to one qualified shop. There is no bidding. |
+| `route` / `routed` / `assigned` | match / matched | matched | Shieldworks offers each job to one qualified shop. There is no bidding. |
 | `blocked` | stuck | stuck | No qualified shop has free capacity for this job yet. |
 | `tagged` | read by Claude | read by Claude | Claude read each parts-list line to find its process, material and the certificates it needs. |
 | `score` | Match 94/100 | match | How well the shop fits: right machines, distance, how soon it can start, and credit earned. |
@@ -133,7 +133,7 @@ Status: buildable spec, 2026-09-26 (night before the freeze).
 ### 3.1 Layout (replaces today's nav plus stepper plus context strip)
 
 **Row 1: header (64 px), `web/components/shell/app-header.tsx`**
-- Left: the Muster logo only (the tagline "Defence work for small Canadian shops" is in the footer).
+- Left: the Shieldworks logo only (the tagline "Defence work for small Canadian shops" is in the footer).
 - Right, in order:
   - **Story mode** switch (§6)
   - **Shops directory** (`/network`)
@@ -205,7 +205,7 @@ Every internal link built by these components **preserves `?mode=` and `?story=`
      - **Body:** "Win a $500M contract, and you must do $500M of business in Canada. Work with small businesses counts double."
      - **Caption:** "Canada's ITB rule, simplified for this demo"
   2. `Factory` icon.
-     - **Title:** "Muster finds small shops that can make the parts."
+     - **Title:** "Shieldworks finds small shops that can make the parts."
      - **Body:** "It reads the parts list, checks each shop's machines and certificates, and offers each job to one qualified shop. No bidding."
   3. `HardHat` icon.
      - **Title:** "Short of qualified welders? The defence company pays to train them."
@@ -324,7 +324,7 @@ Legend strip in words: "**Solid green line**: job matched · **Dashed purple lin
 - **Three plain checks** (✓ icon, green): "✓ Has the right machines: 5-axis milling and aerospace quality certificate (AS9100)" · "✓ Security-cleared (Controlled Goods): required for this part" · "✓ Small business: its work counts double"
 - **Line:** "Match **93/100**". Behind "How the match is scored": "Right machines 93 · Distance 60 · Can start soon 42 · Credit earned 100".
 - **Credit line:** "Credit: $2.81M of work × 90% Canadian content × 2 (small business) = **$5.06M**". Exact dollars go in the `title` tooltip.
-- **Controlled footnote (keep):** "Drawings are never stored in Muster. It matches on basic job details only."
+- **Controlled footnote (keep):** "Drawings are never stored in Shieldworks. It matches on basic job details only."
 
 ### 5.3 `/scorecard`, step 3 "Credit earned"
 
@@ -378,7 +378,7 @@ Legend strip in words: "**Solid green line**: job matched · **Dashed purple lin
 **Page H1:** "Fix the welder gap" (was "Gaps & Training"). The subtitle paragraph is replaced by the banner.
 
 **Banner, before funding**
-- **Summary:** "**4 welding jobs ($6.6M) are stuck.** The certified welding shops on Muster are full, and the others don't have the certification. Real shops found in public data can't be sent work until they claim their profile. **Training 4 welders at Tallowfield Fabricating unsticks 3 of them.**"
+- **Summary:** "**4 welding jobs ($6.6M) are stuck.** The certified welding shops on Shieldworks are full, and the others don't have the certification. Real shops found in public data can't be sent work until they claim their profile. **Training 4 welders at Tallowfield Fabricating unsticks 3 of them.**"
 - **Look at:** "The training card: what Northgate pays, and what it gets back."
 - **Next:** **↓ Fund the training below** (scrolls; §3.3)
 
@@ -542,7 +542,7 @@ Legend strip in words: "**Solid green line**: job matched · **Dashed purple lin
 **7.1 `FlowDiagram`** (`web/components/landing/flow-diagram.tsx`; used on `/` and optionally at the top of `/gaps` in its compact form)
 - Four nodes left to right, connected by arrows, in HTML and CSS flex (no chart library). They stack vertically below 640 px.
   1. **Northgate** (fictional defence company) · "owes Canada $500M of business"
-  2. **Muster** · "reads the parts list, checks shops, offers each job to one shop"
+  2. **Shieldworks** · "reads the parts list, checks shops, offers each job to one shop"
   3. **Small Canadian shops** · "36 jobs · 22 shops" (live from `useDemo()` once routed; before that, "qualified local shops")
   4. **Welder training** · "4 seats, paid by Northgate → 3 stuck jobs go ahead"
 - A curved return arrow runs from node 4 back to node 3, labelled "unsticks work".
@@ -569,7 +569,7 @@ Put desktop strings in **`web/lib/ui/copy.ts`** as a flat `COPY` object, keyed a
 
 | Key | String |
 | --- | --- |
-| `app.sentence` | Big defence companies owe Canada business equal to their contracts. Muster sends that work to small Canadian shops, and when shops are short of qualified welders, the defence company pays to train them. |
+| `app.sentence` | Big defence companies owe Canada business equal to their contracts. Shieldworks sends that work to small Canadian shops, and when shops are short of qualified welders, the defence company pays to train them. |
 | `app.tagline` | Defence work for small Canadian shops |
 | `app.creditExplainer` | Credit isn't cash. It's how the government counts Northgate's Canadian business toward the $500M it owes. Small-business work counts double. Training counts 5×. |
 | `nav.step1` … `nav.step5` | Parts list · Where the work goes · Credit earned · Fix the welder gap · The shop's side |
@@ -604,7 +604,7 @@ The `busy.*` strings map onto the existing `BUSY` values. The store keeps its ow
 | --- | --- |
 | `landing.h1` | Defence contracts, turned into work for small Canadian shops. |
 | `landing.p1.title` / `.body` / `.caption` | Big defence companies owe Canada business. / Win a $500M contract, and you must do $500M of business in Canada. Work with small businesses counts double. / Canada's ITB rule, simplified for this demo |
-| `landing.p2.title` / `.body` | Muster finds small shops that can make the parts. / It reads the parts list, checks each shop's machines and certificates, and offers each job to one qualified shop. No bidding. |
+| `landing.p2.title` / `.body` | Shieldworks finds small shops that can make the parts. / It reads the parts list, checks each shop's machines and certificates, and offers each job to one qualified shop. No bidding. |
 | `landing.p3.title` / `.body` | Short of qualified welders? The defence company pays to train them. / Training counts 5× toward what it owes, and the stuck work goes ahead. |
 | `landing.link.shop` / `.dir` / `.phone` | Skip to the shop's side → / Browse 108 shops → / Open the phone app → |
 
@@ -642,7 +642,7 @@ The `busy.*` strings map onto the existing `BUSY` values. The store keeps its ow
 | `why.match` / `.scoring` | Match {score}/100 / How the match is scored |
 | `why.factors` | Right machines {a} · Distance {b} · Can start soon {c} · Credit earned {d} |
 | `why.credit` | Credit: {value} of work × {ccv} Canadian content × {mult} ({multLabel}) = **{credit}** |
-| `why.controlled` | Drawings are never stored in Muster. It matches on basic job details only. |
+| `why.controlled` | Drawings are never stored in Shieldworks. It matches on basic job details only. |
 
 ### 8.4 Scorecard
 
@@ -672,7 +672,7 @@ The `busy.*` strings map onto the existing `BUSY` values. The store keeps its ow
 | Key | String |
 | --- | --- |
 | `gaps.h1` | Fix the welder gap |
-| `gaps.b` | **{n} welding jobs ({value}) are stuck.** The certified welding shops on Muster are full, and the others don't have the certification. Real shops found in public data can't be sent work until they claim their profile. **Training 4 welders at {shop} unsticks {k} of them.** |
+| `gaps.b` | **{n} welding jobs ({value}) are stuck.** The certified welding shops on Shieldworks are full, and the others don't have the certification. Real shops found in public data can't be sent work until they claim their profile. **Training 4 welders at {shop} unsticks {k} of them.** |
 | `gaps.b.look` | The training card: what Northgate pays, and what it gets back. |
 | `gaps.next.fund` | ↓ Fund the training below |
 | `gaps.b.funded` | Northgate funded 4 welder training seats. **{k} stuck jobs ({jobsValue} of work) can go ahead;** {left} is still stuck. |
@@ -898,7 +898,7 @@ export function useStoryMode(): { story: boolean; setStory(v: boolean): void }
 - "**example (not affiliated)**" on training partners (Conestoga College).
 - `AssumptionTag` on every non-policy number ($96K cost, $24K per seat, +80 hrs/wk, the SMB basis).
 - Footer: "Data: Statistics Canada ODBus (Open Government Licence)".
-- Controlled-goods footnote: "Muster never stores drawings".
+- Controlled-goods footnote: "Shieldworks never stores drawings".
 
 ### 10.3 Wording rules
 

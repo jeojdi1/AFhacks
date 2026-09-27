@@ -3,7 +3,7 @@ import { ReadinessStepper } from "@/components/mobile/grow/readiness-stepper"
 import { decodeParam } from "@/lib/app/readiness"
 
 export const metadata: Metadata = {
-  title: "Readiness · Muster",
+  title: "Readiness · Shieldworks",
 }
 
 export default async function GrowItemPage({ params }: { params: Promise<{ id: string; req: string }> }) {

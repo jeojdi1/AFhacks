@@ -57,16 +57,16 @@ extendStrings("en", {
   "o.card.canWe.show": "Show the {count} checks",
   "o.card.canWe.hide": "Hide the checks",
   "o.card.payment": "Payment terms: set by Northgate. Not in demo data.",
-  "o.card.paymentNote": "Muster does not invent payment terms; the defence company sets them in its purchase order.",
+  "o.card.paymentNote": "Shieldworks does not invent payment terms; the defence company sets them in its purchase order.",
   "o.card.drawings.controlled":
-    "Drawings are never stored in Muster. After you accept, Northgate releases the technical data package through its own controlled channel once your security clearance (Controlled Goods) is confirmed.",
-  "o.card.drawings.plain": "Drawings are released by Northgate after acceptance, outside Muster.",
+    "Drawings are never stored in Shieldworks. After you accept, Northgate releases the technical data package through its own controlled channel once your security clearance (Controlled Goods) is confirmed.",
+  "o.card.drawings.plain": "Drawings are released by Northgate after acceptance, outside Shieldworks.",
   "o.card.share": "Send to estimator",
   "o.card.shareTitle": "Northgate offer {job}",
   "o.card.shareText":
-    "Northgate offer {job} ({part}): {desc}. {qty} parts (fleet lifetime), {value} total, {hours} h/wk. Reply in Muster by {date}. Drawings are released by Northgate after acceptance, outside Muster.",
+    "Northgate offer {job} ({part}): {desc}. {qty} parts (fleet lifetime), {value} total, {hours} h/wk. Reply in Shieldworks by {date}. Drawings are released by Northgate after acceptance, outside Shieldworks.",
   "o.card.shareTextNoDate":
-    "Northgate offer {job} ({part}): {desc}. {qty} parts (fleet lifetime), {value} total, {hours} h/wk. Reply in Muster. Drawings are released by Northgate after acceptance, outside Muster.",
+    "Northgate offer {job} ({part}): {desc}. {qty} parts (fleet lifetime), {value} total, {hours} h/wk. Reply in Shieldworks. Drawings are released by Northgate after acceptance, outside Shieldworks.",
   "o.card.linkCopied": "Link copied",
   "o.card.linkCopiedBody": "Paste it to your estimator. It carries no drawings or dimensions.",
   "o.card.shareFailed": "Could not share",
@@ -111,7 +111,7 @@ extendStrings("en", {
 
   // ask sheet
   "o.ask.title": "Ask Northgate about {job}",
-  "o.ask.body": "Pick a question. Northgate replies by email. There is no chat, so no technical data ends up in Muster.",
+  "o.ask.body": "Pick a question. Northgate replies by email. There is no chat, so no technical data ends up in Shieldworks.",
   "o.ask.questions": "Question",
   "o.ask.submit": "Send question",
   "o.ask.pick": "Pick a question first",
@@ -128,8 +128,8 @@ extendStrings("en", {
   "o.prime.trainingBody": "You are paying to train {shop}'s welders for {cert}. This job needs it, so work starts once they pass.",
   "o.prime.payment": "Payment terms: set in your purchase order. Not in demo data.",
   "o.prime.drawings.controlled":
-    "Drawings are never stored in Muster. After {shop} accepts, you release the technical data package through your own controlled channel once its security clearance (Controlled Goods) is confirmed.",
-  "o.prime.drawings.plain": "You release drawings after {shop} accepts, outside Muster.",
+    "Drawings are never stored in Shieldworks. After {shop} accepts, you release the technical data package through your own controlled channel once its security clearance (Controlled Goods) is confirmed.",
+  "o.prime.drawings.plain": "You release drawings after {shop} accepts, outside Shieldworks.",
   "o.prime.status.label": "{shop}'s answer",
   "o.prime.status.accepted": "Accepted by {shop} · {date}",
   "o.prime.status.acceptedNoDate": "Accepted by {shop}",

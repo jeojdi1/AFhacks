@@ -571,7 +571,7 @@ export function FindWork() {
         <p className="-mt-1 text-sm text-muted-foreground">
           Vehicle and equipment spares a fabrication shop could supply, Ontario first. Real public notices from
           CanadaBuys; notices where National Defence is buying equipment (a lathe, a milling machine) or off-the-shelf
-          items are left out. Muster is not affiliated with CanadaBuys; bid through CanadaBuys.
+          items are left out. Shieldworks is not affiliated with CanadaBuys; bid through CanadaBuys.
           {filtering ? " Narrowed by your search." : ""}
         </p>
         {tenders.fits.length ? (

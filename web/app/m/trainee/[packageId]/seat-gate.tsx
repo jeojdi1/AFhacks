@@ -6,9 +6,9 @@ import { t } from "@/lib/app/strings"
 import { SeatCard } from "@/components/mobile/trainee/seat-card"
 
 /**
- * The seat page, unless Muster could not be reached at load and nothing was saved on this phone
+ * The seat page, unless Shieldworks could not be reached at load and nothing was saved on this phone
  * (`useDemo().loadFailed`): then "This seat isn't funded yet" would be a guess, so the page says
- * it can't reach Muster instead (the phone's UnreachableNotice title). The engine watcher
+ * it can't reach Shieldworks instead (the phone's UnreachableNotice title). The engine watcher
  * reconnects on its own and the seat card appears.
  */
 export function SeatGate({ packageId, seat }: { packageId: string; seat: number | null }) {
@@ -26,7 +26,7 @@ export function SeatGate({ packageId, seat }: { packageId: string; seat: number 
           {t("unreach.title")}
         </p>
         <p className="text-base text-foreground/80">
-          Your seat details ({packageId}) will appear here when it&apos;s back. Muster keeps trying on its own.
+          Your seat details ({packageId}) will appear here when it&apos;s back. Shieldworks keeps trying on its own.
         </p>
       </div>
     </div>

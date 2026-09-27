@@ -1,4 +1,4 @@
-# Muster pitch pack (live pitch + judge Q&A)
+# Shieldworks pitch pack (live pitch + judge Q&A)
 
 For the 1:00 PM top-10 live pitch. Judges include MP Bardish Chagger and Dr. Ian Burgess. Rubric (0–4 each, no technical judging): **relevance to "Growing Canada"**, **viability**, **pitch**.
 
@@ -8,7 +8,7 @@ Rules for everything in this file: stats carry a footnote marker `[n]` pointing 
 
 ## Slides (3 max)
 
-### Slide 1: Muster
+### Slide 1: Shieldworks
 
 *Defence contracts → work and workers for small Canadian factories.*
 
@@ -16,7 +16,7 @@ Rules for everything in this file: stats carry a footnote marker `[n]` pointing 
 - Every prime must do business in Canada equal to **100%** of the contract value; the updated policy gives **2x** credit for direct SMB work and **5x** for cash spent on skills training (capped at 25% of the obligation) [2][3]
 - Primes can't find small shops, and those shops lack welders qualified to CWB W47.1: 47% in CWB's 2024 industry survey name a shortage of qualified workers as their top issue [8]
 
-**Speaker notes:** The money and the obligation already exist. What's missing is the connection: a prime in London can't see a 30-person shop in Woolwich, and that shop lacks the CWB-qualified welders to take the job. Muster is the missing link, and it serves both sides.
+**Speaker notes:** The money and the obligation already exist. What's missing is the connection: a prime in London can't see a 30-person shop in Woolwich, and that shop lacks the CWB-qualified welders to take the job. Shieldworks is the missing link, and it serves both sides.
 
 ### Slide 2: How it works (live demo numbers)
 
@@ -43,7 +43,7 @@ Rules for everything in this file: stats carry a footnote marker `[n]` pointing 
 >
 > But primes can't find qualified small shops, and those shops don't have the certified welders to take the work.
 >
-> Muster fixes both: we route defence jobs to qualified local factories. When a shop is short on certified welders, the prime funds training for five-x credit. In our demo, 96 thousand dollars of training earns 480 thousand in credit and unblocks three jobs worth 5.1 million more, earning another 9.1 million in credit.
+> Shieldworks fixes both: we route defence jobs to qualified local factories. When a shop is short on certified welders, the prime funds training for five-x credit. In our demo, 96 thousand dollars of training earns 480 thousand in credit and unblocks three jobs worth 5.1 million more, earning another 9.1 million in credit.
 >
 > Primes pay to win bids and meet obligations. Shops use it free, on their phone. Canada gets its industrial base.
 >
@@ -85,7 +85,7 @@ The welder stays in Canada's workforce, the point of the 5x multiplier [2]. Appr
 Job Bank rates the general welder outlook in Ontario "very limited" [17]. The gap is welders qualified to CSA W47.1 at CWB-certified shops. Re-qualifying an experienced welder costs a few thousand dollars and takes weeks (our estimate).
 
 **Q: Who holds the training money?**
-No one in the middle. The prime pays the college or apprenticeship sponsor directly, the DIA decides eligibility, and Muster keeps the per-job audit trail.
+No one in the middle. The prime pays the college or apprenticeship sponsor directly, the DIA decides eligibility, and Shieldworks keeps the per-job audit trail.
 
 **Q: Your data only covers a few cities. How do you get national coverage?**
 Our graph already holds 2,946 StatCan manufacturers and 1,099 National Defence vendors from 58,965 contracts [7][21], plus 78 local shops from company sites (public, unverified, not affiliated). Next, shops claim their profiles, and we ask CME Defence and Waterloo EDC to introduce members.

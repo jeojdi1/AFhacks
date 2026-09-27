@@ -39,7 +39,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  /* Muster status + brand tokens (use as bg-assigned/10, text-blocked, border-controlled/30 …) */
+  /* Shieldworks status + brand tokens (use as bg-assigned/10, text-blocked, border-controlled/30 …) */
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
   --color-assigned: var(--status-assigned);
@@ -64,7 +64,7 @@
 }
 
 :root {
-  /* Muster design tokens: light theme, slate neutrals, one deep Canadian red accent. */
+  /* Shieldworks design tokens: light theme, slate neutrals, one deep Canadian red accent. */
   --brand: #b42318;
   --brand-foreground: #ffffff;
 

@@ -11,7 +11,7 @@
 import type { Assignment, CertStatus, CreditTxn, Job, ShopSource, TrainingPackage } from "@/lib/api/types";
 
 export const EVIDENCE_PACK_FILENAME = "muster-evidence-pack-northgate.csv";
-export const EVIDENCE_PACK_COMMENT = "# Muster demo — simplified ITB rules — not an official ITB report";
+export const EVIDENCE_PACK_COMMENT = "# Shieldworks demo — simplified ITB rules — not an official ITB report";
 
 export const EVIDENCE_COLUMNS = [
   "row_type",

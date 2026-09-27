@@ -3,7 +3,7 @@ import { SeatGate } from "./seat-gate"
 import { decodeParam } from "@/lib/app/readiness"
 
 export const metadata: Metadata = {
-  title: "Training seat · Muster",
+  title: "Training seat · Shieldworks",
   // A private, shareable seat link: keep it out of search indexes.
   robots: { index: false, follow: false },
 }

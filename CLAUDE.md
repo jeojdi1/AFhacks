@@ -1,4 +1,4 @@
-# MUSTER: The Complete Playbook (CLAUDE.md)
+# SHIELDWORKS (formerly Muster): The Complete Playbook (CLAUDE.md)
 
 > This file is `CLAUDE.md` in the repo root. Claude Code loads it automatically every session.
 > Humans: read Section 0. Claude Code: follow Section 6 (the Dynamic Workflow) every time you are asked to "run the workflow".
@@ -18,16 +18,16 @@
 
 ## 1. Mission and context
 
-**Muster turns defence contracts into work and workers for small Canadian factories.**
+**Shieldworks turns defence contracts into work and workers for small Canadian factories.**
 
 | Module | What it does |
 | --- | --- |
-| **Route** | A prime uploads a parts list; Muster splits it into jobs and assigns each to a qualified small Canadian shop |
+| **Route** | A prime uploads a parts list; Shieldworks splits it into jobs and assigns each to a qualified small Canadian shop |
 | **Credit** | A live ITB ledger: direct vs indirect credit, multipliers, SMB target, % of obligation met |
-| **Train** | When no shop can take a job (missing certified workers or capacity), Muster proposes an ITB-eligible training package. "Funding" it unblocks the job and earns 5x credit (10x for Indigenous workforce development). |
+| **Train** | When no shop can take a job (missing certified workers or capacity), Shieldworks proposes an ITB-eligible training package. "Funding" it unblocks the job and earns 5x credit (10x for Indigenous workforce development). |
 | **Comply** | Every shop shows its certifications with source, date verified, status, and expiry |
 
-**Two-sided.** Muster serves both sides of the same transaction:
+**Two-sided.** Shieldworks serves both sides of the same transaction:
 
 - **Big companies (primes)** pay. They get jobs routed to qualified shops, 2x credit per SME job, a ledger they can report from, a stronger bid, and 5x credit for funding training.
 - **Small companies (shops)** use it free. They get defence job offers they would never have seen, a profile that shows their certifications, a readiness list of what would unlock more work, and workers trained on the prime's money.
@@ -44,6 +44,7 @@
 4. **Funding counts:** rules accept certifications with status `verified`, `declared`, or `pending_training` (the last is created only by a funded package). `credit_added` = training credit **plus** credit from newly assigned jobs.
 5. **CPCSC:** `requires_cpcsc` means `"CPCSC_L1"` is in the job's `required_certs`.
 6. **Repo:** `jeojdi1/AFhacks`, public from the start.
+7. **Name (Sun Sept 27, 09:00):** the product is **Shieldworks** (renamed from Muster). Code identifiers keep the old name (`MUSTER_DB`, `MUSTER_ENGINE_URL`, `muster.*` storage keys) so nothing breaks; the 55 outreach emails went out as "Muster", so say "Shieldworks, formerly Muster" to anyone who replies.
 
 ### Hackathon facts
 
@@ -178,7 +179,7 @@ These are simplified for the demo. Label them "Simplified ITB rules for demo" in
   - `education_costs`: tuition, course fees and travel incurred in Canada
 - ITB authority moved to the **Defence Investment Agency** on July 16, 2026. Contact: ITB-RIT@dia-aid.gc.ca.
 - **Compliance gates:**
-  - **Controlled Goods:** controlled technical data is itself a controlled good. **Muster never stores drawings.** A job with `controlled=true` may only go to a CGP-registered shop.
+  - **Controlled Goods:** controlled technical data is itself a controlled good. **Shieldworks never stores drawings.** A job with `controlled=true` may only go to a CGP-registered shop.
   - **CPCSC Level 1:** 13 controls, self-assessed, no public registry. Always a shop-declared field.
   - **ISO, AS9100, Nadcap, CWB:** record source, verified_at and status.
 - **Never invent a policy number.** Anything not in this section or Section 11 must be labelled `assumption`.
@@ -356,7 +357,7 @@ Format: `ID [lane] [priority] (depends on) — time box — acceptance criteria 
 
 ### 8.2 One-paragraph pitch
 
-"Canada is adding $81.8 billion to defence over five years and wants 70% of defence acquisitions to go to Canadian firms by 2035. Every major contractor must do business in Canada equal to its full contract value, and earns double credit for small-business work and five times the credit for cash spent training workers (capped at 25% of the obligation). But primes can't find small shops, and those shops don't have the CWB-qualified welders to take the work. Muster fixes both. We route defence jobs to qualified local factories, shops answer offers on their phone, and when a shop is short on qualified welders, the prime funds training for 5x credit. Primes win bids and meet obligations, shops get work and workers, and Canada gets its industrial base."
+"Canada is adding $81.8 billion to defence over five years and wants 70% of defence acquisitions to go to Canadian firms by 2035. Every major contractor must do business in Canada equal to its full contract value, and earns double credit for small-business work and five times the credit for cash spent training workers (capped at 25% of the obligation). But primes can't find small shops, and those shops don't have the CWB-qualified welders to take the work. Shieldworks fixes both. We route defence jobs to qualified local factories, shops answer offers on their phone, and when a shop is short on qualified welders, the prime funds training for 5x credit. Primes win bids and meet obligations, shops get work and workers, and Canada gets its industrial base."
 
 ### 8.3 Judge Q&A
 
@@ -369,7 +370,7 @@ Format: `ID [lane] [priority] (depends on) — time box — acceptance criteria 
 - **"Why would a shop trust a platform the prime pays for?"** *(draft)* It's free for shops, they see exactly why they were or weren't matched, and they can decline any offer. The prime's credit depends on the shop doing the work, so the prime needs the shop to succeed.
 - **"What if the welder you trained leaves?"** *(draft)* The welder stays in Canada's workforce, which is the point of the 5x multiplier. An apprenticeship is registered with a sponsoring employer, so the training happens at the shop that needs the worker. How credit is counted for trainees who leave is something we confirm with the DIA (assumption).
 - **"Isn't the welder shortage overstated?"** Job Bank rates the general welder outlook in Ontario "very limited". The gap is welders qualified to CSA W47.1 at CWB-certified shops. Re-qualifying an experienced welder costs a few thousand dollars and takes weeks (our estimate).
-- **"Who holds the training money?"** No one in the middle. The prime pays the college or apprenticeship sponsor directly, the DIA decides eligibility, and Muster keeps the per-job audit trail.
+- **"Who holds the training money?"** No one in the middle. The prime pays the college or apprenticeship sponsor directly, the DIA decides eligibility, and Shieldworks keeps the per-job audit trail.
 - **"Your data only covers a few cities?"** We already have 78 public shops across 12 southwestern Ontario cities, 39 of which list welding, from company sites plus StatCan ODBus (public, unverified, not affiliated). Next, shops claim their profiles, and CME Defence and Waterloo EDC bring members in.
 
 ---
@@ -398,7 +399,7 @@ Format: `ID [lane] [priority] (depends on) — time box — acceptance criteria 
   - Log insights and tag them `pain | workaround | budget | blocker`.
   - Rule: if 5 interviews in a row reject the premise, revisit the wedge.
 - **Data loop (monthly):** re-crawl shop sites, re-check certification expiry, invite shops to claim their profiles, refresh CanadaBuys and ITB report data.
-- **Compliance loop (quarterly):** CGP registration status, Canadian hosting on a CGP-registered provider, privacy policy, access logs and audit trail, and CPCSC readiness if Muster will handle specified information.
+- **Compliance loop (quarterly):** CGP registration status, Canadian hosting on a CGP-registered provider, privacy policy, access logs and audit trail, and CPCSC readiness if Shieldworks will handle specified information.
 
 ### 9.3 Startup backlog
 
@@ -408,7 +409,7 @@ Format: `ID [lane] [priority] (depends on) — time box — acceptance criteria 
 - [ ] **S4** ITB engine validated by an ITB consultant; exports for annual reports; banking; regional targets.
 - [ ] **S5** Train module v1: partner onboarding, evidence file generation (receipts, enrolment, completion), eligibility checklists per category.
 - [ ] **S6** Comply module: document vault, expiry alerts (CGP, CPCSC, ISO, AS9100, clearances), readiness scores.
-- [ ] **S7** CGP registration for Muster; controlled-data enclave (only after registration).
+- [ ] **S7** CGP registration for Shieldworks; controlled-data enclave (only after registration).
 - [ ] **S8** Integrations: prime procurement systems (e.g. JAGGAER exports), CSV/ERP imports, STEP metadata extraction.
 - [ ] **S9** Bid mode v2: Value Proposition builder.
 - [ ] **S10** Europe: SAFE partner discovery via TED award data; Korea and Japan through partnerships.
@@ -416,7 +417,7 @@ Format: `ID [lane] [priority] (depends on) — time box — acceptance criteria 
 ### 9.4 Business model
 
 - Primes pay a subscription per program plus a small fee on routed value.
-- Training coordination is a service fee paid by the prime. Confirm with the DIA which costs count toward credit; Muster's own fee likely won't.
+- Training coordination is a service fee paid by the prime. Confirm with the DIA which costs count toward credit; Shieldworks' own fee likely won't.
 - Shops and colleges use it free.
 - Channels: BDC Defence Platform, regional development agencies, CME, CADSI.
 
@@ -440,7 +441,7 @@ Use warm introductions through WVG and the judges where possible.
 ### 10.1 KICKOFF (once, by one person)
 
 ```
-Read CLAUDE.md fully. You are starting the Muster hackathon build. Enter SETUP mode
+Read CLAUDE.md fully. You are starting the Shieldworks hackathon build. Enter SETUP mode
 and complete H0.1–H0.4 exactly as specified. Write /docs/api.md from Section 3,
 create the fixtures (a realistic Northgate scenario), and create demo_check.py.
 Update Section 13 (my lane row and the Log), commit and push with task IDs, then
@@ -450,7 +451,7 @@ summarize the API contract in 5 lines for my teammate.
 ### 10.2 RUN (the main loop; paste whenever Claude Code stops)
 
 ```
-Run the Muster workflow from CLAUDE.md Section 6 for Lane [E or F]. Pull, read
+Run the Shieldworks workflow from CLAUDE.md Section 6 for Lane [E or F]. Pull, read
 Section 13, decide the mode using 6.1, select the next task using 6.3, plan in 3–5
 lines, build, verify with the 6.4 gates, record in Sections 7 and 13, commit and
 push. Keep looping through iterations until the mode changes to FREEZE/SHIP/PITCH,
@@ -496,7 +497,7 @@ Core Loop (6.2) on the first engineering task. Update Section 13 when done.
 ### 10.7 Status update to paste back into Claude chat
 
 ```
-Muster status [time] | mode: [..] | done: [IDs] | demo-check reached: [step] |
+Shieldworks status [time] | mode: [..] | done: [IDs] | demo-check reached: [step] |
 blockers: [..] | hours left: [..] | question: [..]
 ```
 
@@ -573,4 +574,6 @@ HH:MM [lane] TASK-ID — result (demo-check: step)
 04:06 [INT] cycle 1: 18 fixed (C1-1…C1-18) + integrator 6 (actions-store calls replaceOfferStatus directly, /m/prime "Qualify 4 welders under CSA W47.1", 2 contrast fixes (training-card id zinc-600, trainee seat stepper no opacity), fixtures /graph CWB W47.1 start node, capacity check-in no longer claims "over by" (engine over_by_hours unchanged, pending contract decision), prime desk Find another shop keeps ?mode/?api); gates: npm build+lint clean, tsc clean, 416 tests, ruff clean, fixtures-check 8/8, ux-check 71/71, smoke_mobile 24/24 live + 24/24 fixtures (demo-check: live 8/8 on 8770, fixtures 8/8)
 06:10 [INT] cycle 2: 17 fixed (C2-1…C2-17; C2-3 finished by integrator) + integrator cross-area: StartDemo/AutoNextStep/UploadCard hide load-and-match for shop/college/trainee sessions (role line instead), "reoffered" EventKind + feed row ("You sent NG-005 to …"), engine GET /shops/{id} lists re-offered jobs for the new shop (reoffered_from; phone Offers tab shows them), simulate skips decisions on re-offered jobs, tick returns waiting (phone C2-13 keeps polling for TP-02), renewals/shop desk held = certIsHeld only, m-header "no engine needed", store error toasts deduped by id, decisionIsSimulated → lib/app/sim-flag, docs api.md (29 routes, reoffer route/reoffers/reoffered_to/event, tender closed + closing filter, waiting, Presenter tools) + app-spec + README/devpost 29 endpoints; gates: npm build+lint clean, tsc clean, 419 tests, ruff clean, fixtures-check 8/8, ux-check 71/71, smoke_mobile 24/24 live + 24/24 fixtures, evidence-pack test 3/3 (demo-check: live 8/8 on 8780, fixtures 8/8)
 07:42 [INT] cycle 3: 14 fixed (C3-1…C3-14) + docs pass + integrator cross-area: /program and /gaps show EngineUnreachable when live load fails cold (loadFailed), StoryBanner numbered steps hidden for shop/college/trainee (useStoryChrome), phone activity-feed "Find another shop" adds from=m, shop profile certs counter gets offerTypes ("N held · X of Y needed for its offers"), stale renewals test updated (not-held never staged), ux-simplification.md header tagline/gaps.b/cert counter; gates: npm build (dead proxy :9) + lint clean, tsc clean, 419 tests, ruff clean, fixtures-check 8/8, TS unit 24/24, ux-check 71/71, smoke_mobile 24/24 live + 24/24 fixtures (demo-check: live 8/8 on 8790, fixtures 8/8)
+09:18 [INT] AWARD-INTEGRATE — Accept → formal award package (paperwork: subcontract draft, NDA, CGP/CPCSC when required, quality auto-attached, FAI plan, CCV declaration, insurance; kickoff call booking with Northgate, .ics; all demo: no e-signature, no file stored, no invite sent; numbers unchanged): engine/award.py (GET award, POST documents/{key}, POST call; events paperwork_done/kickoff_booked; State.awards cleared by route/upload/reset) + 13 tests, docs/api.md §6.1; web/lib/award (useAward live + local fallback, muster.award.v1 cross-tab), award pages /m/shops/{id}/offers/{job}/award and /shops/{id}/offers/{job}/award (read-only ?from=prime), prime desk "Awards in progress" + /m/prime awards + feed/bell rows; integrator: EventKind +2, Award engine extras typed, slots shown in America/Toronto, call 30 min (.ics + copy), award strings Shieldworks, search fixtures regenerated after engine/search.py rename, smoke_mobile accepted phase (+3 award routes), demo-script 2:24–3:00 award beat (Portals Armatec search cut, 629 words); gates: npm build+lint clean, tsc clean, 432 tests, ruff clean, fixtures-check 8/8, ux-check 71/71, smoke_mobile 27/27 live + 27/27 fixtures (demo-check: live 8/8 on 8910, fixtures 8/8)
+09:48 [INT] RENAME + DEMO-2MIN — product renamed Muster → Shieldworks everywhere user-visible (web, phone, docs, engine title, deck, call sheet; code identifiers MUSTER_* / muster.* keys unchanged; §1.1 #7), shield logo (header, flow diagram, app icon), search fixtures regenerated; docs/demo-2min.md (product-only live demo, ~1:45, Load → Match → Credit → Fund → phone Accept NG-031 → award package → book kickoff), rehearsed end to end on a production build (laptop + phone contexts, live engine, 0 console errors, phone updated <1 s after Fund); gates: npm build (dead proxy :9) + lint clean, tsc clean, 432 tests, ruff clean, fixtures-check 8/8, ux-check 71/71, smoke_mobile 27/27 live + 27/27 fixtures (demo-check: live 8/8 on 8930, fixtures 8/8)
 ```

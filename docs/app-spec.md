@@ -1,4 +1,4 @@
-# Muster phone app: build spec (tonight + next 4 weeks)
+# Shieldworks phone app: build spec (tonight + next 4 weeks)
 
 Owner: Head of Product. Written 2026-09-26. Status: **approved for tonight's build**.
 Inputs: three independent product plans (S1–S12, F1–F12, M1–M12), the research summaries (shop-jtbd, mobile-floor, prime-side, workforce-app, marketplaces, canada-fit), CLAUDE.md §1/§3/§4/§5, docs/api.md v0.1, and the code as of 2026-09-26.
@@ -41,7 +41,7 @@ Why this cut:
 
 ## 1. Thesis
 
-A small-shop owner, quality lead or trainee will open Muster on their phone only if, within 60 seconds, it answers "what needs me tonight, what lapses next and what it costs, and what is one step away and who pays". Each answer they give (accept, decline with a reason, ask for funding, confirm capacity) must reach the prime in seconds, with no bidding, no stored drawings and no new portal login.
+A small-shop owner, quality lead or trainee will open Shieldworks on their phone only if, within 60 seconds, it answers "what needs me tonight, what lapses next and what it costs, and what is one step away and who pays". Each answer they give (accept, decline with a reason, ask for funding, confirm capacity) must reach the prime in seconds, with no bidding, no stored drawings and no new portal login.
 
 ---
 
@@ -75,7 +75,7 @@ A small-shop owner, quality lead or trainee will open Muster on their phone only
 
 ### 2.1 T1: Installable phone shell (`/m`), manifest, touch sizes
 
-**User story.** As a shop owner who quotes at 10 PM on my phone, I want Muster on my home screen, opening straight to what needs me, with buttons I can hit wearing gloves, and no app store or new password.
+**User story.** As a shop owner who quotes at 10 PM on my phone, I want Shieldworks on my home screen, opening straight to what needs me, with buttons I can hit wearing gloves, and no app store or new password.
 
 **Screens and routes**
 
@@ -96,12 +96,12 @@ A small-shop owner, quality lead or trainee will open Muster on their phone only
 - **Shop routes** get a sticky bottom tab bar: **Today · Offers · Certs · Grow**. Prime and trainee routes have no tab bar.
 - **Desktop chrome is hidden under `/m`.** A new `ChromeGate` client component in the root layout skips `AppHeader`, `ProgramContextBar` and `AppFooter` when `usePathname().startsWith("/m")`.
 - **Manifest.** `web/app/manifest.ts` (Next 16 `MetadataRoute.Manifest`):
-  - `id: "/"`, `name: "Muster"`, `short_name: "Muster"`
+  - `id: "/"`, `name: "Shieldworks"`, `short_name: "Shieldworks"`
   - `start_url: "/m?src=pwa"`, `display: "standalone"`
   - `theme_color` and `background_color` from the brand tokens
   - icons at 192, 512 and maskable 512
   - `shortcuts`: Offers → `/m/shops/syn-012/offers`, Certs → `/m/shops/syn-012/certs`
-- **Root layout** exports `viewport = { themeColor, viewportFit: "cover", width: "device-width", initialScale: 1 }` and `metadata.appleWebApp = { capable: true, title: "Muster", statusBarStyle: "default" }`.
+- **Root layout** exports `viewport = { themeColor, viewportFit: "cover", width: "device-width", initialScale: 1 }` and `metadata.appleWebApp = { capable: true, title: "Shieldworks", statusBarStyle: "default" }`.
 - **Icons** are generated with `next/og` `ImageResponse`: `app/apple-icon.tsx` and static route handlers `app/icons/[size]/route.tsx` with `dynamic = "force-static"`. No new npm dependencies.
 - **`IosInstallHint`** appears only when all three hold:
   - the device is an iPhone or iPad
@@ -235,8 +235,8 @@ export interface AppActions {
   4. The strip "**No bidding.** Northgate offered this job only to you. **Northgate earns $1.68M ITB credit (2x SME) if you accept.** Simplified ITB rules for demo."
   5. "Payment terms: set by the prime. Not in demo data" (`assumption`). No invented net-N terms.
   6. The drawings line:
-     - Controlled jobs: "Drawings are never stored in Muster. After you accept, Northgate releases the technical data package through its own controlled channel once your CGP registration is confirmed."
-     - Other jobs: "Drawings are released by Northgate after acceptance, outside Muster."
+     - Controlled jobs: "Drawings are never stored in Shieldworks. After you accept, Northgate releases the technical data package through its own controlled channel once your CGP registration is confirmed."
+     - Other jobs: "Drawings are released by Northgate after acceptance, outside Shieldworks."
   7. A "Send to estimator" button uses the Web Share API with the deep link and a plain-text summary with no geometry, falling back to copying the link.
 - **Sticky `DecisionBar`** with three `touch-lg` buttons:
   - **Accept**: Sonner toast "Accepted · Undo" lasting 10 s. Undo sends `decision: "undo"`.
@@ -283,7 +283,7 @@ export interface AppActions {
 - **Idempotency:** the same `idempotency_key` returns the stored response and emits no new event.
 - **The ledger is unchanged.** A declined job still counts as routed tonight. The prime UI says "Declined · counted as routed until re-routed (demo)". Re-routing is stretch X2.
 
-`GET /shops/{shop_id}/actions`: everything the shop has told Muster.
+`GET /shops/{shop_id}/actions`: everything the shop has told Shieldworks.
 ```json
 { "shop_id": "syn-012",
   "routed_at": "2026-09-26T21:30:00Z" | null,
@@ -388,7 +388,7 @@ idempotency: dict[str, dict]               # idempotency_key → stored response
 | `CPCSC_L1` | 0 | 60 (assumption) | "Annual self-assessment against 13 controls using the official tool. Always shop-declared; there is no public registry." | PSPC news 2026-04 |
 | `AS9100` | 90 (assumption: recertification audit before expiry) | 60 (assumption) | "Certificate up to 3 years with annual surveillance audits." | p-r-i.org certification policy |
 | `ISO9001` | 90 (assumption) | 60 (assumption) | "3-year certification cycle with annual surveillance (assumption: same cycle as AS9100). Check on IAF CertSearch." | iafcertsearch.org (lookup only) |
-| `NADCAP:*` | 90 (assumption) | 60 (assumption) | "Read the expiry off the certificate (typically 12–24 months). Muster does not compute merit tiers." | PRI Nadcap getting-started |
+| `NADCAP:*` | 90 (assumption) | 60 (assumption) | "Read the expiry off the certificate (typically 12–24 months). Shieldworks does not compute merit tiers." | PRI Nadcap getting-started |
 | `CWB_W47.1` | null | null | "Company certification kept current through CWB audits. Check the CWB certified-company directory." | cwbgroup.org W47.1 page |
 | `CWB_WELDER_TICKET` (used by T8 only) | 0 | 90 | "Valid 2 years while continuously employed by a CWB-certified company. Check test from 90 days before to 90 days after expiry; after that, a full retest. May lapse after 3 months without using the process (confirm on the welder's card)." | cwbgroup.org welder-qualification-testing (3-month rule: INFERRED) |
 
@@ -429,7 +429,7 @@ Resulting demo line (today 2026-09-26): **"CGP · Urgent · file renewal by Oct 
 
 ### 2.5 T5: Readiness roadmap, "Ask Northgate to fund this", and the W47.1 wording fix
 
-**User story.** As an owner, when Muster says "Get CWB W47.1 → 3 more jobs, $5.1M", I want to see what that actually takes (steps, stated time and cost, who pays) and ask the prime to fund it with one tap.
+**User story.** As an owner, when Shieldworks says "Get CWB W47.1 → 3 more jobs, $5.1M", I want to see what that actually takes (steps, stated time and cost, who pays) and ask the prime to fund it with one tap.
 
 **Screens and routes**
 
@@ -529,7 +529,7 @@ Resulting demo line (today 2026-09-26): **"CGP · Urgent · file renewal by Oct 
 
 ### 2.7 T7: Weekly one-tap capacity check-in
 
-**User story.** As a floor lead or owner, I want Muster to ask once a week how many hours I actually have free, answerable in one tap, so I only get offers I can staff and the prime knows when I'm full.
+**User story.** As a floor lead or owner, I want Shieldworks to ask once a week how many hours I actually have free, answerable in one tap, so I only get offers I can staff and the prime knows when I'm full.
 
 **Screens.** `CapacitySheet` (`web/components/mobile/today/capacity-sheet.tsx`) opens from the Today card and from a "Confirm capacity" row on the Grow tab.
 - Title: "Free hours per week, next 4 weeks?"
@@ -570,7 +570,7 @@ Resulting demo line (today 2026-09-26): **"CGP · Urgent · file renewal by Oct 
 
 ### 2.8 T8: Trainee seat card (pseudonymous)
 
-**User story.** As a welder in a prime-funded seat, I want to see my program stage, my next step, what my ticket will need to stay valid, and which real jobs it helps unlock at my shop, without Muster ever showing my name.
+**User story.** As a welder in a prime-funded seat, I want to see my program stage, my next step, what my ticket will need to stay valid, and which real jobs it helps unlock at my shop, without Shieldworks ever showing my name.
 
 **Screens and routes**
 
@@ -581,7 +581,7 @@ Resulting demo line (today 2026-09-26): **"CGP · Urgent · file renewal by Oct 
   - An "Add test date to calendar" `.ics` download (`web/lib/app/ics.ts`, about 30 lines). The example date is funding date + 6 weeks, tagged `assumption`.
   - `TicketPreview` shows process, class (FW/S/T), position, and the `CWB_WELDER_TICKET` rule text from `renewals.json` with its source link.
   - The `PathToWork` block reads: "Your ticket helps unlock 3 hull-stowage jobs at your shop: NG-031 · NG-032 · NG-033 ($5.1M)". It uses `fundResults["TP-01"].unblocked_jobs`, or `package.blocked_job_ids`.
-  - Eligibility note: "Personal certification credit applies to Canadian citizens and permanent residents. Your shop records a yes/no attestation only; Muster stores no ID documents" (ITB model terms §7.5.1).
+  - Eligibility note: "Personal certification credit applies to Canadian citizens and permanent residents. Your shop records a yes/no attestation only; Shieldworks stores no ID documents" (ITB model terms §7.5.1).
 - **Before funding:** "This seat isn't funded yet. Your shop has asked Northgate" if a request exists, otherwise just "This seat isn't funded yet."
 - **Links:** Today's training card and the Grow "Funded" chip link to seat 1. The `/m` role picker links to seat 3.
 
@@ -667,7 +667,7 @@ Laptop on `/program` or `/gaps`, and a 390 px phone window on `/m/shops/syn-012`
 | 3 | **Tender radar with matching** (I): `GET /tenders?province=&tags=`, full daily CSV, UNSPSC → process-tag map labelled as a keyword match | — |
 | 4 | **ITB evidence pack** (O): register in the column order of ISED's 2020 annual-report template, Part C/D/E roll-ups, per-transaction evidence (PO, shipping, proof of payment, SMB basis), completeness %, draft `.xlsx` "finalize on your Protected B system"; the shop's CCV stays private | — |
 | 4 | **Trainee seats for real**: tokenised `GET /seats/{id}`, coordinator updates, a `WelderTicket` object separate from company W47.1, ticket expiry feeding shop eligibility | Minimal data under PIPEDA |
-| 4 | **Canada coverage view** (P): `/canada` region rows (ISED employment share, NAICS 3327 counts, Muster coverage, RDA), and a Job Bank labour-market strip on gap cards | Fix CLAUDE.md §11's table citation (33-10-1095-01) through the human owner |
+| 4 | **Canada coverage view** (P): `/canada` region rows (ISED employment share, NAICS 3327 counts, Shieldworks coverage, RDA), and a Job Bank labour-market strip on gap cards | Fix CLAUDE.md §11's table citation (33-10-1095-01) through the human owner |
 
 ---
 

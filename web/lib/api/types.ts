@@ -1,4 +1,4 @@
-// Muster API types, generated from docs/api.md v0.1. Owner: Lane B.
+// Shieldworks API types, generated from docs/api.md v0.1. Owner: Lane B.
 // docs/api.md is the source of truth: when the contract changes, change it
 // there first (a `CONTRACT:` commit) and then update this file to match.
 // Enums are `as const` arrays, so both the value list (for runtime checks and

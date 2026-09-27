@@ -1,6 +1,6 @@
-# Muster
+# Shieldworks
 
-**Muster turns defence contracts into work and workers for small Canadian factories.**
+**Shieldworks turns defence contracts into work and workers for small Canadian factories.**
 
 Built for AF Hacks "Growing Canada" (University of Waterloo, September 2026).
 *Simplified ITB rules for demo · Public data unverified · Not affiliated.*
@@ -14,9 +14,9 @@ Built for AF Hacks "Growing Canada" (University of Waterloo, September 2026).
 - **The work is spread thin.** National Defence reported **58,965 contracts worth $82.9B** to **16,097 vendors** from January 2021 to June 2026; Ontario vendors hold **34% of the value going to vendors in Canada** (31% of all value) ([proactive disclosure, contracts over $10K](https://open.canada.ca/data/en/dataset/d8f85d91-7dec-4fd1-8055-483b77225d8b); our de-duplicated count, `data/processed/national/dnd_contracts_summary.json`).
 - **The bottleneck is certified capacity.** Primes can't find qualified small shops, and those shops lack welders qualified to CWB W47.1: 47% of welding employers name a shortage of qualified workers as their most pressing issue ([CWB 2024 survey](https://www.cwbgroup.org/resources/articles/overview-of-the-employment-landscape-in-the-welding-industry)). The gap is CWB-qualified welders at certified shops, not welders in general (see [research notes](docs/research.md#workforce-data)).
 
-## What Muster does
+## What Shieldworks does
 
-Muster reads a defence company's parts list, offers each job to one qualified small Canadian shop (no bidding), counts the ITB credit it earns, and, when no shop has the certified welders, proposes training the defence company can fund. Training earns 5x credit and unblocks the stuck work.
+Shieldworks reads a defence company's parts list, offers each job to one qualified small Canadian shop (no bidding), counts the ITB credit it earns, and, when no shop has the certified welders, proposes training the defence company can fund. Training earns 5x credit and unblocks the stuck work.
 
 | Module | What it does |
 | --- | --- |
@@ -62,7 +62,7 @@ Screenshots (re-captured 2026-09-27 by clicking through the whole demo script: l
 
 ## Portals, phone and simulation
 
-- **Landing and sign-in.** `/` explains Muster in three panels and starts the guided demo. `/signin` ("Who are you today?") offers the four role cards. **Demo sign-in only: fictional accounts, no real authentication**; the choice stays in the browser.
+- **Landing and sign-in.** `/` explains Shieldworks in three panels and starts the guided demo. `/signin` ("Who are you today?") offers the four role cards. **Demo sign-in only: fictional accounts, no real authentication**; the choice stays in the browser.
 - **Phone app over Wi-Fi.** `make demo` builds the web app with a same-origin `/engine` proxy and prints the phone URL (`http://<laptop IP>:3000/m`). `/phone` on the laptop shows a QR code for it. A phone on the same Wi-Fi then shares the laptop's engine: a shop's accept on the phone shows up as a toast on the laptop within seconds. `/m` is a four-role picker.
 - **Supplier search** (`/prime/suppliers`). Plain-language queries ("CWB welding near London", "welding near London with past defence contracts") become process, certificate, distance and National Defence-history filters over the capability graph: one Cypher query on **Neo4j** when it is running and loaded, the same answer from the in-memory graph otherwise. The **Supplier map** (`/graph`) walks the same graph node by node.
 - **Simulation.** `make demo-seed` (or **Fill with demo activity** on the phone's `/m` picker) loads a routed demo with an hour of simulated shop activity: 4 accepts, a decline, a question, capacity check-ins and a certificate renewal. **Simulate shops responding** plays one more scripted event every 8 s. Simulated events are labelled; Tallowfield's offers and the TP-01 fund moment are never touched, so the demo numbers stay the same ([docs/api.md §8](docs/api.md#8-demo-seed-and-simulation-additive-v04)).
@@ -172,10 +172,10 @@ We do not scrape Canada's Business Registries, CADSI GATEWAY or IAQG OASIS. No p
 
 ## Disclaimers
 
-- **Simplified ITB rules for demo · Public data unverified · Not affiliated.** Muster is not affiliated with the Government of Canada, the Defence Investment Agency, ISED, CWB or any company or college named here. Eligibility and credit are decided by the Defence Investment Agency.
+- **Simplified ITB rules for demo · Public data unverified · Not affiliated.** Shieldworks is not affiliated with the Government of Canada, the Defence Investment Agency, ISED, CWB or any company or college named here. Eligibility and credit are decided by the Defence Investment Agency.
 - **Northgate Land Systems is fictional**, demo shops are **synthetic**, training partners are **examples, not affiliated**, and the trainee is a pseudonymous seat. Real companies are never shown as customers or partners.
 - **Training costs are assumptions**, not quotes. The $24K per trainee is an all-in seat for a *new* welder (tuition, CWB tests, tools and a living stipend); re-qualifying an experienced welder is closer to $2K–$6K. Sources are in `data/rules/training_costs.json` and [research §(c)](docs/research.md#c-training-economics-realistic-costs-compared-with-our-assumptions).
-- **No drawings are stored.** Controlled technical data is itself a controlled good, so Muster matches on metadata only. **Controlled jobs go only to CGP-registered shops**; that is a hard filter in routing.
+- **No drawings are stored.** Controlled technical data is itself a controlled good, so Shieldworks matches on metadata only. **Controlled jobs go only to CGP-registered shops**; that is a hard filter in routing.
 
 ## Limitations
 
@@ -193,9 +193,9 @@ From the startup plan (CLAUDE.md §9) and the [90-day plan](docs/research.md#90-
 
 1. **Discover (weeks 1–4):** incorporate, request a concept review from the DIA's ITB team, and run 15 shop interviews through industry associations and regional development offices. Gate: 3 primes or Tier 1s say "we'd pilot". We have emailed 55 organisations so far.
 2. **Pilot (months 2–4):** Route + Credit with one prime's existing suppliers; a pilot LOI and a sample credit report shown to the DIA.
-3. **Network (months 4–8):** 50–100 verified shops that claim their profiles; the Train module with one college and one Indigenous-governed institution; CGP registration for Muster.
+3. **Network (months 4–8):** 50–100 verified shops that claim their profiles; the Train module with one college and one Indigenous-governed institution; CGP registration for Shieldworks.
 4. **Expand (months 8–12):** a second prime, the Comply module (expiry alerts, document vault), and European SAFE partners.
 
 Engineering backlog: real accounts and multi-tenancy, Postgres in a Canadian region, an ITB engine validated by an ITB consultant (training cap, banking, exports), training evidence files, and entity resolution for public shop data.
 
-Business model: defence companies pay a per-program subscription plus a small fee on routed value; shops and colleges use Muster free.
+Business model: defence companies pay a per-program subscription plus a small fee on routed value; shops and colleges use Shieldworks free.

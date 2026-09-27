@@ -12,7 +12,7 @@ export function OpenOnPhoneButton({ className, label = "Open on phone" }: { clas
     <Link
       href="/phone"
       className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5", className)}
-      aria-label="Open Muster on your phone"
+      aria-label="Open Shieldworks on your phone"
     >
       <Smartphone aria-hidden />
       <span>{label}</span>

@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { WalletView } from "@/components/mobile/wallet/wallet-view"
 
 export const metadata: Metadata = {
-  title: "Certifications · Muster",
+  title: "Certifications · Shieldworks",
 }
 
 /**

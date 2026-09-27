@@ -3,7 +3,7 @@ import { NetworkView } from "@/components/shop/network-view"
 import { dndHistoryMap } from "@/components/shop/dnd-history"
 
 export const metadata: Metadata = {
-  title: "Shops directory · Muster",
+  title: "Shops directory · Shieldworks",
 }
 
 export default function NetworkPage() {
