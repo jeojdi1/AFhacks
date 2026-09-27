@@ -13,7 +13,9 @@ What a shop tells Muster from the phone app, and what the prime hears back:
 Everything here is **additive**: it never changes routing, the ledger, jobs, packages or
 ``state.shops``. The one visible effect on an existing response is ``assignment.status``
 (``offered | accepted | declined``, already in the docs/api.md §1 enum), which the
-decision endpoint sets. Declined jobs still count as routed (re-routing is a later stretch).
+decision endpoint sets. Declined jobs still count as routed. A declined job can be
+re-offered to another qualified synthetic shop (``reoffer``, a demo): recorded as a
+``reoffered`` event only, so the assignment, its credit and the ledger never change.
 
 Pure functions over ``engine.state.State``; the HTTP layer (engine/app.py) loads and saves
 the State. Mutating functions return ``(response, changed)`` so an idempotent replay does
@@ -62,6 +64,7 @@ EVENT_KINDS = (
     "package_funded",
     "capacity_confirmed",
     "cert_declared",
+    "reoffered",
 )
 HORIZON_WEEKS = (4, 8, 12)
 SEAT_STAGES = (
@@ -321,6 +324,54 @@ def _decision_key(shop_id: str, job_id: str) -> str:
     return f"{shop_id}:{job_id}"
 
 
+def reoffers(state: Any) -> dict[str, dict]:
+    """job_id → the latest ``reoffered`` event since the latest routing: the shop the job
+    is offered to now, in place of the shop that declined it. The event log is the record
+    (no State field), so an upload or reset (which clear the log) or a new route clears it."""
+    return {ev["job_id"]: ev for ev in _reoffer_events(state)}
+
+
+def _reoffer_events(state: Any) -> list[dict]:
+    """Every ``reoffered`` event since the latest ``routed`` one, oldest first."""
+    out: list[dict] = []
+    for ev in getattr(state, "events", None) or []:
+        kind = ev.get("kind")
+        if kind == "routed":
+            out = []
+        elif kind == "reoffered" and ev.get("job_id"):
+            out.append(ev)
+    return out
+
+
+def _offer_target(state: Any, shop_id: str, job_id: str) -> tuple[dict, bool]:
+    """(assignment, own) for a shop answering an offer: ``own`` is False when the job was
+    re-offered to this shop (its answer is then kept on its decision record only, and the
+    assignment is never changed). The shop that declined a re-offered job can no longer
+    answer it (409)."""
+    a = state.assignments.get(job_id)
+    r = reoffers(state).get(job_id)
+    if a is not None and r is not None:
+        if r.get("shop_id") == shop_id:
+            return a, False
+        if a.get("shop_id") == shop_id:
+            raise ActionError(409, f"Job '{job_id}' was re-offered to {r.get('shop_name') or r.get('shop_id')}")
+    if a is None or a.get("shop_id") != shop_id:
+        raise ActionError(404, f"Job '{job_id}' is not offered to shop '{shop_id}'")
+    return a, True
+
+
+def decision_status(rec: dict | None) -> str:
+    d = (rec or {}).get("decision")
+    return d if d in ("accepted", "declined") else "offered"
+
+
+def _set_status(a: dict, own: bool, status: str) -> str:
+    """Set the assignment's offer status (only for the shop it is assigned to)."""
+    if own:
+        a["status"] = status
+    return status
+
+
 def decide(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, bool]:
     """``POST /shops/{shop_id}/offers/{job_id}/decision``."""
     shop = _shop(state, shop_id)
@@ -346,9 +397,7 @@ def decide(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, boo
     if decision == "undo":
         note = None
 
-    a = state.assignments.get(job_id)
-    if a is None or a.get("shop_id") != shop_id:
-        raise ActionError(404, f"Job '{job_id}' is not offered to shop '{shop_id}'")
+    a, own = _offer_target(state, shop_id, job_id)
 
     key = _idem_key(body)
     norm = {"decision": decision, "reason_code": reason, "question_code": question, "note": note}
@@ -366,7 +415,7 @@ def decide(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, boo
         if current is None:
             raise ActionError(409, f"No decision to undo for job '{job_id}' at shop '{shop_id}'")
         del decisions[dkey]
-        a["status"] = "offered"
+        status = _set_status(a, own, "offered")
         rec = {
             "shop_id": shop_id, "job_id": job_id, "decision": "undo", "reason_code": None,
             "question_code": None, "note": None, "at": _now(), "idempotency_key": key,
@@ -377,13 +426,14 @@ def decide(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, boo
             shop_id=shop_id, job_id=job_id, value_cad=a["value_cad"], credit_cad=a["credit_cad"],
             payload={"previous": current["decision"]},
         )
-        resp = {"decision": rec, "assignment_status": a["status"], "event": ev}
+        resp = {"decision": rec, "assignment_status": status, "event": ev}
         _remember(state, key, "decision", fp, resp)
         return resp, True
 
     if current is not None and all(current.get(k) == v for k, v in norm.items()):
         # Same answer again under a new key: nothing new to tell the prime.
-        resp = {"decision": copy.deepcopy(current), "assignment_status": a["status"], "event": None}
+        status = a["status"] if own else decision_status(current)
+        resp = {"decision": copy.deepcopy(current), "assignment_status": status, "event": None}
         _remember(state, key, "decision", fp, resp)
         return resp, True
 
@@ -393,7 +443,7 @@ def decide(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, boo
     }
     decisions.pop(dkey, None)
     decisions[dkey] = rec
-    a["status"] = decision if decision in ("accepted", "declined") else "offered"
+    status = _set_status(a, own, decision if decision in ("accepted", "declined") else "offered")
     if decision == "accepted":
         kind = "offer_accepted"
         msg = f"{name} accepted {job_id} (+{_money2(a['credit_cad'])} credit)"
@@ -414,7 +464,7 @@ def decide(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, boo
         state, kind, msg, shop_id=shop_id, job_id=job_id,
         value_cad=a["value_cad"], credit_cad=a["credit_cad"], payload=payload,
     )
-    resp = {"decision": copy.deepcopy(rec), "assignment_status": a["status"], "event": ev}
+    resp = {"decision": copy.deepcopy(rec), "assignment_status": status, "event": ev}
     _remember(state, key, "decision", fp, resp)
     return resp, True
 
@@ -435,9 +485,7 @@ def reply(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, bool
     if text is None:
         raise ActionError(400, "text is required")
 
-    a = state.assignments.get(job_id)
-    if a is None or a.get("shop_id") != shop_id:
-        raise ActionError(404, f"Job '{job_id}' is not offered to shop '{shop_id}'")
+    a, _own = _offer_target(state, shop_id, job_id)
 
     key = _idem_key(body)
     norm = {"reply_code": code, "text": text}
@@ -471,6 +519,88 @@ def reply(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, bool
     resp = {"decision": copy.deepcopy(current), "event": ev}
     _remember(state, key, "reply", fp, resp)
     return resp, True
+
+
+# --------------------------------------------------------------------------- re-offer (demo)
+
+
+def reoffer(state: Any, job_id: str, body: dict, candidates: Any) -> tuple[dict, bool]:
+    """``POST /programs/{id}/jobs/{job_id}/reoffer`` ``{shop_id}``: the prime sends a job a
+    shop declined to another qualified synthetic shop (a demo). ``candidates`` are the shop
+    ids passing the job's filters (engine.pipeline, every filter but capacity).
+
+    Recorded as a ``reoffered`` event (shop_id = the new shop, payload.from_shop_id), which
+    ``reoffers`` reads back: the new shop sees a pending offer and the decline is resolved.
+    The assignment, its credit, the ledger and the obligation % never change (credit stays
+    counted as placed). 409 when the job is not declined right now."""
+    _require_routed(state)
+    shop_id = _opt_str(body, "shop_id", 64)
+    if shop_id is None:
+        raise ActionError(400, "shop_id is required")
+    a = state.assignments.get(job_id)
+    if a is None:
+        raise ActionError(404, f"Job '{job_id}' is not placed with a shop")
+    shop = _shop(state, shop_id)
+    if shop.get("source") != "synthetic":
+        raise ActionError(400, f"Only synthetic demo shops receive demo offers ('{shop_id}' is not one)")
+
+    key = _idem_key(body)
+    fp = _fingerprint("reoffer", (job_id,), {"shop_id": shop_id})
+    stored = _replay(state, key, "reoffer", fp)
+    if stored is not None:
+        return stored, False
+
+    current = reoffers(state).get(job_id)
+    holder = current["shop_id"] if current else a["shop_id"]
+    decisions = getattr(state, "offer_decisions", None) or {}
+    held = decisions.get(_decision_key(holder, job_id))
+    declined = decision_status(held) == "declined" or (current is None and a.get("status") == "declined")
+    holder_name = (state.shops.get(holder) or {}).get("name") or holder
+    if not declined:
+        now = decision_status(held) if held or current else (a.get("status") or "offered")
+        raise ActionError(409, f"Job '{job_id}' is not declined ({holder_name} has it: {now})")
+    decliners = {d["shop_id"] for d in decisions.values()
+                 if d.get("job_id") == job_id and d.get("decision") == "declined"}
+    if shop_id == holder or shop_id in decliners:
+        raise ActionError(409, f"{shop['name']} already declined {job_id}")
+    if shop_id not in set(candidates or ()):
+        raise ActionError(409, f"{shop['name']} does not pass {job_id}'s filters "
+                               "(processes, certificates, size or distance)")
+
+    prime = (state.program.get("prime_name") or "The prime").split()[0]
+    ev = emit(
+        state, "reoffered",
+        f"{prime} offered {job_id} to {shop['name']} after {holder_name} declined it "
+        "(credit stays counted as placed, demo)",
+        shop_id=shop_id, job_id=job_id, value_cad=a.get("value_cad"), credit_cad=a.get("credit_cad"),
+        payload={"from_shop_id": holder, "from_shop_name": holder_name, "demo": True},
+    )
+    resp = {"reoffer": _reoffer_view(state, ev), "event": ev}
+    _remember(state, key, "reoffer", fp, resp)
+    return resp, True
+
+
+def _reoffer_view(state: Any, ev: dict) -> dict:
+    """A re-offer as the actions views list it: status from the new shop's own answer."""
+    rec = (getattr(state, "offer_decisions", None) or {}).get(_decision_key(ev["shop_id"], ev["job_id"]))
+    payload = ev.get("payload") or {}
+    return {
+        "job_id": ev["job_id"],
+        "shop_id": ev["shop_id"],
+        "shop_name": ev.get("shop_name"),
+        "from_shop_id": payload.get("from_shop_id"),
+        "from_shop_name": payload.get("from_shop_name"),
+        "status": decision_status(rec),
+        "value_cad": ev.get("value_cad"),
+        "credit_cad": ev.get("credit_cad"),
+        "at": ev["ts"],
+        "seq": ev["seq"],
+    }
+
+
+def _reoffer_list(state: Any, shop_id: str | None = None) -> list[dict]:
+    return [_reoffer_view(state, ev) for ev in reoffers(state).values()
+            if shop_id is None or ev["shop_id"] == shop_id]
 
 
 # --------------------------------------------------------------------------- T5 funding requests
@@ -687,10 +817,19 @@ def declare_cert(state: Any, shop_id: str, cert_type: str, body: dict) -> tuple[
 
 
 def _decisions(state: Any, shop_id: str | None = None) -> list[dict]:
-    return [
-        copy.deepcopy(d) for d in (getattr(state, "offer_decisions", None) or {}).values()
-        if shop_id is None or d["shop_id"] == shop_id
-    ]
+    """Decision records; a decline whose job was re-offered since carries ``reoffered_to``."""
+    moved = {((ev.get("payload") or {}).get("from_shop_id"), ev["job_id"]): ev["shop_id"]
+             for ev in _reoffer_events(state)}
+    out = []
+    for d in (getattr(state, "offer_decisions", None) or {}).values():
+        if shop_id is not None and d["shop_id"] != shop_id:
+            continue
+        rec = copy.deepcopy(d)
+        to = moved.get((d["shop_id"], d["job_id"]))
+        if to and d.get("decision") == "declined":
+            rec["reoffered_to"] = to
+        out.append(rec)
+    return out
 
 
 def _requests(state: Any, shop_id: str | None = None) -> list[dict]:
@@ -719,6 +858,7 @@ def shop_actions(state: Any, shop_id: str) -> dict:
         "funding_requests": _requests(state, shop_id),
         "capacity": copy.deepcopy(cap) if cap else None,
         "declared_certs": _declared(state, shop_id),
+        "reoffers": _reoffer_list(state, shop_id),
     }
 
 
@@ -731,6 +871,7 @@ def program_actions(state: Any) -> dict:
         "funding_requests": _requests(state),
         "capacity": [copy.deepcopy(c) for c in (getattr(state, "capacity_checkins", None) or {}).values()],
         "declared_certs": _declared(state),
+        "reoffers": _reoffer_list(state),
     }
 
 

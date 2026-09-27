@@ -24,6 +24,7 @@ from engine import ledger as ledger_mod
 from engine import public as public_mod
 from engine import rules as rules_mod
 from engine import scoring as scoring_mod
+from engine import shopside as shopside_mod
 
 PENDING = "pending_training"
 
@@ -435,10 +436,28 @@ def shop_detail(state: Any, shop_id: str) -> dict:
         raise KeyError(shop_id)
     ctx = Context(state, shop_ids=(shop_id,))  # readiness only looks at this shop
     shop = ctx.shops[shop_id]
+    # Declined jobs Northgate re-offered to this shop (demo, docs/api.md §6): offered here
+    # too, with the credit counted when the job was placed; the assignment never moves.
+    moved_here = {
+        jid: ev for jid, ev in shopside_mod.reoffers(state).items() if ev.get("shop_id") == shop_id
+    }
+    full: Context | None = None
     offers = []
     for jid in ctx.job_order:
         a = state.assignments.get(jid)
-        if not a or a["shop_id"] != shop_id:
+        if not a:
+            continue
+        if a["shop_id"] == shop_id:
+            reasons, status, extra = list(a["reasons"]), a["status"], {}
+        elif jid in moved_here:
+            full = full or Context(state)
+            job = ctx.jobs[jid]
+            n = len(full.graph.candidates(job))
+            reasons = scoring_mod.reasons(job, shop, ctx.dist[shop_id], n, ctx.program)
+            rec = (state.offer_decisions or {}).get(f"{shop_id}:{jid}")
+            status = shopside_mod.decision_status(rec)
+            extra = {"reoffered_from": (moved_here[jid].get("payload") or {}).get("from_shop_id")}
+        else:
             continue
         offers.append(
             {
@@ -451,8 +470,9 @@ def shop_detail(state: Any, shop_id: str) -> dict:
                 "hours_week": a["hours_week"],
                 "multiplier": a["multiplier"],
                 "credit_cad": a["credit_cad"],
-                "reasons": list(a["reasons"]),
-                "status": a["status"],
+                "reasons": reasons,
+                "status": status,
+                **extra,
             }
         )
     return {

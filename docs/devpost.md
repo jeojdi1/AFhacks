@@ -33,8 +33,8 @@ Muster is **two-sided**. Primes pay; shops use it free.
 
 ## How we built it
 
-- **Frontend:** Next.js 16 (App Router, TypeScript), Tailwind + shadcn/ui, react-leaflet for the routing map, Recharts for the ITB scorecard. Falls back to checked-in fixtures with a visible "Demo mode" badge if the API is down.
-- **Engine:** Python 3.12, FastAPI, Pydantic/SQLModel, SQLite.
+- **Frontend:** Next.js 16 (App Router, TypeScript), Tailwind + shadcn/ui, react-leaflet for the routing map, Recharts for the ITB scorecard. Falls back to checked-in fixtures with a visible "Demo data" pill (vs. "Live") if the API is down.
+- **Engine:** Python 3.12, FastAPI and Pydantic, 29 JSON endpoints; demo state persisted to SQLite so it survives a restart, with a demo seed and a scripted shop-activity simulator (`POST /demo/seed`, `POST /demo/simulate/tick`) for a busy live demo.
 - **Assignment:** Google OR-Tools CP-SAT maximizes total match score subject to one shop per job and each shop's weekly capacity; a greedy fallback handles the hardest jobs (fewest eligible shops) first.
 - **Tagging:** Claude turns free-text parts-list lines into strict JSON (process tags, material, envelope, tolerance, required certs, controlled). Responses are cached by input hash and committed, with a keyword-rules fallback so the demo never depends on the network.
 - **Graph:** a capability graph over shops, processes, certifications, regions, Northgate's jobs, DND vendors and ODBus manufacturers, loaded into **Neo4j** (Cypher, point-distance index) with an identical in-memory fallback; tests check both engines return the same results. Read views are cached per state revision.
@@ -75,7 +75,7 @@ Muster is **two-sided**. Primes pay; shops use it free.
 
 ## Built with
 
-`next.js` `react` `typescript` `tailwindcss` `shadcn-ui` `leaflet` `react-leaflet` `recharts` `python` `fastapi` `pydantic` `sqlmodel` `sqlite` `or-tools` `cp-sat` `neo4j` `cypher` `claude` `anthropic-api` `pytest` `statistics-canada-odbus` `open-government-data`
+`next.js` `react` `typescript` `tailwindcss` `shadcn-ui` `leaflet` `react-leaflet` `recharts` `python` `fastapi` `pydantic` `sqlite` `or-tools` `cp-sat` `neo4j` `cypher` `claude` `anthropic-api` `pytest` `statistics-canada-odbus` `open-government-data`
 
 ## Disclaimers
 

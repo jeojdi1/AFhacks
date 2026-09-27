@@ -58,7 +58,7 @@ The full ≤ 5:00 video script, with exact clicks and voiceover, is in [docs/dem
 | --- | --- | --- |
 | ![Supplier map centred on Tallowfield: its skills, certificate and region, from the capability graph](docs/screenshots/supplier-map.png) | ![Phone, Tallowfield Today: 2 offers waiting for your answer, Get CWB W47.1 → 3 more jobs · $5.1M](docs/screenshots/phone-shop.png) | ![Phone, Northgate: fund welder training, TP-01 funded, $96K → $480K credit](docs/screenshots/phone-prime.png) |
 
-Screenshots: production build in fixtures mode ("Demo data"), laptop at 1280×720 and phone at 390×844. Northgate Land Systems is fictional, Tallowfield and every routed shop are synthetic, and real shops appear only as "Public data — unverified — not affiliated". The search screenshot shows the in-memory graph; with Neo4j loaded the badge reads "Powered by Neo4j" and the results are the same.
+Screenshots (re-captured 2026-09-27 by clicking through the demo): production build in fixtures mode ("Demo data"), laptop at 1280×720 and phone at 390×844. Northgate Land Systems is fictional, Tallowfield and every routed shop are synthetic, and real shops appear only as "Public data — unverified — not affiliated". The search screenshot shows the in-memory graph; with Neo4j loaded the badge reads "Powered by Neo4j" and the results are the same (13 shops after funding, checked live).
 
 ## Portals, phone and simulation
 
@@ -99,7 +99,7 @@ web/  Next.js 16 (React 19, Tailwind, Leaflet, Recharts)   laptop pages + /m pho
                                                            optional Neo4j ◀─┘ (search + graph; falls back to memory)
 ```
 
-**Engine** (`engine/`, contract in [docs/api.md](docs/api.md), 27 endpoints):
+**Engine** (`engine/`, contract in [docs/api.md](docs/api.md), 29 endpoints; `/docs` serves the OpenAPI UI):
 
 | Module | Role |
 | --- | --- |
@@ -147,7 +147,7 @@ The demo routes only to synthetic shops. Real public data sits beside it for sea
 | Real shops discovered from company websites + ODBus | 78 shops in 12 southwestern Ontario cities (39 list welding) | Shops directory and search, "Public data — unverified — not affiliated", never routed |
 | CanadaBuys open tender notices (sample of 2026-09-26) | 919 open notices, 376 defence-related | Find work: open federal tenders a shop could bid on |
 | Job Bank 2025–2027 outlooks + StatCan job vacancies | 12 trades by region | Supplier map (hiring outlook) |
-| Capability graph (Neo4j or memory) | 4,490 nodes, 5,808 edges | Search and supplier map |
+| Capability graph (Neo4j or memory) | 4,490 nodes, 5,808 edges: 108 shops, 2,946 ODBus manufacturers, 1,099 DND vendors, 40 Northgate jobs, 53 primes / 123 programs from ISED's ITB report, 89 regions, 12 trades | Search and supplier map (`GET /graph/summary`) |
 
 ## Data sources and licences
 

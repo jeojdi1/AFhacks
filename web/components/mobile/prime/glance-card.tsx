@@ -30,6 +30,8 @@ function Bar({ value, className, label }: { value: number; className?: string; l
 
 const pct1 = (f: number) => `${(f * 100).toFixed(1)}%`
 const pct0 = (f: number) => `${Math.round(f * 100)}%`
+/** Compact money without a trailing ".0" ("$75M", not "$75.0M"), the same helper /scorecard uses. */
+const m = (n: number) => fmtMoney(n, { compact: true }).replace(/\.0([MKB])$/, "$1")
 
 export interface GlanceReplies {
   waiting: number
@@ -92,16 +94,17 @@ export function GlanceCard({
 
           <div className="mt-3 grid grid-cols-2 gap-3">
             <div className="min-w-0">
-              <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                {t("prime.glance.smb")}
+              <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm text-muted-foreground">
+                <span className="whitespace-nowrap">{t("prime.glance.smb")}</span>
                 <AssumptionTag note={t("prime.glance.smbNote")} className={TAG_HIT} />
               </span>
               <p className="text-xl font-semibold tabular-nums">{pct0(ledger.smb.progress_pct)}</p>
               <Bar value={ledger.smb.progress_pct} className="bg-slate-500" label={t("prime.glance.smb")} />
               <p className="mt-1 text-xs text-muted-foreground">
                 {t("prime.glance.smbOf", {
-                  pct: fmtMoney(ledger.smb.achieved_cad, { compact: true }),
-                  target: `${pct0(ledger.smb.target_pct)} (${fmtMoney(ledger.smb.target_cad, { compact: true })})`,
+                  achieved: m(ledger.smb.achieved_cad),
+                  target: m(ledger.smb.target_cad),
+                  pct: pct0(ledger.smb.progress_pct),
                 })}
               </p>
             </div>

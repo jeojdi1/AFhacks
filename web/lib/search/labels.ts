@@ -95,6 +95,12 @@ export interface ParsedQuery {
   recognised: string[]
   /** Place names the demo data can't search ("near Ottawa"): shown so they aren't silently dropped. */
   ignored: string[]
+  /** True when the text names a listed shop: `q` is then a name search and nothing else is read. */
+  nameMatch: boolean
+  /** Shown under "Understood as" (e.g. no listed shop has that name). */
+  notice: string | null
+  /** Filters were read from the text, but it also looked like a name: shops whose names share its words go first. */
+  rankHint: string | null
 }
 
 /** Where the demo's shops are; used when a place in the request can't be searched. */
@@ -170,12 +176,114 @@ const CERT_WORDS: [RegExp, string][] = [
   [/\bas\s?9100\b|\baerospace\b/, "AS9100"],
 ]
 
+// ---------------------------------------------------------------------------- shop names
+
+/** Company endings left out when comparing names ("F.C. Welding" = "F.C. Welding Inc."). */
+const NAME_SUFFIX = /\s+(inc|incorporated|ltd|limited|corp|corporation|co|company|llc|ltee|ltée)$/
+
+/** Lower case, punctuation as spaces, company ending dropped: "f c welding". */
+export function normalizeName(s: string): string {
+  let n = s
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+  while (NAME_SUFFIX.test(n)) n = n.replace(NAME_SUFFIX, "")
+  return n
+}
+
+const compact = (s: string) => s.replace(/\s+/g, "")
+
+/**
+ * Listed shops whose name the text spells out: the whole name, or (two words or more) the
+ * start of it. Case and punctuation don't matter ("fc welding" finds "F.C. Welding Inc.").
+ */
+export function matchShopNames(raw: string, names: readonly string[]): string[] {
+  const n = normalizeName(raw)
+  if (n.length < 3) return []
+  const words = n.split(" ").length
+  const c = compact(n)
+  const out: string[] = []
+  for (const name of names) {
+    const m = normalizeName(name)
+    if (!m) continue
+    const full = m === n || compact(m) === c
+    const prefix = words >= 2 && n.length >= 6 && (m.startsWith(`${n} `) || compact(m).startsWith(c))
+    if ((full || prefix) && !out.includes(name)) out.push(name)
+  }
+  return out
+}
+
+/**
+ * The name search to send for matched shops. The engine matches names by plain substring, so
+ * this is the text as typed when every match contains it, else the matched names' common start.
+ */
+function nameSearch(raw: string, matches: string[]): string {
+  const typed = raw.trim().toLowerCase()
+  if (matches.every((m) => m.toLowerCase().includes(typed))) return raw.trim()
+  if (matches.length === 1) return matches[0]
+  let prefix = matches[0]
+  for (const m of matches.slice(1)) {
+    let i = 0
+    while (i < prefix.length && i < m.length && prefix[i].toLowerCase() === m[i].toLowerCase()) i++
+    prefix = prefix.slice(0, i)
+  }
+  return prefix.trim() || matches[0]
+}
+
+// Words that don't make a request a company name.
+const NAME_STOP = new Set([
+  "a", "an", "the", "and", "or", "of", "for", "with", "within", "near", "around", "in", "to", "that", "who", "has",
+  "having", "shop", "shops", "supplier", "suppliers", "company", "companies", "real", "public", "certified", "past",
+  "defence", "defense", "contract", "contracts", "national", "km",
+])
+const ORG_ENDING = /\b(inc|ltd|limited|corp|corporation|llc|industries|manufacturing|technologies|systems|group|aerospace|enterprises)\.?$/i
+
+/** Words in the text that are not a process, certificate, city or joining word (for a name). */
+function nameWords(raw: string, cities: string[]): string[] {
+  const cityWords = new Set(cities.flatMap((c) => c.toLowerCase().split(/\s+/)))
+  return raw
+    .split(/[^\p{L}\p{N}.&'-]+/u)
+    .map((w) => w.replace(/^[.'-]+|[.'-]+$/g, ""))
+    .filter((w) => w.length >= 2)
+    .filter((w) => {
+      const l = w.toLowerCase()
+      const t = ` ${l} `
+      if (NAME_STOP.has(l) || cityWords.has(l) || KNOWN_PLACES.has(l)) return false
+      if (PROCESS_WORDS.some(([re]) => re.test(t)) || CERT_WORDS.some(([re]) => re.test(t)) || MILLING.test(t)) return false
+      if (/\bnadcap\b/.test(t) || /^\d+$/.test(l)) return false
+      return true
+    })
+}
+
+/** "Magellan Aerospace": capitalised like a company, with a word that is not a filter. */
+function looksLikeOrgName(raw: string, cities: string[]): boolean {
+  const words = raw.trim().split(/\s+/)
+  if (words.length < 2 || /\b(near|within|with|around|in)\b/i.test(raw)) return false
+  const leftovers = nameWords(raw, cities)
+  if (!leftovers.length) return false
+  const titled = words.every((w) => /^[\p{Lu}\p{N}]/u.test(w) || /^(of|and|&|de|la|du)$/i.test(w))
+  return titled || ORG_ENDING.test(raw.trim())
+}
+
+/** How many of the hint's name words a shop name has (0 when fewer than two). */
+export function nameHintScore(hint: string | null, name: string | null | undefined): number {
+  if (!hint || !name) return 0
+  const words = new Set(normalizeName(name).split(" "))
+  const hits = normalizeName(hint)
+    .split(" ")
+    .filter((w, i, a) => w.length >= 3 && a.indexOf(w) === i && !NAME_STOP.has(w))
+    .filter((w) => words.has(w)).length
+  return hits >= 2 ? hits : 0
+}
+
 /**
  * Read a plain-language request into search filters. Deterministic and forgiving:
  * process and certificate words, "near <city>", "within N km", "defence contract",
  * "real shops". Anything unrecognised becomes a name / city search.
  */
-export function parseQuery(text: string, cities: string[]): ParsedQuery {
+export function parseQuery(text: string, cities: string[], shopNames: readonly string[] = []): ParsedQuery {
   const raw = text.trim()
   const t = ` ${raw.toLowerCase()} `
   const out: ParsedQuery = {
@@ -188,8 +296,19 @@ export function parseQuery(text: string, cities: string[]): ParsedQuery {
     q: null,
     recognised: [],
     ignored: [],
+    nameMatch: false,
+    notice: null,
+    rankHint: null,
   }
   if (!raw) return out
+  // A listed shop's name ("Hamilton Specialized Welding") is a name search, not "welding near Hamilton".
+  const named = matchShopNames(raw, shopNames)
+  if (named.length) {
+    out.q = nameSearch(raw, named)
+    out.nameMatch = true
+    out.recognised.push(`Shop name: ${out.q}`)
+    return out
+  }
   for (const [re, p] of PROCESS_WORDS) if (re.test(t) && !out.process.includes(p)) out.process.push(p)
   if (MILLING.test(t) && !out.process.includes("five_axis_milling") && !out.process.includes("cnc_turning"))
     out.process.unshift("cnc_milling")
@@ -218,9 +337,26 @@ export function parseQuery(text: string, cities: string[]): ParsedQuery {
   if (out.near) out.recognised.push(`near ${out.near} (${out.radius_km ?? DEFAULT_RADIUS_KM} km)`)
   if (out.dnd_history) out.recognised.push("has National Defence contract history")
   out.ignored = unknownPlaces(raw, cities, out.near)
+  // A bare place name ("Toronto") gets the same coverage note as "near Toronto".
+  if (!out.ignored.length && !out.recognised.length) out.ignored = barePlace(raw, cities)
   // A place we can't search is not a shop name: leave it out rather than match nothing.
   if (!out.recognised.length && !out.ignored.length) out.q = raw
+  if (out.recognised.length && looksLikeOrgName(raw, cities)) {
+    out.notice = `No listed shop named “${raw}”; showing ${out.recognised.join(" · ")} shops instead`
+    out.rankHint = raw
+  } else if (out.recognised.length && nameWords(raw, cities).length >= 2) {
+    out.rankHint = raw
+  }
   return out
+}
+
+/** "Toronto" alone: a well-known place outside the demo data (or not a searchable city). */
+function barePlace(raw: string, cities: string[]): string[] {
+  const lower = raw.toLowerCase().replace(/[.,!?]+$/, "").replace(/\s+/g, " ").trim()
+  const place = lower.replace(/\s+(ontario|on)$/, "")
+  if (COVERED_PLACES.has(lower) || cities.some((c) => c.toLowerCase() === place)) return []
+  if (!KNOWN_PLACES.has(place)) return []
+  return [place.replace(/(^|\s)(\p{Ll})/gu, (_, sp: string, ch: string) => sp + ch.toUpperCase())]
 }
 
 /** A short human summary of the active filters, for the results heading. */

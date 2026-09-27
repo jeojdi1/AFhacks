@@ -2,16 +2,68 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
+import type { PrefetchKind } from "next/dist/client/components/router-reducer/router-reducer-types"
+import { toast } from "sonner"
 import { ClipboardList, GraduationCap, House, Inbox, ListChecks, Repeat, ShieldCheck, Sprout, UserRound } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useShopBundle } from "@/lib/app/shop-bundle"
 import { openOffers } from "@/lib/app/attention"
-import { t } from "@/lib/app/strings"
+import { extendStrings, t } from "@/lib/app/strings"
 import { TAB_SECTIONS, parseMRoute, shopHref, traineeSeatHref } from "./route"
 import { useFromPrime } from "./use-from-prime"
 
+extendStrings("en", {
+  "tabs.offlineBlocked": "You're offline. This screen opens when you're back online.",
+})
+
 const noopSubscribe = () => () => {}
+
+/**
+ * Tab hrefs this page load prefetched in full while online. Offline, a tab that is in here
+ * opens from the router cache; one that is not would hit the network and show the browser's
+ * offline page, so the tab bar shows a toast instead. (No service worker this cycle.)
+ */
+const prefetchedTabs = new Set<string>()
+
+function isOffline(): boolean {
+  try {
+    return typeof navigator !== "undefined" && navigator.onLine === false
+  } catch {
+    return false
+  }
+}
+
+/** Prefetch every shop tab in full (RSC payload included) whenever the phone is online. */
+function usePrefetchShopTabs(hrefs: string[]) {
+  const router = useRouter()
+  const key = hrefs.join("|")
+  React.useEffect(() => {
+    const list = key.split("|")
+    const run = () => {
+      if (isOffline()) return
+      for (const href of list) {
+        try {
+          router.prefetch(href, { kind: "full" as PrefetchKind })
+          prefetchedTabs.add(href)
+        } catch {
+          /* prefetch unavailable: the tab still works online */
+        }
+      }
+    }
+    run()
+    window.addEventListener("online", run)
+    return () => window.removeEventListener("online", run)
+  }, [key, router])
+}
+
+/** Offline and not prefetched: stay here and say why (instead of the browser's offline page). */
+function guardOffline(e: React.MouseEvent, href: string, pathname: string | null) {
+  if (!isOffline()) return
+  if (prefetchedTabs.has(href) || href === pathname) return
+  e.preventDefault()
+  toast.message(t("tabs.offlineBlocked"))
+}
 const readSearch = () => (typeof window === "undefined" ? "" : window.location.search)
 const serverSearch = () => ""
 
@@ -121,6 +173,9 @@ function RoleTabBar({ tabs, current }: { tabs: RoleTab[]; current: string }) {
 
 function ShopTabBar({ shopId, section: current }: { shopId: string; section: string }) {
   const count = useOffersNeedingReply(shopId)
+  const pathname = usePathname()
+  const hrefs = React.useMemo(() => TABS.map(({ section }) => shopHref(shopId, section)), [shopId])
+  usePrefetchShopTabs(hrefs)
   return (
     <nav
       aria-label={t("tabs.label")}
@@ -134,6 +189,7 @@ function ShopTabBar({ shopId, section: current }: { shopId: string; section: str
             <li key={section}>
               <Link
                 href={shopHref(shopId, section)}
+                onClick={(e) => guardOffline(e, shopHref(shopId, section), pathname)}
                 aria-current={active ? "page" : undefined}
                 aria-label={showBadge ? `${t(label)}, ${t("tabs.offersBadge", { count })}` : undefined}
                 className={cn(

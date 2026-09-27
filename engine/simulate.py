@@ -140,12 +140,13 @@ TICK_QUEUE: tuple[tuple[str, dict], ...] = (
 # --------------------------------------------------------------------------- core (pure)
 
 
-def _applicable(state: State, action: dict) -> bool:
+def _applicable(state: State, action: dict, *, ignore_gate: bool = False) -> bool:
     """Whether a scripted action can run now without overriding anyone. Decisions skip
     when the job is no longer offered to that shop or the shop has already answered
     (unless the answer came from the simulator and differs); funding requests skip until
     the presenter's package is funded, and when the package is gone, funded or already
-    requested. Never the presenter's shop."""
+    requested; decisions also skip when the job was re-offered to another shop. Never the
+    presenter's shop."""
     shop_id = action["shop_id"]
     if shop_id == DEMO_SHOP or shop_id not in state.shops:
         return False
@@ -154,6 +155,8 @@ def _applicable(state: State, action: dict) -> bool:
         a = state.assignments.get(action["job_id"])
         if a is None or a.get("shop_id") != shop_id:
             return False
+        if action["job_id"] in shopside.reoffers(state):
+            return False  # Northgate sent it to another shop; the decliner can't answer again
         current = (state.offer_decisions or {}).get(f"{shop_id}:{action['job_id']}")
         if current is None:
             return True
@@ -161,7 +164,7 @@ def _applicable(state: State, action: dict) -> bool:
         return by_sim and current.get("decision") != action["body"]["decision"]
     if kind == "funding":
         demo_pkg = state.packages.get(DEMO_PACKAGE) or {}
-        if demo_pkg.get("status") != "funded":
+        if demo_pkg.get("status") != "funded" and not ignore_gate:
             return False  # never compete with the presenter's fund moment
         req = action["body"]["requirement"]
         pkg = next(
@@ -218,6 +221,18 @@ def applied_steps(state: State) -> set[str]:
 def _pending(state: State) -> list[tuple[str, dict]]:
     done = applied_steps(state)
     return [(sid, act) for sid, act in TICK_QUEUE if sid not in done and _applicable(state, act)]
+
+
+def waiting(state: State) -> int:
+    """Queued steps held back only until the presenter funds ``DEMO_PACKAGE`` (they play
+    after the fund moment). 0 once it is funded: those steps then count as remaining."""
+    if (state.packages.get(DEMO_PACKAGE) or {}).get("status") == "funded":
+        return 0
+    done = applied_steps(state)
+    return sum(
+        1 for sid, act in TICK_QUEUE
+        if sid not in done and act["type"] == "funding" and _applicable(state, act, ignore_gate=True)
+    )
 
 
 def apply_history(state: State, routed_at: datetime) -> list[dict]:
@@ -358,7 +373,7 @@ def simulate_tick() -> dict:
     def op(state: State) -> tuple[dict, bool]:
         _require_routed(state)
         event, remaining = tick(state)
-        return {"event": event, "remaining": remaining}, event is not None
+        return {"event": event, "remaining": remaining, "waiting": waiting(state)}, event is not None
 
     return _locked(op)
 

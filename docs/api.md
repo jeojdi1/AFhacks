@@ -2,17 +2,17 @@
 
 Owner: Lane B (shared). Source of truth for field names. Any change is a `CONTRACT:` commit that also updates `/data/fixtures` (CLAUDE.md §2).
 
-- Base URL: `http://localhost:8000` (`API_URL` / `NEXT_PUBLIC_API_URL`)
+- Base URL: `http://localhost:8000` (`API_URL` / `NEXT_PUBLIC_API_URL`). Through the web server the same API is also served same-origin at `/engine/*` (Next.js rewrite to `MUSTER_ENGINE_URL`, default `http://127.0.0.1:8000`), which is how a phone on the same Wi-Fi reaches it (`make demo` builds with `NEXT_PUBLIC_API_URL=/engine`).
 - Demo program id: **`northgate`** (Northgate Land Systems, fictional prime)
 - All bodies are JSON unless noted. Errors: `{"detail": "<readable message>"}` with 400 / 404 / 409 / 501.
 - **Money** is CAD dollars as numbers, rounded to cents.
 - **Every `*_pct` field is a fraction in [0, 1]** (`0.15` = 15%). The web formats it.
 - Every credit number is computed as `value_cad × ccv_pct × multiplier` (CLAUDE.md §3.5).
-- **Examples** in §3, §7 and §8 come from real calls to the engine (`MUSTER_DB` on a scratch file, reset → upload → route → fund TP-01, 2026-09-27); timestamps, `elapsed_ms` and lists are trimmed. The consistent, checked numbers live in `/data/fixtures`.
+- **Examples** in §3, §6, §7 and §8 come from real calls to the engine (`MUSTER_DB` on a scratch file, reset → upload → route → fund TP-01, and seed → tick → shop actions → fund; re-checked against a live engine with Neo4j loaded on 2026-09-27); timestamps, `seq`, `elapsed_ms` and lists are trimmed. The consistent, checked numbers live in `/data/fixtures`.
 
 ### Endpoint index
 
-Every live route (`engine/app.py`, `engine/simulate.py`; search and graph logic in `engine/search.py` / `engine/graphdb.py`). `{id}` is the program id (`northgate`).
+Every live route: **29** (26 in `engine/app.py`, 3 in the `engine/simulate.py` router; search and graph logic in `engine/search.py` / `engine/graphdb.py`). `{id}` is the program id (`northgate`). FastAPI's own `/docs` and `/openapi.json` are also served.
 
 | Method and path | Section | Writes state |
 | --- | --- | --- |
@@ -29,6 +29,7 @@ Every live route (`engine/app.py`, `engine/simulate.py`; search and graph logic 
 | `GET /programs/{id}/ledger` | §3 | no |
 | `GET /programs/{id}/gaps` | §3 | no |
 | `POST /programs/{id}/training/{package_id}/fund` | §3 | yes |
+| `POST /programs/{id}/jobs/{job_id}/reoffer` | §6 | yes |
 | `GET /programs/{id}/actions` | §6 | no |
 | `GET /programs/{id}/events?since=&limit=` | §6 | no |
 | `GET /programs/{id}/training/{package_id}/seats/{seat}` | §6 | no |
@@ -44,6 +45,23 @@ Every live route (`engine/app.py`, `engine/simulate.py`; search and graph logic 
 | `GET /search/jobs?shop_id=` | §7 | no |
 | `GET /graph/summary` | §7 | no |
 | `GET /graph/ego?id=&depth=&limit=` | §7 | no |
+
+### Quickstart (curl)
+
+```bash
+E=http://localhost:8000
+curl -s -X POST "$E/demo/seed?scenario=populated"          # reset + upload + route + an hour of simulated shop activity
+curl -s "$E/programs/northgate/ledger"                        # 11.5% of the $500M obligation
+curl -s -X POST "$E/demo/simulate/tick"                       # one more scripted shop event
+curl -s "$E/programs/northgate/events?since=0&limit=20"       # what the laptop bell and the prime's phone poll
+curl -s -X POST -H 'Content-Type: application/json' \
+     -d '{"decision":"accepted"}' "$E/shops/syn-012/offers/NG-021/decision"
+curl -s -X POST "$E/programs/northgate/training/TP-01/fund"   # "$96K training → $480K credit (5x) + 3 jobs unblocked (+$9.1M credit)"
+curl -s "$E/search/shops?process=welding&cert=CWB_W47.1&near=London"   # 13 shops after funding (2 synthetic, 11 public)
+curl -s "$E/graph/summary"                                     # 4,490 nodes, 5,808 edges
+```
+
+Without the seed, the classic path is `POST /demo/reset` → `POST /programs/northgate/parts?use_demo=true` → `POST /programs/northgate/route` (the 8 steps `make demo-check` walks).
 
 ---
 
@@ -375,6 +393,7 @@ The shop-side view (H3.5): what this shop is offered, what it is missing, and wh
 - `readiness` lists jobs this shop fails on **exactly one** requirement, grouped by that requirement (`kind`: `cert | capacity | process`).
 - After funding, the unblocked jobs appear in `offers` (2 → 5), the matching readiness item disappears (the next one is `"Get ISO 9001 → qualify for 2 more jobs worth $1.2M"`), and the training entry reads `"status": "funded"`, `"message": "4 welders in training for CWB W47.1"`.
 - Before routing, `offers` is `[]`.
+- A declined job Northgate re-offered to this shop (§6 re-offer) is also listed here, with the assignment's value, credit and multiplier, this shop's own three reasons, `status` from this shop's own answer (`offered | accepted | declined`) and `"reoffered_from": "<shop that declined>"`. The shop that declined keeps it in its list as `declined`. Other offers have no `reoffered_from` key.
 
 ---
 
@@ -451,6 +470,7 @@ What a shop tells Muster from the phone app (docs/app-spec.md §2.3–§2.8), an
 | `package_funded` | `POST /fund` | Σ value of unblocked jobs / fund `credit_added` | `headline, requirement, trainees, unblocked_job_ids, still_blocked, training_credit_cad` |
 | `capacity_confirmed` | capacity check-in | `null` / `null` | `hours_week, horizon_weeks, accepted_load_hours, offered_load_hours, over_by_hours` |
 | `cert_declared` | expiry declaration | `null` / `null` | `cert_type, expires_at` |
+| `reoffered` | `POST /programs/{id}/jobs/{job}/reoffer` (`shop_id` = the new shop) | the assignment's value / credit | `from_shop_id, from_shop_name, demo: true` |
 
 `shop_id`/`shop_name` are `null` for `routed`. `message` is a ready-to-show English sentence; the web may build its own copy from the fields.
 
@@ -559,10 +579,21 @@ Everything this shop has told Muster (cached per revision).
                         "status": "declared", "declared_at": "2026-09-26T21:50:00Z",
                         "note": "Shop-declared; not used for routing until reviewed" } ] }
 ```
-`routed_at` is the latest `routed` event's `ts` (`null` before routing). `capacity` is `null` until the first check-in. Lists are oldest first (a replaced decision moves to the end). 404 `Unknown shop '…'`.
+`routed_at` is the latest `routed` event's `ts` (`null` before routing). `capacity` is `null` until the first check-in. `reoffers` lists declined jobs Northgate re-offered to this shop since the latest routing (same shape as below; `[]` when none). A declined decision whose job was re-offered since carries `"reoffered_to": "<new shop id>"`. Lists are oldest first (a replaced decision moves to the end). 404 `Unknown shop '…'`.
 
 ### `GET /programs/{program_id}/actions`
-The same lists across every shop, for the prime feed and the Gaps "Shop requested" badge: `{ "program_id", "routed_at", "decisions": [], "funding_requests": [], "capacity": [ /* CapacityCheckin[] */ ], "declared_certs": [] }` (no `shop_id` key; `capacity` is a list). 404 `Unknown program '…'`.
+The same lists across every shop, for the prime feed and the Gaps "Shop requested" badge: `{ "program_id", "routed_at", "decisions": [], "funding_requests": [], "capacity": [ /* CapacityCheckin[] */ ], "declared_certs": [], "reoffers": [] }` (no `shop_id` key; `capacity` is a list). 404 `Unknown program '…'`.
+
+### `POST /programs/{program_id}/jobs/{job_id}/reoffer`
+Demo re-offer: Northgate sends a job a shop **declined** to another qualified synthetic shop (the supplier card's "Offer NG-005 to …"). Body `{ "shop_id": "syn-001", "idempotency_key"?: "…" }`. The only record is a `reoffered` event: **assignments, credit, the ledger and the obligation % never change** (the credit stays counted as placed). The new shop then sees the job in `GET /shops/{id}` `offers`, `GET /search/jobs` (`status: "offered_to_you"`, `reoffered_from`) and its `actions.reoffers`, and can accept, decline or ask a question through the §6 decision endpoint; the shop that declined gets 409 `… re-offered …` if it tries to answer again. A new route, an upload or a reset clears every re-offer. The simulator never plays a scripted answer on a re-offered job.
+```json
+{ "reoffer": { "job_id": "NG-005", "shop_id": "syn-001", "shop_name": "Tessellate Precision Machining Inc.",
+               "from_shop_id": "syn-002", "from_shop_name": "…", "status": "offered",
+               "value_cad": 0.0, "credit_cad": 0.0, "at": "2026-09-27T…Z", "seq": 12 },
+  "event": { "kind": "reoffered", "shop_id": "syn-001", "job_id": "NG-005",
+             "payload": { "from_shop_id": "syn-002", "from_shop_name": "…", "demo": true }, "…": "…" } }
+```
+(`value_cad` / `credit_cad` are the assignment's.) Errors: 400 `shop_id is required`; 400 when the shop is not synthetic; 404 unknown program, job not placed, or unknown shop; 409 `Job '…' is not declined (… has it: offered)`; 409 `… already declined …` (the holder or any shop that declined it); 409 `… does not pass …'s filters (processes, certificates, size or distance)`; 400 before routing.
 
 ### `GET /programs/{program_id}/events?since=0&limit=100`
 Events with `seq > since`, oldest first, at most `limit` (1–500, default 100). Cached per revision under `("events", since, limit)`.
@@ -699,7 +730,7 @@ What one shop can do in the **current** State (always computed by `engine.pipeli
 
 - `eligible`: jobs the shop passes every hard filter for except capacity. `status` = `offered_to_you` (assigned to this shop; credit, multiplier and reasons are the assignment's, `offer_status` is its offered / accepted / declined), `assigned_elsewhere`, or `open` (not assigned). Otherwise `credit_cad = value × ccv × multiplier` with the shop's multiplier (2 for an SME) and the three routing reasons. Ordered offered, open, elsewhere; job order within.
 - `near_miss` (when `include_near_miss`): jobs failing only 1–2 trainable requirements (cert or process; capacity is ignored, an envelope failure excludes the job), fewest missing first, then value. `missing[].kind` is `cert` or `process`.
-- `tenders`: up to 5 open defence tenders from the CanadaBuys sample (`data/processed/tenders_defence.json`) for parts the shop could make or supply: category fits the shop's processes (machining/welding/fabrication also takes vehicle and vessel "spare parts" notices), or, when `q` is set, the title contains `q`. Notices that buy equipment (lathes, milling machines, trucks, trailers…) or off-the-shelf hardware (washers, O-rings, tires) are left out. Ontario first, then soonest closing. `tenders_source` labels them.
+- `tenders`: up to 5 open defence tenders from the CanadaBuys sample (`data/processed/tenders_defence.json`) for parts the shop could make or supply: category fits the shop's processes (machining/welding/fabrication also takes vehicle and vessel "spare parts" notices), or, when `q` is set, the title contains `q`. Notices that buy equipment (lathes, milling machines, trucks, trailers…) or off-the-shelf hardware (washers, O-rings, tires) are left out. Ontario first (the province or an Ontario city such as Belleville, London, Toronto, Ottawa), then soonest closing. Notices past their closing time are dropped (closing times are local, with no zone; a date-only value is open through 23:59 that day). Each tender carries `closed` (boolean): when fewer than 3 are still open, the most recently closed matches follow with `"closed": true` (enough to make 3 rows), and the web shows them under "Recently closed". `tenders_source` labels them. The cache key changes whenever a sample notice closes, so a cached answer never keeps listing a closed notice.
 - A public shop (`pub-XXX`) gets `routable: false`, a `notice`, empty `eligible` / `near_miss`, and tenders.
 - Before an upload `eligible` and `near_miss` are `[]`.
 
@@ -723,7 +754,7 @@ What one shop can do in the **current** State (always computed by `engine.pipeli
     { "title": "Spare Parts for Material Handling Equipment 2", "reference": "cb-893-93522986",
       "solicitation_number": "W8486-270977/A", "closing_date": "2026-09-27T14:00:00",
       "buyer": "Department of National Defence (DND)", "category": "vehicles_vessels_aircraft",
-      "notice_type": "Request for Proposal", "region": "Quebec (except NCR) / Montr\u00e9al", "url": null } ],
+      "notice_type": "Request for Proposal", "region": "Quebec (except NCR) / Montr\u00e9al", "url": null, "closed": false } ],
   "tenders_source": "CanadaBuys open tender notices (Open Government Licence); sample retrieved 2026-09-26. Matched by category and title; notices that buy equipment or off-the-shelf hardware are left out." }
 ```
 After funding TP-01, NG-031 / NG-032 / NG-033 move from `near_miss` to `eligible` as `offered_to_you`.
@@ -775,7 +806,7 @@ Generated by `scripts/build_search_fixtures.py` (the real engine in-process on a
 
 ## 8. Demo seed and simulation (additive, v0.4)
 
-Makes the live demo look like a working marketplace instead of an empty one (`engine/simulate.py`, router mounted on the same app; tests: `engine/tests/test_simulate.py`). Callers: `make demo-seed`, and the phone's role picker (`/m`, **Demo version** panel, Live mode only): **Fill with demo activity** (seed) and **Simulate shops responding** (one tick every 8 s; phone events show a **Simulated** chip).
+Makes the live demo look like a working marketplace instead of an empty one (`engine/simulate.py`, router mounted on the same app; tests: `engine/tests/test_simulate.py`). Callers: `make demo-seed`, and the phone's role picker (`/m`, **Presenter tools** → **Demo version** panel, Live mode only; closed by default, open it with `/m?presenter=1`): **Fill with demo activity** (seed; asks for confirmation first, since it resets the demo for everyone) and **Simulate shops responding** (one tick every 8 s; phone events show a **Simulated** chip; while only `waiting` steps are left it checks every 15 s instead of stopping).
 
 **Guardrails.** Everything goes through the existing §6 shop actions, so routing, jobs, packages and the ledger never change (the demo numbers stay 36 / 4, $57.5M, 11.5%). The presenter's shop **Tallowfield (`syn-012`) is never touched**, so both of its offers stay open, and **no package is ever funded**. The one scripted funding request (TP-02, another shop) waits until the presenter has funded TP-01 and sits last in the queue, so `/gaps` never features another shop's request ahead of TP-01. Every scripted event carries `"simulated": true` (top level and in `payload`) plus `payload.sim_step`; scripted decisions and requests use `idempotency_key = "sim:<step>"`. Progress lives in the event log (`payload.sim_step`), so it survives an engine restart and is cleared by `/demo/reset` or a new upload. Declared certificate dates are relative to today and the renewal rule's act-by lead (`data/rules/renewals.json`), so a seeded renewal never reads as already overdue.
 
@@ -804,14 +835,14 @@ After a populated seed, `GET /programs/northgate/events?since=0` starts:
 ```
 
 ### `POST /demo/simulate/tick`
-Applies the next applicable event of a fixed 12-step queue (another shop accepts, a question, a capacity check-in, a new declaration, a decline, and last a funding request). Steps that no longer apply are skipped (the job was re-routed, the shop already answered, or the funding request is waiting for TP-01). Returns the new §6 Event (or `null` when nothing is left; that writes nothing) and how many applicable steps remain. 400 `Route the program first (or POST /demo/seed?scenario=populated)` before routing.
+Applies the next applicable event of a fixed 12-step queue (another shop accepts, a question, a capacity check-in, a new declaration, a decline, and last a funding request). Steps that no longer apply are skipped (the job was re-routed, the shop already answered, or the funding request is waiting for TP-01). Returns the new §6 Event (or `null` when nothing is left; that writes nothing), how many applicable steps remain, and `waiting`: steps held back only until the presenter funds TP-01 (1 before the fund moment, the TP-02 funding request; 0 after, when it counts in `remaining`). A caller that sees `remaining: 0, waiting: 1` should keep checking rather than stop. 400 `Route the program first (or POST /demo/seed?scenario=populated)` before routing.
 ```json
 { "event": { "seq": 11, "ts": "2026-09-27T07:10:29Z", "kind": "offer_accepted",
              "shop_id": "syn-014", "shop_name": "Carapace Coatings Inc.", "job_id": "NG-017", "package_id": null,
              "value_cad": 1267200.0, "credit_cad": 2331648.0,
              "message": "Carapace Coatings Inc. accepted NG-017 (+$2.33M credit)",
              "payload": { "simulated": true, "sim_step": "tick-01" }, "simulated": true },
-  "remaining": 10 }
+  "remaining": 10, "waiting": 1 }
 ```
 The last step, after TP-01 is funded:
 ```json
@@ -821,9 +852,9 @@ The last step, after TP-01 is funded:
              "payload": { "requirement": "welding", "est_cost_cad": 40000.0, "multiplier": 10, "trainees": 2,
                           "blocked_job_ids": ["NG-034"], "simulated": true, "sim_step": "tick-12" },
              "simulated": true, "…": "…" },
-  "remaining": 0 }
+  "remaining": 0, "waiting": 0 }
 ```
-Before TP-01 is funded, the queue runs out after 11 ticks: `{"event": null, "remaining": 0}`.
+Before TP-01 is funded, the queue runs out after 11 ticks: `{"event": null, "remaining": 0, "waiting": 1}`.
 
 ### `GET /demo/simulate/status`
 ```json

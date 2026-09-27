@@ -2,7 +2,7 @@
 
 For the 1:00 PM top-10 live pitch. Judges include MP Bardish Chagger and Dr. Ian Burgess. Rubric (0–4 each, no technical judging): **relevance to "Growing Canada"**, **viability**, **pitch**.
 
-Rules for everything in this file: stats carry a footnote marker `[n]` pointing to the source list at the bottom (CLAUDE.md §11, docs/research.md). Anything not sourced is labelled **(assumption)**. Northgate Land Systems is **fictional**; demo shops are **synthetic**; real shops on the Network page are **public data, unverified, not affiliated**; training partners are **example, not affiliated**; ITB rules are **simplified for the demo**.
+Rules for everything in this file: stats carry a footnote marker `[n]` pointing to the source list at the bottom (CLAUDE.md §11, docs/research.md). Anything not sourced is labelled **(assumption)**. Northgate Land Systems is **fictional**; demo shops are **synthetic**; real shops (Shops directory, Find suppliers, Supplier map) are **public data, unverified, not affiliated**; training partners are **example, not affiliated**; ITB rules are **simplified for the demo**.
 
 ---
 
@@ -23,7 +23,7 @@ Rules for everything in this file: stats carry a footnote marker `[n]` pointing 
 - **Route + Credit:** 40 parts → **36 assigned, 4 blocked**; controlled jobs only to CGP shops; obligation meter **11.5%**
 - **Train:** fund TP-01 → **$96K training (4 new-welder training seats, all-in incl. stipend; assumption) → $480K credit (5x) + 3 jobs unblocked (+$9.1M credit)**; obligation **11.5% → 13.4%**, SMB target **36.4% → 42.5%**
 - **Two-sided, four desks:** defence company, supplier, training partner, trainee each sign in to their own desk (demo sign-in). Shops use it free, on a real phone over Wi-Fi: accept or decline offers, see readiness ("Get CWB W47.1 → more jobs"), ask the prime to fund it; the prime sees each reply live
-- **Find suppliers:** "CWB welding near London" → one query on a Neo4j capability graph of real public data: 78 local shops, 2,946 StatCan manufacturers, 58,965 National Defence contracts matched by name [7][21] (public, unverified, not affiliated)
+- **Find suppliers:** "CWB welding near London" → one query on a Neo4j capability graph (4,490 nodes) of real public data: 78 local shops, 2,946 StatCan manufacturers and 1,099 National Defence vendors drawn from 58,965 contracts, matched by name [7][21] (public, unverified, not affiliated)
 
 **Speaker notes:** Northgate is a fictional prime with a $500M contract. Its ~$42.7M work package routes to qualified small shops, 90% of that value to small and medium shops, earning 2x credit. Four welding jobs are blocked: no available shop has CWB-qualified welders. The prime funds four new-welder training seats, qualified under CSA W47.1, through a regional college (e.g. Conestoga, example, not affiliated); the prime's cash for eligible training earns 5x credit (capped at 25% of the obligation), and the jobs unblock (W47.1 certifies the company; the welders get tickets). On the phone, the shop accepts the offer, asks Northgate to fund W47.1, and sees its welders in training; Northgate sees each reply as it happens. And when Northgate needs new suppliers, it asks in plain words and searches real public records: which local shops weld to CWB, and which already did National Defence work. Those real shops are never sent work until they claim their profile.
 
@@ -88,7 +88,7 @@ Job Bank rates the general welder outlook in Ontario "very limited" [17]. The ga
 No one in the middle. The prime pays the college or apprenticeship sponsor directly, the DIA decides eligibility, and Muster keeps the per-job audit trail.
 
 **Q: Your data only covers a few cities. How do you get national coverage?**
-Our graph already holds 2,946 StatCan manufacturers and 58,965 National Defence contracts [7][21], plus 78 local shops from company sites (public, unverified, not affiliated). Next, shops claim their profiles, and CME Defence and Waterloo EDC bring members in.
+Our graph already holds 2,946 StatCan manufacturers and 1,099 National Defence vendors from 58,965 contracts [7][21], plus 78 local shops from company sites (public, unverified, not affiliated). Next, shops claim their profiles, and CME Defence and Waterloo EDC bring members in.
 
 **Q: Is any of this real data?**
 The routing demo is fictional and synthetic by design. Search and the supplier map use real open data: StatCan ODBus, National Defence contracts, CanadaBuys tenders, Job Bank [7][21][22]. Each real company is labelled unverified, not affiliated, never sent work.

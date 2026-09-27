@@ -4,7 +4,7 @@
 //   1. Fund welder training (each unfunded suggestion) → confirm sheet → useDemo().fund()
 //   2. Shop questions → template replies (engine route if it exists, else recorded here: "Reply sent (demo)")
 //   3. Funding requests from shops ("Ask Northgate") → Approve & fund → useDemo().fund()
-//   4. Declined jobs → Find another shop (desktop supplier search)
+//   4. Declined jobs → Find another shop (desktop supplier search, which can re-offer the job)
 // Works in both modes: fund() and the actions store handle live vs demo data.
 
 import * as React from "react"
@@ -26,12 +26,13 @@ import { CERT_LABEL, fmtMoney } from "@/lib/format"
 import { useDemo } from "@/lib/data/store"
 import type { TrainingPackage } from "@/lib/api/types"
 import { shopInfo, useAppActions } from "@/lib/app/actions-store"
+import { declineResolved, useReoffers } from "@/lib/search/reoffers"
 import { fmtTime } from "@/lib/app/today"
 import { findAnotherShopHref, fundingNeed, shortShopName } from "@/lib/app/feed"
-import { replyForDecision, sendPrimeReply, usePrimeReplies, useSyncRepliesWithRouting } from "@/lib/app/prime-replies"
+import { replyForDecision, replyTemplates, sendPrimeReply, usePrimeReplies, useSyncRepliesWithRouting } from "@/lib/app/prime-replies"
 import { isSimulatedEvent, isSimulatedRecord } from "@/lib/app/sim-flag"
 import { extendStrings, t } from "@/lib/app/strings"
-import type { FundingRequestRec, OfferDecisionRec, QuestionCode } from "@/lib/app/types"
+import type { FundingRequestRec, OfferDecisionRec } from "@/lib/app/types"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
 import { ShopLabelChip } from "@/components/mobile/shell/m-header"
@@ -39,6 +40,8 @@ import { SimulatedChip } from "@/components/mobile/shell/simulation"
 import { BottomSheet } from "@/components/mobile/offer/bottom-sheet"
 import { NoBreakIds } from "@/components/mobile/prime/activity-item"
 import { usePhoneHref } from "@/components/mobile/shell/use-phone-href"
+import { TrainingCapNote } from "@/components/scorecard/training-cap"
+import type { LedgerResponse } from "@/lib/api/types"
 
 extendStrings("en", {
   "pa.title": "What you can do now",
@@ -80,16 +83,7 @@ extendStrings("en", {
   "pa.q.title": "Shop questions",
   "pa.q.none": "No open questions from shops.",
   "pa.q.row": "{shop} asked a question on {job}",
-  "pa.q.reply.lead_time": "Yes, November works",
-  "pa.q.reply.quantity_split": "Yes, two lots is fine",
-  "pa.q.reply.material_supply": "We'll supply the material",
-  "pa.q.reply.first_article": "Yes, send a first article",
-  "pa.q.reply.generic": "We'll confirm by Friday",
-  "pa.q.sent": "Reply sent",
-  "pa.q.sentBody": "{shop} sees it on its phone.",
-  "pa.q.sentDemo": "Reply sent (demo)",
-  "pa.q.sentDemoBody": "Recorded on this device only: this engine has no reply route.",
-  "pa.q.failed": "Could not send the reply",
+  // Reply chips and "Reply sent" copy: lib/app/prime-replies.ts (shared with the laptop desk).
 
   "pa.req.title": "Funding requests",
   "pa.req.none": "No shop has asked for funding.",
@@ -97,27 +91,13 @@ extendStrings("en", {
   "pa.req.cta": "Approve & fund",
 
   "pa.dec.title": "Declined jobs",
-  "pa.dec.none": "No shop has declined a job.",
+  "pa.dec.none": "No declined jobs need a new shop.",
   "pa.dec.row": "{shop} declined {job}: {reason}",
-  "pa.dec.detail": "Still counted as placed until you send it to another shop (demo).",
+  "pa.dec.detail": "Still counted as placed (demo). Find another shop to send it the job as a new offer.",
   "pa.dec.cta": "Find another shop",
 })
 
 const lower = (s: string) => (s ? s.charAt(0).toLowerCase() + s.slice(1) : s)
-
-/** Canned replies for a question: one that answers its topic, then a generic holding reply. */
-const REPLY_CODES: Record<QuestionCode, string> = {
-  lead_time: "yes_date",
-  quantity_split: "yes_split",
-  material_supply: "we_supply",
-  first_article: "yes_fai",
-}
-function replyTemplates(q: QuestionCode | null): { code: string; text: string }[] {
-  const out: { code: string; text: string }[] = []
-  if (q && REPLY_CODES[q]) out.push({ code: REPLY_CODES[q], text: t(`pa.q.reply.${q}`) })
-  out.push({ code: "confirm_friday", text: t("pa.q.reply.generic") })
-  return out
-}
 
 /** A request the demo simulator made (its idempotency key, or a simulated funding_requested event). */
 function requestSimulated(r: FundingRequestRec | undefined, events: { kind: string; package_id: string | null }[]): boolean {
@@ -164,6 +144,8 @@ export function PrimeActions() {
   const demo = useDemo()
   const actions = useAppActions()
   const replies = usePrimeReplies()
+  // Declines already sent to another shop (demo re-offer from Find suppliers) leave the list.
+  const reoffers = useReoffers()
   const phoneHref = usePhoneHref()
   useSyncRepliesWithRouting(actions.routedAt, actions.ready)
   const [focusId, setFocusId] = React.useState<string | null>(null)
@@ -193,7 +175,9 @@ export function PrimeActions() {
 
   const decisions = Object.values(actions.decisions)
   const questions = decisions.filter((d) => d.decision === "question").sort((a, b) => b.at.localeCompare(a.at))
-  const declined = decisions.filter((d) => d.decision === "declined").sort((a, b) => b.at.localeCompare(a.at))
+  const declined = decisions
+    .filter((d) => d.decision === "declined" && !declineResolved(reoffers, d.shop_id, d.job_id))
+    .sort((a, b) => b.at.localeCompare(a.at))
 
   /** Latest event for a shop+job+kind (to show the Simulated chip). */
   const simulatedFor = React.useCallback(
@@ -481,7 +465,7 @@ export function PrimeActions() {
         </>
       )}
 
-      <FundSheet pkg={confirm} busy={funding} onClose={() => setConfirm(null)} onConfirm={(p) => void doFund(p)} />
+      <FundSheet pkg={confirm} busy={funding} ledger={demo.ledger} onClose={() => setConfirm(null)} onConfirm={(p) => void doFund(p)} />
     </section>
   )
 }
@@ -503,11 +487,14 @@ function Row({ label, value, sub }: { label: string; value: React.ReactNode; sub
 function FundSheet({
   pkg,
   busy,
+  ledger,
   onClose,
   onConfirm,
 }: {
   pkg: TrainingPackage | null
   busy: boolean
+  /** For the training-credit cap line (null before the ledger loads: the line is left out). */
+  ledger: LedgerResponse | null
   onClose: () => void
   onConfirm: (p: TrainingPackage) => void
 }) {
@@ -558,7 +545,11 @@ function FundSheet({
           </div>
           <p className="text-sm text-muted-foreground">{p.eligibility_note}</p>
           <p className="rounded-lg bg-muted px-3 py-2 text-sm">{t("pa.sheet.creditGloss")}</p>
-          <p className="text-xs text-muted-foreground">{t("label.simplifiedItb")}</p>
+          {ledger ? (
+            <TrainingCapNote ledger={ledger} extraCredit={p.est_credit_cad} mode="wouldUse" rulesLabel={t("label.simplifiedItb")} className="text-muted-foreground" />
+          ) : (
+            <p className="text-xs text-muted-foreground">{t("label.simplifiedItb")}</p>
+          )}
         </div>
       ) : null}
     </BottomSheet>

@@ -350,3 +350,30 @@ def test_tenders_leave_out_equipment_and_follow_q():
     assert all(tender_kind(t["title"]) == "fits" for t in got)
     assert tenders_for(["welding"], "zzz") == []
     assert all("spare" in t["title"].lower() for t in tenders_for(["welding"], "spare"))
+
+
+def test_tenders_drop_closed_notices_and_rank_ontario_cities():
+    """A notice past its closing time is never listed as open; Ontario cities count as Ontario."""
+    from datetime import datetime
+
+    from engine.search import tender_closes_at, tender_in_ontario, tenders_for
+
+    local = datetime.fromisoformat  # naive local times, as the notices state them
+
+    before = tenders_for(["welding", "sheet_metal"], None, now=local("2026-09-26T12:00"))
+    assert before and not any(t["closed"] for t in before)
+    assert tender_in_ontario(before[0]["region"])  # Belleville first
+    assert tender_in_ontario("Belleville") and tender_in_ontario("Ontario (except NCR) / Ottawa")
+    assert not tender_in_ontario("Quebec (except NCR) / Montréal")
+
+    now = local("2026-09-28T15:00")
+    got = tenders_for(["welding", "sheet_metal"], None, now=now)
+    for t in got:
+        if not t["closed"]:
+            assert tender_closes_at(t["closing_date"]) >= now
+    assert all(t["closing_date"] >= "2026-09-28T15" for t in got if not t["closed"])
+
+    late = tenders_for(["welding", "sheet_metal"], None, now=local("2026-12-01T00:00"))
+    assert late and all(t["closed"] for t in late) and len(late) <= 3
+    # date-only: open through 23:59 that day
+    assert tender_closes_at("2026-10-01") == local("2026-10-01T23:59:59")

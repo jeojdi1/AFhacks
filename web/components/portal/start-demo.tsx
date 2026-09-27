@@ -8,6 +8,7 @@ import Link from "next/link"
 import { LoaderCircle, PlayCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/lib/data/store"
+import { useSession } from "@/lib/auth/session"
 import { Button, buttonVariants } from "@/components/ui/button"
 
 export function useRouted(): boolean {
@@ -15,9 +16,25 @@ export function useRouted(): boolean {
   return stage === "routed" || stage === "funded"
 }
 
-export function StartDemo({ message, className }: { message: string; className?: string }) {
+/** Only Northgate (prime) and signed-out Story mode may load and match the parts list. */
+const WAITING_ROLES = new Set(["shop", "college", "trainee"])
+
+export function StartDemo({
+  message,
+  roleMessage,
+  className,
+}: {
+  message: string
+  /** Shown instead of `message` to shop, college and trainee sessions (who get no button). */
+  roleMessage?: string
+  className?: string
+}) {
   const { stage, busy, ready, uploadParts, route } = useDemo()
+  const { session, hydrated } = useSession()
   const running = !!busy && ready
+  const waiting = !!session && WAITING_ROLES.has(session.role)
+  // Until the session is known show no button, so a shop never sees it flash in and out.
+  const showActions = hydrated && !waiting
 
   const run = async () => {
     if (stage === "empty") await uploadParts()
@@ -32,7 +49,10 @@ export function StartDemo({ message, className }: { message: string; className?:
       )}
       data-testid="start-demo"
     >
-      <p className="min-w-0 flex-1 text-[0.95rem] text-slate-700">{message}</p>
+      <p className="min-w-0 flex-1 text-[0.95rem] text-slate-700" data-empty-role={waiting ? session?.role : undefined}>
+        {waiting ? (roleMessage ?? message) : message}
+      </p>
+      {showActions ? (
       <div className="flex flex-wrap items-center gap-2">
         <Button size="touch" onClick={() => void run()} disabled={!ready || !!busy}>
           {running ? (
@@ -46,6 +66,7 @@ export function StartDemo({ message, className }: { message: string; className?:
           Open the parts list
         </Link>
       </div>
+      ) : null}
     </div>
   )
 }

@@ -4,14 +4,20 @@
 //   (a) Live (shared with the laptop) vs Demo data (this phone only). Switching
 //       reloads with ?mode=live|fixtures; the demo store keeps that override for
 //       the session. It never calls setMode("live"), which would reset the shared engine.
-//   (b) Fill with demo activity → POST /demo/seed?scenario=populated (live only).
+//   (b) Fill with demo activity → POST /demo/seed?scenario=populated (live only), behind a
+//       confirm, because it resets what every screen shows (including a funded TP-01).
 //   (c) Simulate shops responding → POST /demo/simulate/tick every 8 s (live only).
 //   (d) Demo data only: "Send the example offers" replays the parts list and the match on this
 //       phone (fixture store → routed), so a shop sees offers with no laptop or engine.
+//
+// Everything above sits inside <PresenterTools>, a disclosure that is closed by default and
+// opens by itself only with ?presenter=1 (remembered for this tab), so a phone that scanned the
+// QR code cannot reset the shared engine by accident.
 
 import * as React from "react"
 import { toast } from "sonner"
-import { Check, CircleCheck, Loader2, Send, Smartphone, Sparkles, Wifi } from "lucide-react"
+import { AlertDialog } from "@base-ui/react/alert-dialog"
+import { Check, ChevronDown, CircleCheck, Loader2, RotateCcw, Send, Smartphone, Sparkles, Wifi, Wrench } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/lib/data/store"
 import { AppApiError } from "@/lib/app/api"
@@ -26,7 +32,7 @@ extendStrings("en", {
   "demo.mode.live": "Live (shared with the laptop)",
   "demo.mode.liveBody": "Answers go to the Muster engine, so the laptop sees them within seconds.",
   "demo.mode.fixtures": "Demo data (this phone only)",
-  "demo.mode.fixturesBody": "Built-in example data. Works offline; nothing leaves this phone.",
+  "demo.mode.fixturesBody": "Built-in example data. No engine needed; nothing leaves this phone.",
   "demo.mode.current": "In use",
   "demo.seed": "Fill with demo activity",
   "demo.seedBody": "Loads a busy example: offers sent, some accepted, a decline, a question and capacity updates. Replaces what is on the shared engine.",
@@ -34,6 +40,13 @@ extendStrings("en", {
   "demo.seeded": "Demo activity loaded",
   "demo.seededBody": "Reloading so every screen shows it.",
   "demo.seedFailed": "Could not fill the demo",
+  "demo.seedFailedBody": "The engine didn't accept it. Nothing changed; try again in a moment.",
+  "demo.confirm.title": "Fill with demo activity",
+  "demo.confirm.body": "Start the shared demo over with example activity? This resets what every screen shows, including anything Northgate funded.",
+  "demo.confirm.cancel": "Cancel",
+  "demo.confirm.ok": "Reset for everyone",
+  "presenter.title": "Presenter tools",
+  "presenter.body": "Demo controls for whoever runs the demo. They change what every screen shows.",
   "demo.updateEngine": "Update the engine",
   "demo.updateEngineBody": "This engine can't load demo activity yet. Restart it with the latest code.",
   "demo.sim": "Simulate shops responding",
@@ -156,10 +169,102 @@ function LocalRouteAction() {
   )
 }
 
+/** "Start the shared demo over?" confirm for Fill with demo activity. */
+function SeedConfirm({ open, onOpenChange, onConfirm }: { open: boolean; onOpenChange: (o: boolean) => void; onConfirm: () => void }) {
+  return (
+    <AlertDialog.Root open={open} onOpenChange={(o) => onOpenChange(o)}>
+      <AlertDialog.Portal>
+        <AlertDialog.Backdrop className="fixed inset-0 z-50 bg-black/30 supports-backdrop-filter:backdrop-blur-xs" />
+        <AlertDialog.Popup
+          data-testid="demo-seed-confirm"
+          className="fixed top-1/2 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2 flex-col gap-3 rounded-2xl bg-popover p-5 text-popover-foreground shadow-lg ring-1 ring-foreground/10 outline-none"
+        >
+          <AlertDialog.Title className="text-lg leading-snug font-semibold">{t("demo.confirm.title")}</AlertDialog.Title>
+          <AlertDialog.Description className="text-base leading-snug text-muted-foreground">{t("demo.confirm.body")}</AlertDialog.Description>
+          <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <AlertDialog.Close render={<Button variant="outline" size="touch" className="w-full sm:w-auto" />}>{t("demo.confirm.cancel")}</AlertDialog.Close>
+            <Button variant="destructive" size="touch" className="w-full sm:w-auto" onClick={onConfirm} data-testid="demo-seed-confirm-ok">
+              {t("demo.confirm.ok")}
+            </Button>
+          </div>
+        </AlertDialog.Popup>
+      </AlertDialog.Portal>
+    </AlertDialog.Root>
+  )
+}
+
+/** sessionStorage (this tab): "1" once the page was opened with ?presenter=1. */
+const PRESENTER_KEY = "muster.app.v1.presenter"
+
+function readPresenter(): boolean {
+  try {
+    const q = new URLSearchParams(window.location.search).get("presenter")
+    if (q === "1") {
+      try {
+        window.sessionStorage.setItem(PRESENTER_KEY, "1")
+      } catch {
+        /* storage blocked: open for this page only */
+      }
+      return true
+    }
+    if (q === "0") {
+      try {
+        window.sessionStorage.removeItem(PRESENTER_KEY)
+      } catch {
+        /* storage blocked */
+      }
+      return false
+    }
+    return window.sessionStorage.getItem(PRESENTER_KEY) === "1"
+  } catch {
+    return false
+  }
+}
+
+/**
+ * "Presenter tools": a disclosure around the demo controls and the other shops' list.
+ * Closed by default; open on load only with ?presenter=1 (remembered for this tab).
+ */
+export function PresenterTools({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = React.useState(false)
+  const id = React.useId()
+  React.useEffect(() => {
+    if (readPresenter()) queueMicrotask(() => setOpen(true))
+  }, [])
+  return (
+    <section className="flex flex-col gap-3" data-testid="presenter-tools">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={id}
+        onClick={() => setOpen((o) => !o)}
+        className="flex min-h-14 w-full items-center gap-3 rounded-xl border border-border bg-background px-4 py-2 text-left outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+        data-testid="presenter-toggle"
+      >
+        <Wrench className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+        <span className="min-w-0 flex-1">
+          <span className="block text-base leading-snug font-semibold">{t("presenter.title")}</span>
+          <span className="block text-sm leading-snug text-muted-foreground">{t("presenter.body")}</span>
+        </span>
+        <ChevronDown
+          aria-hidden
+          className={cn("size-5 shrink-0 text-muted-foreground transition-transform motion-reduce:transition-none", open && "rotate-180")}
+        />
+      </button>
+      {open ? (
+        <div id={id} className="flex flex-col gap-6">
+          {children}
+        </div>
+      ) : null}
+    </section>
+  )
+}
+
 export function DemoControls() {
   const { mode, ready, apiUrl } = useDemo()
   const simulating = useSimulating()
   const [seeding, setSeeding] = React.useState(false)
+  const [confirmOpen, setConfirmOpen] = React.useState(false)
   const live = ready && mode === "live"
 
   const seed = async () => {
@@ -173,7 +278,8 @@ export function DemoControls() {
       if (e instanceof AppApiError && (e.routeMissing || e.status === 404 || e.status === 405)) {
         toast.error(t("demo.updateEngine"), { description: t("demo.updateEngineBody") })
       } else {
-        toast.error(t("demo.seedFailed"), { description: e instanceof AppApiError ? e.detail : String(e) })
+        // Never show the engine's detail from demo endpoints (it names API routes).
+        toast.error(t("demo.seedFailed"), { description: t("demo.seedFailedBody") })
       }
     }
   }
@@ -210,11 +316,19 @@ export function DemoControls() {
       {!ready ? null : live ? (
         <>
           <div className="flex flex-col gap-1.5">
-            <Button size="touch-lg" className="w-full" disabled={seeding} onClick={() => void seed()} data-testid="demo-seed">
-              {seeding ? <Loader2 className="size-5 animate-spin motion-reduce:animate-none" aria-hidden /> : <Sparkles className="size-5" aria-hidden />}
+            <Button variant="outline" size="touch" className="w-full" disabled={seeding} onClick={() => setConfirmOpen(true)} data-testid="demo-seed">
+              {seeding ? <Loader2 className="size-5 animate-spin motion-reduce:animate-none" aria-hidden /> : <RotateCcw className="size-5" aria-hidden />}
               {seeding ? t("demo.seeding") : t("demo.seed")}
             </Button>
             <p className="text-sm leading-snug text-muted-foreground">{t("demo.seedBody")}</p>
+            <SeedConfirm
+              open={confirmOpen}
+              onOpenChange={setConfirmOpen}
+              onConfirm={() => {
+                setConfirmOpen(false)
+                void seed()
+              }}
+            />
           </div>
           <button
             type="button"

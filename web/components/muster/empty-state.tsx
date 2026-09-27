@@ -1,9 +1,24 @@
+"use client"
+
 import type * as React from "react"
 import Link from "next/link"
 import { ArrowRight, Inbox } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { useSession } from "@/lib/auth/session"
+import type { Role } from "@/lib/auth/accounts"
+import { c } from "@/lib/ui/copy"
 import { RunDemoButton } from "./run-demo-button"
+
+/**
+ * Only Northgate (prime) and signed-out Story mode may load and match the parts list. From any
+ * other desk a `run` empty state explains the wait instead of offering the button.
+ */
+const ROLE_LINE: Partial<Record<Role, string>> = {
+  shop: "empty.role.shop",
+  college: "empty.role.partner",
+  trainee: "empty.role.partner",
+}
 
 type EmptyAction = React.ReactNode | { label: string; href: string }
 
@@ -19,6 +34,9 @@ function isLinkAction(a: EmptyAction): a is { label: string; href: string } {
  *               action={<RunDemoButton upTo="routed" label={c("run.loadAndMatch")} />} />
  *   <EmptyState … run />                       // shorthand for the same button
  *   <EmptyState … run={{ label: c("run.loadAndMatch.shop") }} />
+ *
+ * `run` is ignored for shop, college and trainee sessions: they get one line of role copy
+ * (empty.role.*) in place of `body` and no button. Prime and signed-out viewers keep the button.
  */
 export function EmptyState({
   title,
@@ -37,8 +55,19 @@ export function EmptyState({
   run?: boolean | { label?: string }
   className?: string
 }) {
+  const { session, hydrated } = useSession()
+  const lineKey = run && session ? ROLE_LINE[session.role] : undefined
+  let roleLine = lineKey ? c(lineKey) : undefined
+  // "Northgate hasn't sent offers yet." is often the title already: don't say it twice.
+  if (roleLine && typeof title === "string" && roleLine.startsWith(title) && roleLine.length > title.length) {
+    roleLine = roleLine.slice(title.length).trim()
+  }
+  // Until the session is known (server render, first client render) show no button, so a shop
+  // never sees it flash in and out.
+  const showRun = !!run && hydrated && !lineKey
   const act: EmptyAction | undefined =
-    action ?? (run ? <RunDemoButton upTo="routed" label={typeof run === "object" ? run.label : undefined} /> : undefined)
+    action ?? (showRun ? <RunDemoButton upTo="routed" label={typeof run === "object" ? run.label : undefined} /> : undefined)
+  const text = roleLine ?? body
   return (
     <div
       data-empty-state
@@ -51,7 +80,11 @@ export function EmptyState({
         {icon ?? <Inbox className="size-5" aria-hidden />}
       </div>
       <div className="text-lg font-semibold text-foreground">{title}</div>
-      {body ? <p className="max-w-md text-sm text-muted-foreground">{body}</p> : null}
+      {text ? (
+        <p className="max-w-md text-sm text-muted-foreground" data-empty-role={lineKey ? session?.role : undefined}>
+          {text}
+        </p>
+      ) : null}
       {act ? (
         <div className="mt-2">
           {isLinkAction(act) ? (

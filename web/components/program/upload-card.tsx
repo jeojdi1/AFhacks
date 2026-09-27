@@ -10,6 +10,8 @@ import type { Job, PartsUploadResponse } from "@/lib/api/types";
 import { fx } from "@/lib/data/fixture-source";
 import type { Stage } from "@/lib/data/store";
 import { fmtMoney } from "@/lib/format";
+import { useSession } from "@/lib/auth/session";
+import { c } from "@/lib/ui/copy";
 import { cb } from "@/lib/ui/copy-b";
 import { cn } from "@/lib/utils";
 
@@ -40,11 +42,27 @@ export function UploadCard({ stage, busy, jobs, fileName: storeFileName, onUploa
   const isBusy = busy !== null;
   const uploading = isBusy && /^tagging/i.test(busy ?? "");
   const busyText = uploading ? cb("busy.upload") : busy;
+  // Only Northgate (prime) and signed-out Story mode load the parts list.
+  const { session } = useSession();
+  const waitingRole = session && ["shop", "college", "trainee"].includes(session.role) ? session.role : null;
 
   function pick(file: File | undefined) {
     if (!file) return;
     setPickedName(file.name);
     void onUpload(file);
+  }
+
+  if (stage === "empty" && jobs.length === 0 && waitingRole) {
+    return (
+      <Card className="py-0">
+        <CardContent className="flex items-start gap-3 p-5 sm:p-6">
+          <FileSpreadsheet className="mt-0.5 size-6 shrink-0 text-slate-500" aria-hidden />
+          <p className="text-[15px] text-slate-700" data-empty-role={waitingRole}>
+            {c("empty.role.partner")}
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (stage === "empty" && jobs.length === 0) {

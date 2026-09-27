@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { ArrowDown, ArrowRight, LoaderCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/lib/data/store"
+import { useSession } from "@/lib/auth/session"
 import { c } from "@/lib/ui/copy"
 import { nextStep, scrollToFund } from "@/lib/ui/steps"
 import { useWithParams } from "@/lib/ui/use-with-params"
@@ -105,6 +106,7 @@ export function AutoNextStep({
 }) {
   const pathname = usePathname() ?? "/"
   const { stage, demoShopId, blocked: blockedJobs, offerStatus, uploadParts, route, busy, ready } = useDemo()
+  const { session, hydrated } = useSession()
   const anyAccepted = Object.entries(offerStatus).some(
     ([k, v]) => v === "accepted" && (!demoShopId || k.startsWith(`${demoShopId}:`))
   )
@@ -113,6 +115,13 @@ export function AutoNextStep({
     anyAccepted,
   })
 
+  // Only Northgate (prime) and signed-out Story mode may load and match the parts list.
+  // Until the session is known, show nothing rather than a button that may vanish.
+  if (spec.action === "run" || spec.action === "upload") {
+    if (!hydrated || (session && (session.role === "shop" || session.role === "college" || session.role === "trainee"))) {
+      return null
+    }
+  }
   if (spec.action === "run") {
     return <RunDemoButton upTo="routed" navigateTo={pathname === "/" ? spec.href : undefined} label={spec.label} size={size} className={className} />
   }

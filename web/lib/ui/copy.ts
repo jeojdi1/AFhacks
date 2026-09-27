@@ -286,6 +286,9 @@ const BASE: Record<string, string> = {
   "shop.naics": "Industry code",
   "shop.empty.title": "Northgate hasn't sent offers yet.",
   "shop.empty.body": "Load Northgate's parts list and match it to shops, and this shop's offers appear here.",
+  // Empty states seen from a non-prime desk: only Northgate can load and match its parts list.
+  "empty.role.shop": "Northgate hasn't sent offers yet. You'll see them here the moment it does.",
+  "empty.role.partner": "Northgate hasn't sent its parts list yet.",
 
   // -------------------------------------------------------------------------
   // §8.7 Network and discovered profile
@@ -660,6 +663,58 @@ const BASE: Record<string, string> = {
     "Public record: {contracts} National Defence contract{s} over $10K worth {value} (latest {last}). Matched to this company by name and location: unverified.",
   "pub.dnd.tip":
     "National Defence contracts over $10K, Jan 2021 – Jun 2026 (proactive disclosure, open.canada.ca, Open Government Licence). Matched by company name and location ({confidence} confidence); not confirmed by the company.",
+
+  // Cycle 2 (desktop pages)
+  // Shop profile opened from Find suppliers (C2-11)
+  "shop.backToSuppliers": "Back to Find suppliers",
+  // Offer answers the demo simulator wrote (C2-7; same wording as the phone)
+  "shop.inbox.accepted.sim": "Accepted by the demo simulator",
+  "shop.inbox.declined.sim": "Declined by the demo simulator",
+  "shop.inbox.declined.simWith": "Declined by the demo simulator: {reason}",
+  // Training-credit cap (C2-15). cap = what's owed × 25%; used = credit from funded training.
+  "score.cap.line":
+    "Training credit can count for at most 25% of what Northgate owes: {cap} under the simplified demo rules (ITB model terms §7.5.4.1). This plan uses {used}, {pct} of that cap.",
+  "score.cap.none":
+    "Training credit can count for at most 25% of what Northgate owes: {cap} under the simplified demo rules (ITB model terms §7.5.4.1). No training funded yet (0% of the cap).",
+  "score.cap.wouldUse":
+    "Training credit can count for at most 25% of what Northgate owes: {cap} under the simplified demo rules (ITB model terms §7.5.4.1). With this plan, training uses {used}, {pct} of that cap.",
+  // Evidence pack (C2-16)
+  "score.evidence": "Download evidence pack (CSV)",
+  "score.evidence.busy": "Building the evidence pack…",
+  "score.evidence.hint": "Match the parts list first: there is no credit to show yet.",
+  "score.evidence.done": "Evidence pack downloaded",
+  "score.evidence.done.body": "{n} credit lines, built in this browser. Demo only: not an official ITB report.",
+  "score.evidence.failed": "Could not build the evidence pack",
+  // Claim this profile (demo) (C2-17)
+  "pub.claim.demo": "Demo",
+  "pub.claim.intro":
+    "Work at {name}? Claiming the profile lets the shop correct it and be offered work. It takes three steps:",
+  "pub.claim.step1": "Show you work there, with an email address at the company's own domain.",
+  "pub.claim.step2": "Confirm what the shop can make and how many hours a week it has free.",
+  "pub.claim.step3": "Add proof of your certificates (for example, a registry listing or a certificate copy).",
+  "pub.claim.never": "Never upload drawings or controlled technical data. Muster doesn't need them to claim a profile.",
+  "pub.claim.email": "Work email",
+  "pub.claim.email.placeholder": "you@yourcompany.ca",
+  "pub.claim.email.hint": "Use your email at the company's own domain.",
+  "pub.claim.email.hintHost": "Use your email at the company's own domain ({host}).",
+  "pub.claim.email.invalid": "Enter a work email address, like you@company.ca.",
+  "pub.claim.warn.free":
+    "{domain} is a free email provider. Verification needs an address at the company's own domain.",
+  "pub.claim.warn.domain":
+    "{domain} doesn't match the company website ({host}). Verification may take longer.",
+  "pub.claim.role": "Your role",
+  "pub.claim.role.pick": "Pick your role",
+  "pub.claim.role.missing": "Pick your role.",
+  "pub.claim.role.owner": "Owner",
+  "pub.claim.role.operations": "Operations / plant manager",
+  "pub.claim.role.quality": "Quality manager",
+  "pub.claim.role.sales": "Sales / estimating",
+  "pub.claim.role.other": "Other",
+  "pub.claim.privacy": "No name needed. The request stays in this browser: nothing is sent.",
+  "pub.claim.submit": "Request claim (demo)",
+  "pub.claim.pending": "Claim requested — pending verification.",
+  "pub.claim.pending.body": "Requested for {email} ({role}).",
+  "pub.claim.pending.demo": "Demo only: nothing was sent.",
 }
 
 /** §8.8: tooltips are the PLAIN "tip" column, keyed plain.<KEY>.tip (plus .first / .label). */

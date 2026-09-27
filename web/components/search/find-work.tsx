@@ -36,10 +36,32 @@ import { fixtureShop, fundedUnlocks } from "@/lib/search/local"
 import { PROCESS_KEYS, canadaBuysSearchUrl, certFirst, fmtDate, processPlain } from "@/lib/search/labels"
 import type { EligibleJob, MissingReq, NearMissJob, Tender } from "@/lib/search/types"
 import { TermText } from "./term-text"
-import { TENDER_KIND_LABEL, fitTenders, type TenderKind } from "./work-tenders"
+import { TENDER_KIND_LABEL, closesChip, fitTenders, type TenderKind } from "./work-tenders"
+
+const CANADABUYS_TENDERS = "https://canadabuys.canada.ca/en/tender-opportunities"
+
+/** The current time, refreshed every minute, so a notice drops out when it closes. */
+function useNow(): Date {
+  const [now, setNow] = React.useState(() => new Date())
+  React.useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), 60_000)
+    return () => window.clearInterval(id)
+  }, [])
+  return now
+}
 
 const selectCls =
   "h-10 min-w-0 rounded-md border border-input bg-background px-2.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring"
+
+/** "2:00 p.m." from "2026-09-28T14:00:00" (local time, as the notice states it). */
+function closingTime(iso: string): string {
+  const m = /T(\d{2}):(\d{2})/.exec(iso)
+  if (!m) return ""
+  const h = Number(m[1])
+  const mm = m[2]
+  const suffix = h < 12 ? "a.m." : "p.m."
+  return `${h % 12 === 0 ? 12 : h % 12}:${mm} ${suffix}`
+}
 
 function reqLabel(m: MissingReq): string {
   return m.kind === "cert" ? certFirst(m.requirement) : `${processPlain(m.requirement)} (a process the shop doesn't do yet)`
@@ -221,18 +243,59 @@ function NearRow({ job, shopId }: { job: NearMissJob; shopId: string }) {
   )
 }
 
-function TenderRow({ t, kind }: { t: Tender; kind?: Exclude<TenderKind, "fits"> }) {
+function TenderRow({
+  t,
+  kind,
+  now,
+  closed = false,
+}: {
+  t: Tender
+  kind?: Exclude<TenderKind, "fits">
+  now: Date
+  closed?: boolean
+}) {
+  const chip = closed ? null : closesChip(t, now)
   return (
-    <li className="flex flex-col gap-1.5 rounded-lg border border-border p-3 sm:p-4" data-tender-kind={kind ?? "fits"}>
-      {kind ? (
-        <span className="inline-flex h-6 w-fit items-center rounded-full border border-slate-300 bg-slate-50 px-2.5 text-xs font-medium text-slate-700">
-          {TENDER_KIND_LABEL[kind]}
-        </span>
+    <li
+      className={cn("flex flex-col gap-1.5 rounded-lg border border-border p-3 sm:p-4", closed && "bg-muted/50")}
+      data-tender-kind={kind ?? "fits"}
+      data-tender-closed={closed ? "" : undefined}
+    >
+      {kind || chip || closed ? (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {kind ? (
+            <span className="inline-flex h-6 w-fit items-center rounded-full border border-slate-300 bg-slate-50 px-2.5 text-xs font-medium text-slate-700">
+              {TENDER_KIND_LABEL[kind]}
+            </span>
+          ) : null}
+          {closed ? (
+            <span
+              className="inline-flex h-6 w-fit items-center rounded-full border border-slate-300 bg-slate-100 px-2.5 text-xs font-medium text-slate-600"
+              data-tender-chip="closed"
+            >
+              Closed
+            </span>
+          ) : chip ? (
+            <span
+              className={cn(
+                "inline-flex h-6 w-fit items-center gap-1 rounded-full border px-2.5 text-xs font-medium",
+                chip === "Closes today" ? "border-amber-300 bg-amber-50 text-amber-900" : "border-slate-300 bg-white text-slate-700"
+              )}
+              data-tender-chip="closes"
+            >
+              <Clock className="size-3 shrink-0" aria-hidden />
+              {chip}
+            </span>
+          ) : null}
+        </div>
       ) : null}
-      <p className="font-medium">{t.title}</p>
+      <p className={cn("font-medium", closed && "text-slate-600")}>{t.title}</p>
       <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-700">
         <span>{t.buyer ?? "Government of Canada"}</span>
-        <span>Closes {fmtDate(t.closing_date)}</span>
+        <span>
+          {closed ? "Closed" : "Closes"} {fmtDate(t.closing_date)}
+          {t.closing_date && t.closing_date.length > 10 ? `, ${closingTime(t.closing_date)}` : ""}
+        </span>
         {t.region ? <span>{t.region}</span> : null}
         {t.notice_type ? <span>{t.notice_type}</span> : null}
       </p>
@@ -304,8 +367,10 @@ export function FindWork() {
   const oneStepValue = allOneStep.reduce((s, e) => s + e.value_cad, 0)
 
   // Tenders: only goods a manufacturer could make or supply; equipment purchases set aside.
-  const tenders = fitTenders(data?.tenders ?? [], { q, process })
-  const allTenders = fitTenders(totals?.tenders ?? [], { q: "", process: "" })
+  // Notices past their closing time never count as open (checked against the clock each minute).
+  const now = useNow()
+  const tenders = fitTenders(data?.tenders ?? [], { q, process, now })
+  const allTenders = fitTenders(totals?.tenders ?? [], { q: "", process: "", now })
 
   // "Get X → N more jobs worth $Y", grouped by the one missing requirement.
   const groupMap = new Map<string, { req: MissingReq; n: number; value: number }>()
@@ -369,7 +434,7 @@ export function FindWork() {
             <p className="text-sm text-muted-foreground">Open federal defence tenders</p>
             <p className="text-2xl font-semibold tabular-nums">{allTenders.fits.length}</p>
             <p className="text-sm text-slate-700">
-              for parts, in your categories
+              vehicle and equipment spares, still open
               {allTenders.setAside.length ? (
                 <span className="text-muted-foreground">
                   {" "}
@@ -504,26 +569,50 @@ export function FindWork() {
 
       <Panel title="Open federal defence tenders" icon={Landmark} id="tenders" testId="tenders">
         <p className="-mt-1 text-sm text-muted-foreground">
-          Real public notices from CanadaBuys for parts in your shop&apos;s categories, Ontario first. Notices where
-          National Defence is buying equipment (a lathe, a milling machine) or off-the-shelf items are left out. Muster is not affiliated with
-          CanadaBuys; bid through CanadaBuys.
+          Vehicle and equipment spares a fabrication shop could supply, Ontario first. Real public notices from
+          CanadaBuys; notices where National Defence is buying equipment (a lathe, a milling machine) or off-the-shelf
+          items are left out. Muster is not affiliated with CanadaBuys; bid through CanadaBuys.
           {filtering ? " Narrowed by your search." : ""}
         </p>
         {tenders.fits.length ? (
           <ul className="flex flex-col gap-2" data-tenders-fit>
             {tenders.fits.map((t) => (
-              <TenderRow key={t.reference} t={t} />
+              <TenderRow key={t.reference} t={t} now={now} />
             ))}
           </ul>
         ) : (
           <p className="text-sm text-muted-foreground" data-tenders-none>
-            {!data
-              ? "Loading…"
-              : filtering
-                ? "No open tenders for parts match this search."
-                : "No open tenders for parts in your categories right now."}
+            {!data ? (
+              "Loading…"
+            ) : filtering ? (
+              "No open tenders for parts match this search."
+            ) : (
+              <>
+                No open notices in this sample (retrieved 2026-09-26). New notices appear on CanadaBuys daily.{" "}
+                <a
+                  href={CANADABUYS_TENDERS}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-medium text-slate-800 underline underline-offset-4"
+                >
+                  Search CanadaBuys
+                  <ExternalLink className="size-3.5" aria-hidden />
+                  <span className="sr-only">(opens in a new tab)</span>
+                </a>
+              </>
+            )}
           </p>
         )}
+        {tenders.closed.length ? (
+          <div data-tenders-closed>
+            <h3 className="mb-2 text-sm font-semibold text-slate-700">Recently closed ({tenders.closed.length})</h3>
+            <ul className="flex flex-col gap-2">
+              {tenders.closed.map((t) => (
+                <TenderRow key={t.reference} t={t} now={now} closed />
+              ))}
+            </ul>
+          </div>
+        ) : null}
         {tenders.setAside.length ? (
           <Details
             storyHidden={false}
@@ -532,7 +621,7 @@ export function FindWork() {
           >
             <ul className="flex flex-col gap-2">
               {tenders.setAside.map((t) => (
-                <TenderRow key={t.reference} t={t} kind={t.kind} />
+                <TenderRow key={t.reference} t={t} kind={t.kind} now={now} />
               ))}
             </ul>
           </Details>

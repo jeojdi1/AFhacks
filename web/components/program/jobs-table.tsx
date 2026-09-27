@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ArrowRight, ChevronDown, TriangleAlert } from "lucide-react";
 
 import { StatusBadge } from "@/components/muster/status-badge";
+import { SimulatedChip } from "@/components/mobile/shell/simulation";
+import { decisionIsSimulated } from "@/lib/app/sim-flag";
+import { decisionKey, useAppActions } from "@/lib/app/actions-store";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -37,6 +40,17 @@ export function JobsTable({ rows, routed, filter, onFilterChange }: JobsTablePro
   const showAll = !story || (expanded?.story === story && expanded.open);
   const pinned = pinnedRows(rows, routed);
   const canCollapse = story && rows.length > pinned.length;
+  // Declines the demo simulator wrote (not the shop): same test as /prime and the phone.
+  const { decisions, events } = useAppActions();
+  const simDeclined = useMemo(() => {
+    const s = new Set<string>();
+    for (const r of rows) {
+      if (!r.declined || !r.assignment) continue;
+      const d = decisions[decisionKey(r.assignment.shop_id, r.id)];
+      if (d?.decision === "declined" && decisionIsSimulated(d, events)) s.add(r.id);
+    }
+    return s;
+  }, [rows, decisions, events]);
 
   const counts: Record<JobFilter, number> = {
     all: rows.length,
@@ -94,7 +108,7 @@ export function JobsTable({ rows, routed, filter, onFilterChange }: JobsTablePro
             {cb("program.table.none")}
           </li>
         ) : (
-          visible.map((r) => <JobCardView key={r.id} row={r} />)
+          visible.map((r) => <JobCardView key={r.id} row={r} simulated={simDeclined.has(r.id)} />)
         )}
       </ul>
 
@@ -133,7 +147,7 @@ export function JobsTable({ rows, routed, filter, onFilterChange }: JobsTablePro
                 </TableCell>
               </TableRow>
             ) : (
-              visible.map((r) => <JobRowView key={r.id} row={r} detail={detail} />)
+              visible.map((r) => <JobRowView key={r.id} row={r} detail={detail} simulated={simDeclined.has(r.id)} />)
             )}
           </TableBody>
         </Table>
@@ -159,7 +173,7 @@ export function JobsTable({ rows, routed, filter, onFilterChange }: JobsTablePro
   );
 }
 
-function JobRowView({ row: r, detail }: { row: JobRow; detail: boolean }) {
+function JobRowView({ row: r, detail, simulated }: { row: JobRow; detail: boolean; simulated: boolean }) {
   const wp = useWithParams();
   const a = r.assignment;
   const b = r.blocked;
@@ -195,7 +209,7 @@ function JobRowView({ row: r, detail }: { row: JobRow; detail: boolean }) {
             </div>
             <div className="mt-1 flex flex-wrap items-center gap-1.5">
               <StatusBadge kind={a.shop_source === "public" ? "public" : "synthetic"} />
-              {r.declined ? <DeclinedChip /> : null}
+              {r.declined ? <DeclinedChip simulated={simulated} /> : null}
               <span className="text-xs text-slate-500">
                 {a.shop_city} · {fmtKm(a.distance_km)}
               </span>
@@ -269,7 +283,7 @@ function JobRowView({ row: r, detail }: { row: JobRow; detail: boolean }) {
 }
 
 /** The same job as a stacked card for narrow screens: job, shop or stuck reason, value → credit. */
-function JobCardView({ row: r }: { row: JobRow }) {
+function JobCardView({ row: r, simulated }: { row: JobRow; simulated: boolean }) {
   const wp = useWithParams();
   const a = r.assignment;
   const b = r.blocked;
@@ -304,7 +318,7 @@ function JobCardView({ row: r }: { row: JobRow }) {
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span className="font-medium text-slate-900">{a.shop_name}</span>
             <StatusBadge kind={a.shop_source === "public" ? "public" : "synthetic"} />
-            {r.declined ? <DeclinedChip /> : null}
+            {r.declined ? <DeclinedChip simulated={simulated} /> : null}
           </div>
           <div className="text-xs text-slate-500">
             {a.shop_city} · {fmtKm(a.distance_km)} · {cb("why.match", { score: Math.round(a.score * 100) })}
@@ -427,15 +441,26 @@ function MultiplierChip({ multiplier }: { multiplier: number }) {
   );
 }
 
-/** The shop said no; the demo keeps routing (and credit) as matched until Northgate re-routes. */
-function DeclinedChip() {
+/**
+ * The shop said no; the demo keeps routing (and credit) as matched until Northgate re-routes.
+ * Simulated: the demo simulator declined, not the shop (phone wording + the Simulated chip).
+ */
+function DeclinedChip({ simulated = false }: { simulated?: boolean }) {
   return (
-    <span
-      className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-900"
-      title="The shop declined this offer. The demo keeps the match and its credit until Northgate picks another shop."
-      data-declined-chip
-    >
-      Declined, still counted (demo)
-    </span>
+    <>
+      <span
+        className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-900"
+        title={
+          simulated
+            ? "The demo simulator declined this offer, not the shop. The demo keeps the match and its credit until Northgate picks another shop."
+            : "The shop declined this offer. The demo keeps the match and its credit until Northgate picks another shop."
+        }
+        data-declined-chip
+        data-simulated={simulated || undefined}
+      >
+        {simulated ? "Declined by the demo simulator, still counted" : "Declined, still counted (demo)"}
+      </span>
+      {simulated ? <SimulatedChip className="h-5" /> : null}
+    </>
   );
 }

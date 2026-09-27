@@ -86,6 +86,8 @@ export interface EligibleJob {
   reasons: string[]
   status: JobStatus
   offer_status: string | null
+  /** Engine: re-offered to this shop after this shop id declined it (demo). */
+  reoffered_from?: string | null
 }
 
 export interface MissingReq {
@@ -114,6 +116,8 @@ export interface Tender {
   notice_type: string | null
   region: string | null
   url: string | null
+  /** Engine: past its closing time (only listed, as "Recently closed", when few are open). */
+  closed?: boolean
 }
 
 export interface JobSearchResponse {

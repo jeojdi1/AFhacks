@@ -18,6 +18,7 @@ import json
 import os
 import sys
 import tempfile
+from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -44,9 +45,13 @@ def build() -> dict[str, object]:
     from fastapi.testclient import TestClient
 
     import engine.app as app_module
-    from engine import cache, graphdb
+    from engine import cache, graphdb, search
 
     out: dict[str, object] = {}
+    # Tenders drop out once they close: pin the clock to the sample's retrieval day so the
+    # saved answer never changes with the date (the web re-checks closing times live).
+    old_now = search.tender_now
+    search.tender_now = lambda: datetime.fromisoformat("2026-09-26T12:00:00")
     with tempfile.TemporaryDirectory() as tmp:
         old = {k: os.environ.get(k) for k in ("MUSTER_DB", "MUSTER_GRAPH")}
         os.environ["MUSTER_DB"] = str(Path(tmp) / "search_fixtures.db")
@@ -67,6 +72,7 @@ def build() -> dict[str, object]:
                         raise SystemExit(f"GET {path}: {r.status_code} {r.text}")
                     out[name] = r.json()
         finally:
+            search.tender_now = old_now
             for k, v in old.items():
                 if v is None:
                     os.environ.pop(k, None)

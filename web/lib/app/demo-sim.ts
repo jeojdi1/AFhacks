@@ -19,6 +19,8 @@ import { appFetch } from "./api"
 export const SIM_KEY = "muster.app.v1.simulate"
 /** One simulated answer every 8 s. */
 export const SIM_TICK_MS = 8000
+/** While only a gated step is left (waiting for Northgate to fund), check back every 15 s. */
+export const SIM_WAIT_MS = 15000
 const SIM_EVENT = "muster:sim-change"
 
 export interface SeedResult {
@@ -31,6 +33,8 @@ export interface TickResult {
   event?: unknown
   remaining?: number
   queue_remaining?: number
+  /** Scripted steps held back until the presenter acts (e.g. TP-02's request waits for TP-01 funding). */
+  waiting?: number
   done?: boolean
   exhausted?: boolean
   [k: string]: unknown
@@ -44,9 +48,19 @@ export function simulateTick(apiUrl: string): Promise<TickResult> {
   return appFetch<TickResult>(apiUrl, "/demo/simulate/tick", { method: "POST", timeoutMs: 15000 })
 }
 
-/** True when a tick says the simulated queue has nothing left to play. */
+/** Steps the engine is holding back until Northgate acts (a missing field counts as 0). */
+export function tickWaiting(r: TickResult | null | undefined): number {
+  const w = r && typeof r === "object" ? r.waiting : undefined
+  return typeof w === "number" && Number.isFinite(w) && w > 0 ? w : 0
+}
+
+/**
+ * True when a tick says the simulated queue has nothing left to play. Never true while the
+ * engine still holds a step back (waiting > 0): that step plays once Northgate funds.
+ */
 export function tickExhausted(r: TickResult | null | undefined): boolean {
   if (!r || typeof r !== "object") return false
+  if (tickWaiting(r) > 0) return false
   if (r.done === true || r.exhausted === true) return true
   if (r.remaining === 0 || r.queue_remaining === 0) return true
   const known = "done" in r || "exhausted" in r || "remaining" in r || "queue_remaining" in r

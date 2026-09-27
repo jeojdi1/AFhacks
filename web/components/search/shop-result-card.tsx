@@ -1,7 +1,9 @@
 "use client"
 
+import * as React from "react"
 import Link from "next/link"
-import { Check, CircleDashed, Clock, FlaskConical, Globe, Landmark, MapPin, UserRoundCheck, X } from "lucide-react"
+import { Check, CircleDashed, Clock, FlaskConical, Globe, Landmark, LoaderCircle, MapPin, Send, UserRoundCheck, X } from "lucide-react"
+import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { CERT_IN_TRAINING_NOTE, certInTraining, fmtMoney } from "@/lib/format"
 import { Term } from "@/components/muster/term"
@@ -43,11 +45,83 @@ export function hasTrainingOnlyMatch(shop: ShopResult, query: ShopSearchQueryEch
   })
 }
 
-export function ShopResultCard({ shop, query }: { shop: ShopResult; query: ShopSearchQueryEcho }) {
+/** "Find another shop" for a declined job (?job=): offer it to this synthetic shop (demo). */
+export interface OfferJob {
+  jobId: string
+  /** Short shop name for the button and the confirmation ("Tessellate Precision"). */
+  shopLabel: string
+  /** Resolves true when the offer went through (the page then shows it as sent). */
+  onOffer: () => Promise<boolean>
+}
+
+function OfferButton({ offer }: { offer: OfferJob }) {
+  const [open, setOpen] = React.useState(false)
+  const [busy, setBusy] = React.useState(false)
+  const confirm = async () => {
+    setBusy(true)
+    const ok = await offer.onOffer()
+    setBusy(false)
+    if (ok) setOpen(false)
+  }
+  return (
+    <Popover open={open} onOpenChange={(o) => !busy && setOpen(o)}>
+      <PopoverTrigger
+        className="inline-flex h-10 items-center gap-1.5 rounded-md bg-foreground px-3.5 text-sm font-semibold text-background hover:bg-foreground/90 focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+        data-testid="offer-job"
+      >
+        <Send className="size-4" aria-hidden />
+        Offer {offer.jobId} to {offer.shopLabel}
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-80 gap-3 p-3">
+        <PopoverHeader>
+          <PopoverTitle>
+            Offer {offer.jobId} to {offer.shopLabel}?
+          </PopoverTitle>
+          <PopoverDescription>
+            {offer.shopLabel} will see {offer.jobId} as a new offer. Credit stays counted as placed (demo).
+          </PopoverDescription>
+        </PopoverHeader>
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            disabled={busy}
+            className="inline-flex h-9 items-center rounded-md border border-slate-300 bg-background px-3 text-sm font-medium hover:bg-muted disabled:opacity-60"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => void confirm()}
+            disabled={busy}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-foreground px-3 text-sm font-semibold text-background hover:bg-foreground/90 disabled:opacity-60"
+            data-testid="offer-job-confirm"
+          >
+            {busy ? <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" aria-hidden /> : null}
+            Send the offer
+          </button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+export function ShopResultCard({
+  shop,
+  query,
+  offer,
+}: {
+  shop: ShopResult
+  query: ShopSearchQueryEcho
+  /** Set on /prime/suppliers?job=… for a synthetic shop that can take the declined job. */
+  offer?: OfferJob | null
+}) {
   const wp = useWithParams()
   const isPublic = shop.source === "public"
   const { matched, missing, training, stillTraining } = matchLists(shop, query)
   const dnd = shop.dnd_history
+  // from=suppliers: the profile shows a way back to this search (its filters live in the URL).
+  const profileHref = wp(`/shops/${shop.shop_id}?from=suppliers`)
 
   return (
     <article
@@ -58,7 +132,7 @@ export function ShopResultCard({ shop, query }: { shop: ShopResult; query: ShopS
       <header className="flex flex-col gap-1.5">
         <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1.5">
           <h3 className="min-w-0 text-[1.05rem] leading-snug font-semibold break-words">
-            <Link href={wp(`/shops/${shop.shop_id}`)} className="underline-offset-4 hover:underline">
+            <Link href={profileHref} className="underline-offset-4 hover:underline">
               {shop.name}
             </Link>
           </h3>
@@ -214,9 +288,12 @@ export function ShopResultCard({ shop, query }: { shop: ShopResult; query: ShopS
             ? "Not onboarded: not sent work until the shop claims its profile."
             : "Demo shop: can receive Northgate's offers."}
         </span>
-        <Link href={wp(`/shops/${shop.shop_id}`)} className="font-medium underline-offset-4 hover:underline">
-          View profile →
-        </Link>
+        <span className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <Link href={profileHref} className="font-medium underline-offset-4 hover:underline">
+            View profile →
+          </Link>
+          {offer && !isPublic ? <OfferButton offer={offer} /> : null}
+        </span>
       </footer>
     </article>
   )

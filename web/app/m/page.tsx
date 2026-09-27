@@ -11,7 +11,7 @@ import { t } from "@/lib/app/strings"
 import { UnreachableNotice } from "@/components/mobile/shell/unreachable-notice"
 import { useConnection } from "@/lib/app/connection"
 import { ShopLabelChip } from "@/components/mobile/shell/m-header"
-import { DemoControls } from "@/components/mobile/shell/demo-controls"
+import { DemoControls, PresenterTools } from "@/components/mobile/shell/demo-controls"
 
 const ROLE_KEY = "muster.app.v1.role"
 
@@ -125,49 +125,52 @@ export default function RolePickerPage() {
         </ul>
       </section>
 
-      <DemoControls />
+      {/* Demo controls and other shops' screens: presenter only (closed unless ?presenter=1). */}
+      <PresenterTools>
+        <DemoControls />
 
-      <section aria-labelledby="other-shops-title" className="flex flex-col gap-3">
-        <h2 id="other-shops-title" className="text-lg font-semibold tracking-tight">
-          {t("role.otherShops")}
-        </h2>
-        {!ready ? (
-          <div className="h-16 animate-pulse rounded-xl bg-muted motion-reduce:animate-none" aria-hidden />
-        ) : !routed && unreachable ? (
-          <UnreachableNotice />
-        ) : !routed || otherShops.length === 0 ? (
-          <div className="flex items-start gap-3 rounded-xl border border-dashed border-border bg-muted p-4">
-            <Inbox className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
-            <div>
-              <p className="text-base font-medium">{t("empty.notRouted")}</p>
-              <p className="mt-0.5 text-sm text-muted-foreground">{t("role.otherShops.empty")}</p>
+        <section aria-labelledby="other-shops-title" className="flex flex-col gap-3">
+          <h2 id="other-shops-title" className="text-lg font-semibold tracking-tight">
+            {t("role.otherShops")}
+          </h2>
+          {!ready ? (
+            <div className="h-16 animate-pulse rounded-xl bg-muted motion-reduce:animate-none" aria-hidden />
+          ) : !routed && unreachable ? (
+            <UnreachableNotice />
+          ) : !routed || otherShops.length === 0 ? (
+            <div className="flex items-start gap-3 rounded-xl border border-dashed border-border bg-muted p-4">
+              <Inbox className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
+              <div>
+                <p className="text-base font-medium">{t("empty.notRouted")}</p>
+                <p className="mt-0.5 text-sm text-muted-foreground">{t("role.otherShops.empty")}</p>
+              </div>
             </div>
-          </div>
-        ) : (
-          <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
-            {otherShops.map((s) => (
-              <li key={s.id}>
-                <Link
-                  href={`/m/shops/${encodeURIComponent(s.id)}`}
-                  className="flex min-h-16 items-center gap-3 px-4 py-3 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset active:bg-muted"
-                >
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-base font-medium">{s.name}</span>
-                    <span className="mt-0.5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                      <span>{t("role.otherShops.row", { count: s.count, value: fmtMoney(s.value, { compact: true }) })}</span>
-                      <ShopLabelChip source={s.source} />
+          ) : (
+            <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
+              {otherShops.map((s) => (
+                <li key={s.id}>
+                  <Link
+                    href={`/m/shops/${encodeURIComponent(s.id)}`}
+                    className="flex min-h-16 items-center gap-3 px-4 py-3 outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset active:bg-muted"
+                  >
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-base font-medium">{s.name}</span>
+                      <span className="mt-0.5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                        <span>{t("role.otherShops.row", { count: s.count, value: fmtMoney(s.value, { compact: true }) })}</span>
+                        <ShopLabelChip source={s.source} />
+                      </span>
                     </span>
-                  </span>
-                  <ChevronRight className="size-5 shrink-0 text-muted-foreground" aria-hidden />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-        {demoShopId && demoShopId !== featured && routed ? (
-          <p className="text-sm text-muted-foreground">Demo shop in live mode: {demoShopId}</p>
-        ) : null}
-      </section>
+                    <ChevronRight className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+          {demoShopId && demoShopId !== featured && routed ? (
+            <p className="text-sm text-muted-foreground">Demo shop in live mode: {demoShopId}</p>
+          ) : null}
+        </section>
+      </PresenterTools>
     </div>
   )
 }

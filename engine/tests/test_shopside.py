@@ -144,7 +144,7 @@ def test_route_emits_routed_event_and_routed_at(client):
     assert "routed 36 of 40 jobs" in routed["message"]
     acts = ok(client.get(f"/shops/{DEMO_SHOP}/actions"))
     assert acts == {"shop_id": DEMO_SHOP, "routed_at": "2026-09-26T21:30:00Z", "decisions": [],
-                    "funding_requests": [], "capacity": None, "declared_certs": []}
+                    "funding_requests": [], "capacity": None, "declared_certs": [], "reoffers": []}
 
 
 def test_accept_sets_status_emits_event_and_leaves_ledger(client):
@@ -472,7 +472,7 @@ def test_reset_clears_everything(client):
     ok(client.post("/demo/reset"))
     acts = ok(client.get(f"/shops/{DEMO_SHOP}/actions"))
     assert acts == {"shop_id": DEMO_SHOP, "routed_at": None, "decisions": [], "funding_requests": [],
-                    "capacity": None, "declared_certs": []}
+                    "capacity": None, "declared_certs": [], "reoffers": []}
     assert events(client) == {"program_id": "northgate", "last_seq": 0, "has_more": False, "events": []}
 
 
@@ -660,7 +660,8 @@ def test_program_actions_and_events_paging(client):
     ok(client.post(f"/shops/{DEMO_SHOP}/capacity", json={"hours_week": 40}))
     ok(client.post("/shops/syn-001/certifications/CGP", json={"expires_at": "2027-01-15"}))
     pa = ok(client.get("/programs/northgate/actions"))
-    assert set(pa) == {"program_id", "routed_at", "decisions", "funding_requests", "capacity", "declared_certs"}
+    assert set(pa) == {"program_id", "routed_at", "decisions", "funding_requests", "capacity", "declared_certs",
+                       "reoffers"}
     assert [d["job_id"] for d in pa["decisions"]] == ["NG-021", "NG-022"]
     assert [c["shop_id"] for c in pa["capacity"]] == ["syn-001", DEMO_SHOP]
     assert [d["shop_id"] for d in pa["declared_certs"]] == ["syn-001"]
@@ -750,3 +751,87 @@ def test_app_fixtures_are_current(monkeypatch):
     assert [e["kind"] for e in files["events.json"]["events"]] == [
         "routed", "offer_question", "offer_accepted", "offer_declined", "funding_requested",
         "capacity_confirmed", "cert_declared", "package_funded"]
+
+
+# --------------------------------------------------------------------------- demo re-offer
+
+
+def _reoffer_candidates(job_id: str, exclude: str) -> list[str]:
+    from engine import pipeline
+
+    state = st.load_state()
+    job = next(j for j in state.jobs if j["id"] == job_id)
+    return [sid for sid in pipeline.Context(state).graph.candidates(job)
+            if sid != exclude and state.shops[sid].get("source") == "synthetic"]
+
+
+def reoffer(c, job_id, shop_id, **kw):
+    return c.post(f"/programs/northgate/jobs/{job_id}/reoffer", json={"shop_id": shop_id, **kw})
+
+
+def test_reoffer_sends_a_declined_job_to_another_shop_without_moving_numbers(client):
+    job = "NG-022"
+    assert assignment(client, job)["shop_id"] == DEMO_SHOP
+    cands = _reoffer_candidates(job, DEMO_SHOP)
+    assert cands, "the demo job needs another qualified synthetic shop"
+    new = cands[0]
+    # not declined yet
+    assert "not declined" in err(reoffer(client, job, new), 409)
+    ok(decide(client, job, "declined", reason_code="capacity"))
+    ledger_before = ok(client.get("/programs/northgate/ledger"))
+    assignments_before = ok(client.get("/programs/northgate/assignments"))
+    program_before = ok(client.get("/programs/northgate"))
+
+    assert "already declined" in err(reoffer(client, job, DEMO_SHOP), 409)
+    assert "shop_id is required" in err(client.post(f"/programs/northgate/jobs/{job}/reoffer", json={}), 400)
+    err(reoffer(client, "NG-999", new), 404)
+    err(reoffer(client, job, "nope"), 404)
+    non_cand = next(sid for sid, s in st.load_state().shops.items()
+                    if s.get("source") == "synthetic" and sid not in cands and sid != DEMO_SHOP)
+    assert "filters" in err(reoffer(client, job, non_cand), 409)
+
+    body = ok(reoffer(client, job, new, idempotency_key="k-reoffer"))
+    assert body["event"]["kind"] == "reoffered" and body["event"]["shop_id"] == new
+    assert body["event"]["payload"]["from_shop_id"] == DEMO_SHOP
+    assert body["reoffer"]["status"] == "offered" and body["reoffer"]["from_shop_id"] == DEMO_SHOP
+    # replay: same response, no new revision
+    rev = revision()
+    assert ok(reoffer(client, job, new, idempotency_key="k-reoffer")) == body
+    assert revision() == rev
+
+    # locked numbers never move
+    assert ok(client.get("/programs/northgate/ledger")) == ledger_before
+    assert ok(client.get("/programs/northgate/assignments")) == assignments_before
+    prog = ok(client.get("/programs/northgate"))
+    assert prog["counts"] == program_before["counts"]
+
+    # the decline is resolved; the new shop has a pending offer
+    pa = ok(client.get("/programs/northgate/actions"))
+    (dec,) = [d for d in pa["decisions"] if d["job_id"] == job]
+    assert dec["decision"] == "declined" and dec["reoffered_to"] == new
+    assert [(r["job_id"], r["shop_id"], r["status"]) for r in pa["reoffers"]] == [(job, new, "offered")]
+    assert ok(client.get(f"/shops/{new}/actions"))["reoffers"][0]["job_id"] == job
+    jobs = ok(client.get("/search/jobs", params={"shop_id": new}))
+    row = next(r for r in jobs["eligible"] if r["job_id"] == job)
+    assert row["status"] == "offered_to_you" and row["offer_status"] == "offered"
+    assert row["reoffered_from"] == DEMO_SHOP
+    assert "not declined" in err(reoffer(client, job, cands[-1]), 409)
+    # the new shop's own offer list (phone Offers tab) shows it, with the placed credit
+    detail = ok(client.get(f"/shops/{new}"))
+    (off,) = [o for o in detail["offers"] if o["job_id"] == job]
+    assert off["status"] == "offered" and off["reoffered_from"] == DEMO_SHOP
+    assert off["credit_cad"] == assignment(client, job)["credit_cad"] and len(off["reasons"]) == 3
+    assert any(o["job_id"] == job for o in ok(client.get(f"/shops/{DEMO_SHOP}"))["offers"])
+
+    # the new shop answers; the old shop can no longer
+    assert "re-offered" in err(decide(client, job, "undo"), 409)
+    acc = ok(decide(client, job, "accepted", shop=new))
+    assert acc["assignment_status"] == "accepted"
+    assert assignment(client, job)["status"] == "declined"  # the assignment is never changed
+    assert ok(client.get("/programs/northgate/ledger")) == ledger_before
+    assert ok(client.get("/programs/northgate/actions"))["reoffers"][0]["status"] == "accepted"
+    assert next(o for o in ok(client.get(f"/shops/{new}"))["offers"] if o["job_id"] == job)["status"] == "accepted"
+
+    # a new route clears the re-offer
+    ok(client.post("/programs/northgate/route"))
+    assert ok(client.get("/programs/northgate/actions"))["reoffers"] == []

@@ -12,10 +12,11 @@ import { useDemo } from "@/lib/data/store"
 import { useShopBundle } from "@/lib/app/shop-bundle"
 import { useAppActions } from "@/lib/app/actions-store"
 import { useWithParams } from "@/lib/ui/use-with-params"
+import { c } from "@/lib/ui/copy"
 import { growHref } from "@/lib/app/readiness"
 import { needsAttention, renewalVerb, renewalsFor, shortDate } from "@/lib/app/renewals"
 import { appToday } from "@/lib/app/today"
-import { CERT_IN_TRAINING_LABEL, certInTraining, fmtCertCount, fmtMoney, PROCESS_LABEL } from "@/lib/format"
+import { CERT_IN_TRAINING_LABEL, certInTraining, certIsHeld, fmtCertCount, fmtMoney, PROCESS_LABEL } from "@/lib/format"
 import { StatusBadge } from "@/components/muster/status-badge"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
 import { PortalPage, Panel, BigAction } from "./portal-page"
@@ -90,7 +91,8 @@ export function ShopDesk() {
   )
   // On file = held or in training. A pending_training certificate is NOT held (welders are
   // still training, paid by Northgate): count it separately and never flag it for renewal.
-  const onFile = renewals.filter((r) => r.status !== "unknown" || r.date_basis === "shop-declared")
+  // A self-declared date on a certificate the shop does not hold does not put it on file.
+  const onFile = renewals.filter((r) => certIsHeld(r.status) || certInTraining(r.status))
   const heldCount = onFile.filter((r) => !certInTraining(r.status)).length
   const trainingCount = onFile.filter((r) => certInTraining(r.status)).length
   const due = onFile.filter((r) => !certInTraining(r.status) && needsAttention(r))
@@ -119,7 +121,10 @@ export function ShopDesk() {
       }
     >
       {!routed && demo.ready ? (
-        <StartDemo message="Northgate hasn't sent offers yet. Load its parts list and Muster matches each job to one qualified shop, then your offers appear here." />
+        <StartDemo
+          message="Northgate hasn't sent offers yet. Load its parts list and Muster matches each job to one qualified shop, then your offers appear here."
+          roleMessage={c("empty.role.shop")}
+        />
       ) : null}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
@@ -236,7 +241,7 @@ export function ShopDesk() {
         <Panel
           title="Certificates due"
           icon={CalendarClock}
-          action={{ label: "All certificates", href: `${phoneHref}/certs` }}
+          action={{ label: "All certificates", href: wp(`/shops/${SHOP_ID}#certificates`) }}
           className="lg:col-span-3"
           testId="panel-certs"
         >

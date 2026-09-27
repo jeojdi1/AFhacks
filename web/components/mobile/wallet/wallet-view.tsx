@@ -12,7 +12,7 @@ import { appToday } from "@/lib/app/today"
 import { t } from "@/lib/app/strings"
 import { needsAttention, renewalFor, sortRenewals } from "@/lib/app/renewals"
 import type { Assignment, CertWithDates, Renewal } from "@/lib/app/types"
-import { CertRow, certAnchor } from "./cert-row"
+import { CertRow, certAnchor, certRowHeld } from "./cert-row"
 import "./wallet-strings"
 
 interface Row {
@@ -54,7 +54,7 @@ export function WalletView({ shopId }: { shopId: string }) {
     const byType = new Map(certs.map((c) => [c.type as string, c]))
     return sortRenewals(certs.map((c) => renewalFor(c, ctx))).map((r) => {
       const cert = byType.get(r.cert_type) as CertWithDates
-      return { cert, renewal: r, held: cert.status !== "unknown" || !!cert.declaration }
+      return { cert, renewal: r, held: certRowHeld(cert) }
     })
   }, [certs, today, shopId, jobsById, assignments])
 
@@ -176,6 +176,7 @@ export function WalletView({ shopId }: { shopId: string }) {
               onToggle={(o) => toggle(cert.type, o)}
               routed={routed}
               declare={declare}
+              shopId={shopId}
             />
           ))}
         </ul>
@@ -197,6 +198,7 @@ export function WalletView({ shopId }: { shopId: string }) {
                 onToggle={(o) => toggle(cert.type, o)}
                 routed={routed}
                 declare={declare}
+                shopId={shopId}
               />
             ))}
           </ul>

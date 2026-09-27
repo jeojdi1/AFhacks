@@ -23,12 +23,13 @@ import json
 import logging
 import math
 import re
+from datetime import UTC, datetime
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 from engine import gaps as gaps_mod
-from engine import graphdb, pipeline
+from engine import graphdb, pipeline, shopside
 from engine import ledger as ledger_mod
 from engine import public as public_mod
 from engine import rules as rules_mod
@@ -50,7 +51,8 @@ KIND_ORDER = {k: i for i, k in enumerate(
      "Manufacturer"))}
 TENDERS_FILE = graphdb.PROCESSED / "tenders_defence.json"
 TENDER_SOURCE = ("CanadaBuys open tender notices (Open Government Licence); sample retrieved 2026-09-26. "
-                 "Matched by category and title; notices that buy equipment or off-the-shelf hardware are left out.")
+                 "Matched by category and title; notices that buy equipment or off-the-shelf hardware, "
+                 "and notices past their closing time, are left out.")
 DND_SOURCE = ("DND contracts over $10K (proactive disclosure, Open Government Licence); "
               "name match, unverified")
 PROCESS_ALIASES = {
@@ -538,15 +540,61 @@ def tender_kind(title: str | None) -> str:
     return "fits"
 
 
-def tenders_for(processes: list[str], q: str | None, limit: int = 5) -> list[dict]:
+# Ontario delivery regions in the sample are sometimes a city, not the province.
+TENDER_ONTARIO = re.compile(
+    r"\b(ontario|belleville|london|toronto|hamilton|barrie|kingston|petawawa|north bay|thunder bay|"
+    r"ottawa|kitchener|waterloo|woolwich)\b", re.IGNORECASE)
+TENDER_MIN_OPEN = 3  # fewer open notices than this: also list the most recently closed ones
+
+
+def tender_now() -> datetime:
+    """Now as a naive local datetime (the notices' closing times are local, with no zone).
+    scripts/build_search_fixtures.py pins it so the saved demo answer is deterministic."""
+    return datetime.now(UTC).astimezone().replace(tzinfo=None)
+
+
+def tender_closes_at(value: str | None) -> datetime | None:
+    """A notice's closing time as a naive local datetime (the sample has no time zone). A
+    date-only value is open through 23:59 that day. None when missing or unreadable."""
+    if not value:
+        return None
+    text = str(value).strip()
+    try:
+        if len(text) == 10:
+            return datetime.fromisoformat(text).replace(hour=23, minute=59, second=59)
+        dt = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return dt.astimezone().replace(tzinfo=None) if dt.tzinfo else dt
+
+
+def tender_in_ontario(region: str | None) -> bool:
+    return bool(TENDER_ONTARIO.search(region or ""))
+
+
+def tender_epoch(now: datetime | None = None) -> int:
+    """How many sample notices have closed by ``now``: part of the /search/jobs cache key, so
+    a memoized answer never keeps listing a notice as open after it closes."""
+    now = now or tender_now()
+    return sum(1 for t in _tenders(str(TENDERS_FILE))
+               if (c := tender_closes_at(t.get("closing_date"))) is not None and c < now)
+
+
+def tenders_for(processes: list[str], q: str | None, limit: int = 5,
+                now: datetime | None = None) -> list[dict]:
     """Open defence tenders (CanadaBuys sample) for parts a shop with these processes could make
     or supply: in a fitting category (for machining/welding/fabrication, also vehicle and vessel
     "spare parts" notices), or, when ``q`` is set, whose title contains ``q``. Equipment purchases
-    and off-the-shelf hardware are left out. Ontario first, then soonest closing."""
+    and off-the-shelf hardware are left out, and so are notices past their closing time
+    (``now``, local). Ontario first (a province or an Ontario city), then soonest closing.
+
+    When fewer than ``TENDER_MIN_OPEN`` are still open, the most recently closed matches follow,
+    marked ``closed: true`` (at most enough to make ``TENDER_MIN_OPEN`` rows)."""
     procs = set(processes)
     cats = {cat for cat, fits in TENDER_CATEGORY.items() if procs & fits}
     ql = (q or "").strip().lower()
-    out = []
+    now = now or tender_now()
+    open_, closed = [], []
     for t in _tenders(str(TENDERS_FILE)):
         title = t.get("title") or ""
         if tender_kind(title) != "fits":
@@ -560,7 +608,9 @@ def tenders_for(processes: list[str], q: str | None, limit: int = 5) -> list[dic
                       and bool(TENDER_SPARES.search(title)))
             if not (tcats & cats) and not spares:
                 continue
-        out.append({
+        closes = tender_closes_at(t.get("closing_date"))
+        is_closed = closes is not None and closes < now
+        row = {
             "title": t.get("title"),
             "reference": t.get("reference_number") or t.get("solicitation_number"),
             "solicitation_number": t.get("solicitation_number"),
@@ -570,10 +620,16 @@ def tenders_for(processes: list[str], q: str | None, limit: int = 5) -> list[dic
             "notice_type": t.get("notice_type"),
             "region": t.get("region"),
             "url": t.get("url"),
-        })
-    out.sort(key=lambda t: (0 if "ontario" in (t["region"] or "").lower() else 1,
-                            t["closing_date"] or "", t["reference"] or ""))
-    return out[:limit]
+            "closed": is_closed,
+        }
+        (closed if is_closed else open_).append(row)
+    open_.sort(key=lambda t: (0 if tender_in_ontario(t["region"]) else 1,
+                              t["closing_date"] or "", t["reference"] or ""))
+    out = open_[:limit]
+    if len(out) < TENDER_MIN_OPEN:
+        closed.sort(key=lambda t: (t["closing_date"] or "", t["reference"] or ""), reverse=True)
+        out += closed[:TENDER_MIN_OPEN - len(out)]
+    return out
 
 
 def _job_matches(job: dict, q: str | None, processes: list[str]) -> bool:
@@ -620,6 +676,7 @@ def search_jobs(
     eligible, near = [], []
     if state.jobs:
         ctx = pipeline.Context(state)
+        reoffered = shopside.reoffers(state)
         shop = ctx.shops[shop_id]
         category = "sme_direct" if shop.get("is_sme") else "regular"
         mult = ctx.mults[category]
@@ -631,11 +688,20 @@ def search_jobs(
             cands = ctx.graph.candidates(job)
             if shop_id in cands:
                 a = state.assignments.get(jid)
+                moved = reoffered.get(jid)
                 row = {"job_id": jid, "part_no": job["part_no"], "description": job["description"],
                        "value_cad": value, "hours_week": job["hours_week"],
                        "process_tags": list(job.get("process_tags") or []),
                        "controlled": bool(job.get("controlled"))}
-                if a and a["shop_id"] == shop_id:
+                if a and moved and moved["shop_id"] == shop_id:
+                    # Re-offered to this shop after another declined it (demo): the credit
+                    # stays the one counted when the job was placed.
+                    rec = (state.offer_decisions or {}).get(f"{shop_id}:{jid}")
+                    row.update(credit_cad=a["credit_cad"], multiplier=a["multiplier"],
+                               reasons=scoring_mod.reasons(job, shop, ctx.dist[shop_id], len(cands), ctx.program),
+                               status="offered_to_you", offer_status=shopside.decision_status(rec),
+                               reoffered_from=(moved.get("payload") or {}).get("from_shop_id"))
+                elif a and a["shop_id"] == shop_id:
                     row.update(credit_cad=a["credit_cad"], multiplier=a["multiplier"],
                                reasons=list(a["reasons"]), status="offered_to_you",
                                offer_status=a.get("status"))

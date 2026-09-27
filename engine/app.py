@@ -368,6 +368,10 @@ class CertDeclarationBody(_Body):
     cert_number: str | None = None
 
 
+class ReofferBody(_Body):
+    shop_id: str | None = None  # required; checked in shopside for a readable 400
+
+
 @app.post("/shops/{shop_id}/offers/{job_id}/decision")
 def decide_offer(shop_id: str, job_id: str, body: DecisionBody) -> dict:
     data = body.model_dump()
@@ -396,6 +400,21 @@ def confirm_capacity(shop_id: str, body: CapacityBody) -> dict:
 def declare_certification(shop_id: str, cert_type: str, body: CertDeclarationBody) -> dict:
     data = body.model_dump()
     return _action(DEFAULT_PROGRAM_ID, lambda s: shopside.declare_cert(s, shop_id, cert_type, data))
+
+
+@app.post("/programs/{program_id}/jobs/{job_id}/reoffer")
+def reoffer_job(program_id: str, job_id: str, body: ReofferBody) -> dict:
+    """Demo re-offer of a declined job to another qualified synthetic shop. Only a
+    ``reoffered`` event is recorded: assignments, credit and the ledger never change."""
+    _check_program(program_id)
+    data = body.model_dump()
+
+    def op(state: State) -> tuple[Any, bool]:
+        job = next((j for j in state.jobs if j["id"] == job_id), None)
+        cands = pipeline.Context(state).graph.candidates(job) if job is not None and state.shops else ()
+        return shopside.reoffer(state, job_id, data, cands)
+
+    return _action(program_id, op)
 
 
 @app.get("/shops/{shop_id}/actions")
@@ -464,7 +483,8 @@ def search_jobs(
     include_near_miss: bool = True,
 ) -> Response:
     procs = tuple(process or ())
-    key = ("search_jobs", shop_id, q, procs, include_near_miss)
+    # tender_epoch: a notice that closes drops out even while the State is unchanged.
+    key = ("search_jobs", shop_id, q, procs, include_near_miss, search.tender_epoch())
     return _read(
         DEFAULT_PROGRAM_ID, key,
         lambda s: _search_call(lambda: search.search_jobs(s, shop_id, q, list(procs), include_near_miss)),

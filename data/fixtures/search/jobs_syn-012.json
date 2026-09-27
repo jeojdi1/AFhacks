@@ -609,6 +609,18 @@
   ],
   "tenders": [
     {
+      "title": "Repair Parts for Boschung Jetbroom",
+      "reference": "cb-957-33733663",
+      "solicitation_number": "W0125-27TEM4",
+      "closing_date": "2026-09-28T14:00:00",
+      "buyer": "Department of National Defence (DND)",
+      "category": "vehicles_vessels_aircraft",
+      "notice_type": "Request for Proposal",
+      "region": "Belleville",
+      "url": null,
+      "closed": false
+    },
+    {
       "title": "Spare Parts for Material Handling Equipment 2",
       "reference": "cb-893-93522986",
       "solicitation_number": "W8486-270977/A",
@@ -617,7 +629,8 @@
       "category": "vehicles_vessels_aircraft",
       "notice_type": "Request for Proposal",
       "region": "Quebec (except NCR) / Montréal",
-      "url": null
+      "url": null,
+      "closed": false
     },
     {
       "title": "Transmission Spares",
@@ -628,18 +641,8 @@
       "category": "vehicles_vessels_aircraft",
       "notice_type": "Request for Proposal",
       "region": "Nova Scotia / British Columbia",
-      "url": null
-    },
-    {
-      "title": "Repair Parts for Boschung Jetbroom",
-      "reference": "cb-957-33733663",
-      "solicitation_number": "W0125-27TEM4",
-      "closing_date": "2026-09-28T14:00:00",
-      "buyer": "Department of National Defence (DND)",
-      "category": "vehicles_vessels_aircraft",
-      "notice_type": "Request for Proposal",
-      "region": "Belleville",
-      "url": null
+      "url": null,
+      "closed": false
     },
     {
       "title": "Spares for armament loaders",
@@ -650,7 +653,8 @@
       "category": "electrical_harness",
       "notice_type": "Request for Proposal",
       "region": "Quebec (except NCR) / Alberta",
-      "url": null
+      "url": null,
+      "closed": false
     },
     {
       "title": "Cables for Army Vehicles - 5 Year Spares Acquisition via Supply Arrangement W8476-145075",
@@ -661,8 +665,9 @@
       "category": "electrical_harness",
       "notice_type": "RFP against Supply Arrangement",
       "region": "Canada",
-      "url": null
+      "url": null,
+      "closed": false
     }
   ],
-  "tenders_source": "CanadaBuys open tender notices (Open Government Licence); sample retrieved 2026-09-26. Matched by category and title; notices that buy equipment or off-the-shelf hardware are left out."
+  "tenders_source": "CanadaBuys open tender notices (Open Government Licence); sample retrieved 2026-09-26. Matched by category and title; notices that buy equipment or off-the-shelf hardware, and notices past their closing time, are left out."
 }

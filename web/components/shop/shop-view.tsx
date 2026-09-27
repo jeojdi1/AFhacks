@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type FormEvent, type ReactNode } from "react"
 import Link from "next/link"
-import { AlertTriangle, ArrowLeft, Building2, ExternalLink, Globe, Info, MapPin, Users } from "lucide-react"
+import { usePathname, useRouter } from "next/navigation"
+import { AlertTriangle, ArrowLeft, Building2, CircleCheck, ExternalLink, Globe, Info, MapPin, Users } from "lucide-react"
 import { toast } from "sonner"
 import { useDemo } from "@/lib/data/store"
 import { useAppActions, useShopActions } from "@/lib/app/actions-store"
@@ -25,9 +26,12 @@ import { certPlain } from "@/lib/ui/plain"
 import { isDemoShopPath } from "@/lib/ui/steps"
 import { useStoryMode } from "@/lib/ui/story-mode"
 import { useWithParams } from "@/lib/ui/use-with-params"
+import { useSession } from "@/lib/auth/session"
+import { cn } from "@/lib/utils"
 import { CapabilitiesCard } from "./capabilities-card"
 import { CertificationsCard } from "./certifications-card"
 import { OfferInbox, type InboxDecision } from "./offer-inbox"
+import { decisionIsSimulated } from "@/lib/app/sim-flag"
 import { ReadinessCard } from "./readiness-card"
 import { ShopHeader } from "./shop-header"
 import { TrainingCard } from "./training-card"
@@ -69,6 +73,83 @@ function shortName(name: string): string {
 }
 
 const UNDO_MS = 10_000
+
+const SUPPLIERS_HREF = "/prime/suppliers"
+const noopSubscribe = () => () => {}
+const readSearch = () => (typeof window === "undefined" ? "" : window.location.search)
+const serverSearch = () => ""
+
+/**
+ * Where the profile's "back" goes. Opened from Find suppliers (?from=suppliers), or by the
+ * defence company on a shop that isn't the Story's step-5 shop: back to Find suppliers.
+ * Otherwise null, and the page keeps its Story links (signed-out Story mode).
+ */
+function useSuppliersBack(isDemoShop: boolean): { fromSuppliers: boolean } | null {
+  usePathname() // re-read the search on client navigation
+  const search = useSyncExternalStore(noopSubscribe, readSearch, serverSearch)
+  const { session, hydrated } = useSession()
+  let fromSuppliers = false
+  try {
+    fromSuppliers = new URLSearchParams(search).get("from") === "suppliers"
+  } catch {
+    /* keep false */
+  }
+  if (fromSuppliers) return { fromSuppliers }
+  if (hydrated && session?.role === "prime" && !isDemoShop) return { fromSuppliers }
+  return null
+}
+
+/**
+ * Is the previous entry in this tab's history Find suppliers? Uses the Navigation API
+ * (same-origin entries only); null where the browser doesn't have it.
+ */
+function previousIsSuppliers(): boolean | null {
+  if (typeof window === "undefined") return null
+  const nav = (window as unknown as { navigation?: { currentEntry?: { index: number } | null; entries?: () => { url: string | null }[] } })
+    .navigation
+  if (!nav?.currentEntry || typeof nav.entries !== "function") return null
+  const i = nav.currentEntry.index
+  if (i < 1) return false
+  const prev = nav.entries()[i - 1]?.url
+  if (!prev) return false
+  try {
+    return new URL(prev).pathname === SUPPLIERS_HREF
+  } catch {
+    return false
+  }
+}
+
+/**
+ * "← Back to Find suppliers". When the previous page in this tab is Find suppliers,
+ * history.back() restores the search as it was (filters live in its URL); else a plain link.
+ */
+function BackToSuppliers({ fromSuppliers, variant = "button" }: { fromSuppliers: boolean; variant?: "button" | "inline" }) {
+  const wp = useWithParams()
+  const router = useRouter()
+  return (
+    <Link
+      href={wp(SUPPLIERS_HREF)}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return
+        const prev = previousIsSuppliers()
+        // No Navigation API: trust ?from=suppliers when this tab has history to go back to.
+        if (prev === true || (prev === null && fromSuppliers && window.history.length > 1)) {
+          e.preventDefault()
+          router.back()
+        }
+      }}
+      className={
+        variant === "button"
+          ? "inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-background px-4 text-[0.95rem] font-medium text-foreground shadow-xs hover:bg-muted"
+          : "inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+      }
+      data-back-to-suppliers
+    >
+      <ArrowLeft className={variant === "button" ? "size-4" : "size-3.5"} aria-hidden />
+      {c("shop.backToSuppliers")}
+    </Link>
+  )
+}
 
 function RoutableShopView({ id }: { id: string }) {
   const demo = useDemo()
@@ -133,6 +214,15 @@ function RoutableShopView({ id }: { id: string }) {
     for (const b of blocked ?? []) m[b.job_id] ??= b.required_certs ?? []
     return m
   }, [jobs, blocked])
+
+  const back = useSuppliersBack(isDemoShopPath(`/shops/${id}`, demoShopId))
+
+  // /shop's "All certificates →" links to #certificates: scroll there once the card has rendered.
+  const hasData = !!result?.data
+  useEffect(() => {
+    if (!hasData || typeof window === "undefined" || window.location.hash !== "#certificates") return
+    document.getElementById("certificates")?.scrollIntoView({ block: "start" })
+  }, [hasData])
 
   if (!data) {
     if (result?.error) return <LoadError id={id} error={result.error} />
@@ -207,7 +297,13 @@ function RoutableShopView({ id }: { id: string }) {
   if (viaEngine) {
     for (const [jobId, d] of Object.entries(shopActions.decisions)) {
       if (d.decision === "undo") continue
-      inboxDecisions[jobId] = { decision: d.decision, reason_code: d.reason_code, question_code: d.question_code, pending: d.pending }
+      inboxDecisions[jobId] = {
+        decision: d.decision,
+        reason_code: d.reason_code,
+        question_code: d.question_code,
+        pending: d.pending,
+        simulated: decisionIsSimulated(d, shopActions.events),
+      }
     }
   } else {
     const prefix = `${shop.id}:`
@@ -281,7 +377,7 @@ function RoutableShopView({ id }: { id: string }) {
         eyebrow={isDemoShop ? undefined : ce("shop.b.eyebrow.other")}
         summary={<Rich text={summary} />}
         lookAt={lookAt}
-        next={<AutoNextStep />}
+        next={back ? <BackToSuppliers fromSuppliers={back.fromSuppliers} /> : <AutoNextStep />}
         className="mb-0"
       />
 
@@ -318,14 +414,16 @@ function RoutableShopView({ id }: { id: string }) {
 
       {stats}
 
-      <CertificationsCard certifications={certifications} shopId={shop.id} neededTypes={neededTypes} />
+      <div id="certificates" className="scroll-mt-24">
+        <CertificationsCard certifications={certifications} shopId={shop.id} neededTypes={neededTypes} />
+      </div>
 
       <Details summary={ce("shop.caps.show")} openSummary={ce("shop.caps.hide")}>
         <CapabilitiesCard shop={shop} />
       </Details>
 
       <div className="flex justify-end border-t border-border pt-6">
-        <AutoNextStep />
+        {back ? <BackToSuppliers fromSuppliers={back.fromSuppliers} /> : <AutoNextStep />}
       </div>
     </div>
   )
@@ -391,19 +489,203 @@ function SourceLink({ url, children }: { url: string; children?: ReactNode }) {
   )
 }
 
-/** "Claim this profile" opens a dialog that collects nothing (§5.6). */
-function ClaimDialog() {
+// ---------------------------------------------------------------------------
+// "Claim this profile" (demo): explains the 3 verification steps and records a claim request
+// on this device only (localStorage muster.claims). Nothing is sent, the shop's badges stay
+// "Discovered · unverified · not affiliated", and routing and the engine are untouched.
+
+const CLAIMS_KEY = "muster.claims"
+const CLAIM_ROLES = ["owner", "operations", "quality", "sales", "other"] as const
+type ClaimRole = (typeof CLAIM_ROLES)[number]
+interface ClaimRecord {
+  shopId: string
+  email: string
+  role: ClaimRole
+  at: string
+}
+
+/** Free mail providers: a work email should be at the company's own domain. */
+const FREE_MAIL = new Set([
+  "gmail.com", "googlemail.com", "outlook.com", "hotmail.com", "hotmail.ca", "live.com", "live.ca", "msn.com",
+  "yahoo.com", "yahoo.ca", "icloud.com", "me.com", "mac.com", "aol.com", "proton.me", "protonmail.com",
+  "gmx.com", "mail.com", "zoho.com", "yandex.com", "sympatico.ca", "shaw.ca", "rogers.com", "telus.net", "bell.net",
+])
+
+/** In-memory fallback when storage is blocked (private windows): lasts for this page. */
+let claimsMemory: Record<string, ClaimRecord> = {}
+
+function readClaims(): Record<string, ClaimRecord> {
+  try {
+    const raw = window.localStorage.getItem(CLAIMS_KEY)
+    if (!raw) return claimsMemory
+    const v = JSON.parse(raw) as unknown
+    return v && typeof v === "object" && !Array.isArray(v) ? { ...claimsMemory, ...(v as Record<string, ClaimRecord>) } : claimsMemory
+  } catch {
+    return claimsMemory
+  }
+}
+
+function saveClaim(rec: ClaimRecord) {
+  claimsMemory = { ...claimsMemory, [rec.shopId]: rec }
+  try {
+    window.localStorage.setItem(CLAIMS_KEY, JSON.stringify({ ...readClaims(), [rec.shopId]: rec }))
+  } catch {
+    /* storage blocked: kept in memory for this page */
+  }
+}
+
+/** "a@b.example.ca" → "b.example.ca" (lower case), or "" when it isn't an email yet. */
+function emailDomain(email: string): string {
+  const at = email.trim().lastIndexOf("@")
+  return at > 0 ? email.trim().slice(at + 1).toLowerCase() : ""
+}
+
+/** Does the email's domain match the website's host (or a parent/sub-domain of it)? */
+function domainMatches(domain: string, host: string): boolean {
+  const h = host.toLowerCase().replace(/^www\./, "")
+  return domain === h || domain.endsWith(`.${h}`) || h.endsWith(`.${domain}`)
+}
+
+function ClaimDialog({ shopId, shopName, website }: { shopId: string; shopName: string; website: string | null }) {
+  const [open, setOpen] = useState(false)
+  const [claim, setClaim] = useState<ClaimRecord | null>(null)
+  const [email, setEmail] = useState("")
+  const [role, setRole] = useState<ClaimRole | "">("")
+  const [tried, setTried] = useState(false)
+  const emailId = useId()
+  const roleId = useId()
+  const hintId = useId()
+  const host = isUrl(website) ? hostOf(website) : null
+
+  const domain = emailDomain(email)
+  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+  const warning = !validEmail
+    ? null
+    : FREE_MAIL.has(domain)
+      ? c("pub.claim.warn.free", { domain })
+      : host && !domainMatches(domain, host)
+        ? c("pub.claim.warn.domain", { domain, host })
+        : null
+
+  const onOpenChange = (o: boolean) => {
+    setOpen(o)
+    if (o) {
+      // Reopening shows the pending request instead of the form.
+      setClaim(readClaims()[shopId] ?? null)
+      setTried(false)
+    }
+  }
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault()
+    setTried(true)
+    if (!validEmail || !role) return
+    const rec: ClaimRecord = { shopId, email: email.trim(), role, at: new Date().toISOString() }
+    saveClaim(rec)
+    setClaim(rec)
+  }
+
+  const steps = [c("pub.claim.step1"), c("pub.claim.step2"), c("pub.claim.step3")]
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger render={<Button variant="outline" size="lg" className="px-4" />}>{c("pub.claim")}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[90dvh] overflow-y-auto" data-claim-dialog>
         <DialogHeader>
-          <DialogTitle>{ce("pub.claim.title")}</DialogTitle>
-          <DialogDescription>{c("pub.claim.dialog")}</DialogDescription>
+          <DialogTitle className="flex flex-wrap items-center gap-2">
+            {ce("pub.claim.title")}
+            <span className="inline-flex h-6 items-center rounded-full border border-dashed border-slate-400 px-2 text-xs font-medium text-slate-600">
+              {c("pub.claim.demo")}
+            </span>
+          </DialogTitle>
+          <DialogDescription>{c("pub.claim.intro", { name: shopName })}</DialogDescription>
         </DialogHeader>
-        <DialogFooter>
-          <DialogClose render={<Button variant="outline" />}>{ce("pub.claim.close")}</DialogClose>
-        </DialogFooter>
+
+        <ol className="flex flex-col gap-2 text-sm text-foreground">
+          {steps.map((s, i) => (
+            <li key={i} className="flex gap-2.5">
+              <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold tabular-nums">
+                {i + 1}
+              </span>
+              <span className="pt-0.5">{s}</span>
+            </li>
+          ))}
+        </ol>
+        <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">{c("pub.claim.never")}</p>
+
+        {claim ? (
+          <div
+            role="status"
+            className="flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm text-emerald-900"
+            data-claim-pending
+          >
+            <CircleCheck className="mt-0.5 size-4 shrink-0 text-emerald-700" aria-hidden />
+            <span>
+              <span className="block font-semibold">{c("pub.claim.pending")}</span>
+              {c("pub.claim.pending.body", { email: claim.email, role: c(`pub.claim.role.${claim.role}`) })}
+              <span className="mt-1 block text-emerald-800">{c("pub.claim.pending.demo")}</span>
+            </span>
+          </div>
+        ) : (
+          <form onSubmit={submit} noValidate className="flex flex-col gap-3" data-claim-form>
+            <div className="flex flex-col gap-1">
+              <label htmlFor={emailId} className="text-sm font-medium text-foreground">
+                {c("pub.claim.email")}
+              </label>
+              <input
+                id={emailId}
+                type="email"
+                required
+                autoComplete="email"
+                inputMode="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={host ? `you@${host}` : c("pub.claim.email.placeholder")}
+                aria-invalid={tried && !validEmail ? true : undefined}
+                aria-describedby={hintId}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 aria-invalid:border-destructive"
+              />
+              <p id={hintId} className={cn("text-xs", warning || (tried && !validEmail) ? "text-amber-800" : "text-muted-foreground")} aria-live="polite">
+                {tried && !validEmail
+                  ? c("pub.claim.email.invalid")
+                  : warning ?? (host ? c("pub.claim.email.hintHost", { host }) : c("pub.claim.email.hint"))}
+              </p>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label htmlFor={roleId} className="text-sm font-medium text-foreground">
+                {c("pub.claim.role")}
+              </label>
+              <select
+                id={roleId}
+                required
+                value={role}
+                onChange={(e) => setRole(e.target.value as ClaimRole | "")}
+                aria-invalid={tried && !role ? true : undefined}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50 aria-invalid:border-destructive"
+              >
+                <option value="">{c("pub.claim.role.pick")}</option>
+                {CLAIM_ROLES.map((r) => (
+                  <option key={r} value={r}>
+                    {c(`pub.claim.role.${r}`)}
+                  </option>
+                ))}
+              </select>
+              {tried && !role ? <p className="text-xs text-amber-800">{c("pub.claim.role.missing")}</p> : null}
+            </div>
+            <p className="text-xs text-muted-foreground">{c("pub.claim.privacy")}</p>
+            <DialogFooter>
+              <DialogClose render={<Button type="button" variant="outline" />}>{ce("pub.claim.close")}</DialogClose>
+              <Button type="submit" data-claim-submit>
+                {c("pub.claim.submit")}
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
+        {claim ? (
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>{ce("pub.claim.close")}</DialogClose>
+          </DialogFooter>
+        ) : null}
       </DialogContent>
     </Dialog>
   )
@@ -441,6 +723,7 @@ function PublicShopView({ id, dnd }: { id: string; dnd: DndHistory | null }) {
   const demo = useDemo()
   const { story } = useStoryMode()
   const wp = useWithParams()
+  const back = useSuppliersBack(false)
   const getShopsRef = useRef(demo.getShops)
   useEffect(() => {
     getShopsRef.current = demo.getShops
@@ -515,15 +798,19 @@ function PublicShopView({ id, dnd }: { id: string; dnd: DndHistory | null }) {
         tone="extra"
         summary={<Rich text={ce("pub.b", { name: shop.name, city: shop.city })} />}
         lookAt={ce("pub.b.look")}
-        next={<AutoNextStep />}
+        next={back ? <BackToSuppliers fromSuppliers={back.fromSuppliers} /> : <AutoNextStep />}
         className="mb-0"
       />
 
       <header className="space-y-3">
-        <Link href={wp("/network")} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="size-3.5" aria-hidden />
-          {ce("shop.back")}
-        </Link>
+        {back ? (
+          <BackToSuppliers fromSuppliers={back.fromSuppliers} variant="inline" />
+        ) : (
+          <Link href={wp("/network")} className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="size-3.5" aria-hidden />
+            {ce("shop.back")}
+          </Link>
+        )}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0 space-y-2.5">
             <h1 className="text-2xl font-semibold tracking-tight break-words text-foreground sm:text-3xl">{shop.name}</h1>
@@ -533,7 +820,7 @@ function PublicShopView({ id, dnd }: { id: string; dnd: DndHistory | null }) {
               {dnd && <DndBadge history={dnd} />}
             </div>
           </div>
-          <ClaimDialog />
+          <ClaimDialog shopId={shop.id} shopName={shop.name} website={shop.website ?? null} />
         </div>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
@@ -721,7 +1008,7 @@ function PublicShopView({ id, dnd }: { id: string; dnd: DndHistory | null }) {
       </Details>
 
       <div className="flex justify-end border-t border-border pt-6">
-        <AutoNextStep />
+        {back ? <BackToSuppliers fromSuppliers={back.fromSuppliers} /> : <AutoNextStep />}
       </div>
     </div>
   )

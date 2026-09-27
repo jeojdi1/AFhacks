@@ -82,7 +82,29 @@ export interface DemoActions {
   setMode(m: Mode): void
 }
 
-export type DemoContextValue = DemoState & DemoActions
+/** A declined job sent to another qualified synthetic shop (demo; credit stays counted as placed). */
+export interface Reoffer {
+  job_id: string
+  shop_id: string
+  shop_name: string | null
+  from_shop_id: string | null
+  at: string
+}
+
+export interface DemoReoffers {
+  /**
+   * Re-offers made from this browser, by job id. Live ones also come back from the engine as
+   * `reoffered` events (lib/search/reoffers.ts merges both). Cleared when the flow restarts.
+   */
+  reoffers: Record<string, Reoffer>
+  /**
+   * POST /programs/{id}/jobs/{job}/reoffer {shop_id} in live mode; a local record in demo mode.
+   * Never changes assignments, credit or the promise %. null (with a toast) on failure.
+   */
+  reofferJob(jobId: string, shopId: string, shopName?: string | null, fromShopId?: string | null): Promise<Reoffer | null>
+}
+
+export type DemoContextValue = DemoState & DemoActions & DemoReoffers
 
 // ---------------------------------------------------------------------------
 // Config
@@ -293,7 +315,7 @@ class ApiError extends Error {
 async function http<T>(
   method: "GET" | "POST",
   path: string,
-  opts: { body?: BodyInit; timeoutMs?: number } = {}
+  opts: { body?: BodyInit; json?: unknown; timeoutMs?: number } = {}
 ): Promise<T> {
   const ctrl = new AbortController()
   const timer = setTimeout(() => ctrl.abort(), opts.timeoutMs ?? 30000)
@@ -301,9 +323,12 @@ async function http<T>(
   try {
     res = await fetch(`${apiBase}${path}`, {
       method,
-      body: opts.body,
+      body: opts.json !== undefined ? JSON.stringify(opts.json) : opts.body,
       signal: ctrl.signal,
-      headers: { Accept: "application/json" },
+      headers:
+        opts.json !== undefined
+          ? { Accept: "application/json", "Content-Type": "application/json" }
+          : { Accept: "application/json" },
       cache: "no-store",
     })
   } catch (e) {
@@ -1057,6 +1082,25 @@ function initialState(): DemoState {
   }
 }
 
+const REOFFER_KEY = "muster.reoffers.v1"
+
+/** Re-offers saved by this browser (bad or missing data → none). */
+function readReoffers(): Record<string, Reoffer> {
+  try {
+    const raw = window.localStorage.getItem(REOFFER_KEY)
+    const p = raw ? (JSON.parse(raw) as unknown) : null
+    if (!p || typeof p !== "object") return {}
+    const out: Record<string, Reoffer> = {}
+    for (const [k, v] of Object.entries(p as Record<string, Partial<Reoffer>>)) {
+      if (v && typeof v.shop_id === "string" && typeof v.at === "string")
+        out[k] = { job_id: k, shop_id: v.shop_id, shop_name: v.shop_name ?? null, from_shop_id: v.from_shop_id ?? null, at: v.at }
+    }
+    return out
+  } catch {
+    return {}
+  }
+}
+
 export function DemoProvider({ children }: { children: React.ReactNode }): React.JSX.Element {
   const [state, setState] = React.useState<DemoState>(initialState)
   const stateRef = React.useRef(state)
@@ -1085,6 +1129,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
       patch({ error: message, busy: null })
       const inLive = stateRef.current.mode === "live"
       toast.error(context, {
+        // One toast per context: repeated failures (e.g. every tab switch while offline) replace it.
+        id: `store-error:${context}`,
         description: extra
           ? `${err.message.replace(/[.\s]*$/, "")}. ${extra}`
           : offline && inLive
@@ -1554,6 +1600,73 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
     [handleError]
   )
 
+  // Re-offers made here, kept in localStorage so a reload keeps them (demo data has no other
+  // record). A restarted flow (reset, new parts list) clears them; consumers also drop any
+  // made before the latest routing (lib/search/reoffers.ts).
+  const [reoffers, setReoffersState] = React.useState<Record<string, Reoffer>>({})
+  const setReoffers = React.useCallback((next: Record<string, Reoffer> | ((cur: Record<string, Reoffer>) => Record<string, Reoffer>)) => {
+    setReoffersState((cur) => {
+      const value = typeof next === "function" ? next(cur) : next
+      try {
+        if (Object.keys(value).length) window.localStorage.setItem(REOFFER_KEY, JSON.stringify(value))
+        else window.localStorage.removeItem(REOFFER_KEY)
+      } catch {
+        /* storage blocked: kept for this visit only */
+      }
+      return value
+    })
+  }, [])
+  const [reoffersLoaded, setReoffersLoaded] = React.useState(false)
+  if (state.ready && !reoffersLoaded) {
+    // Once, after the provider restored the flow (never during SSR or hydration).
+    setReoffersLoaded(true)
+    setReoffersState(readReoffers())
+  }
+  const [reofferStage, setReofferStage] = React.useState<Stage>(state.stage)
+  if (reofferStage !== state.stage) {
+    setReofferStage(state.stage)
+    if (reoffersLoaded && (state.stage === "empty" || state.stage === "uploaded") && Object.keys(reoffers).length) setReoffers({})
+  }
+
+  const reofferJob = React.useCallback(
+    async (jobId: string, shopId: string, shopName?: string | null, fromShopId?: string | null): Promise<Reoffer | null> => {
+      const s = stateRef.current
+      const gen = genRef.current
+      let rec: Reoffer = { job_id: jobId, shop_id: shopId, shop_name: shopName ?? null, from_shop_id: fromShopId ?? null, at: new Date().toISOString() }
+      try {
+        if (s.mode === "live") {
+          const key =
+            typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `reoffer-${Date.now()}-${Math.random()}`
+          const res = await http<{ reoffer?: Partial<Reoffer> }>(
+            "POST",
+            `/programs/${PID}/jobs/${encodeURIComponent(jobId)}/reoffer`,
+            { json: { shop_id: shopId, idempotency_key: key }, timeoutMs: 10000 }
+          )
+          const r = res.reoffer ?? {}
+          rec = {
+            job_id: r.job_id ?? jobId,
+            shop_id: r.shop_id ?? shopId,
+            shop_name: r.shop_name ?? rec.shop_name,
+            from_shop_id: r.from_shop_id ?? rec.from_shop_id,
+            at: r.at ?? rec.at,
+          }
+        } else {
+          // Demo data: nothing to send. Recorded here so the declined job leaves the lists.
+          await latency()
+        }
+        if (gen !== genRef.current) return null
+        setReoffers((cur) => ({ ...cur, [jobId]: rec }))
+        return rec
+      } catch (e) {
+        if (gen !== genRef.current) return null
+        const msg = e instanceof Error ? e.message : "Request failed"
+        toast.error(`Couldn't offer ${jobId}`, { description: msg })
+        return null
+      }
+    },
+    [setReoffers]
+  )
+
   const setOfferStatus = React.useCallback(
     (shopId: string, jobId: string, status: OfferDecision) => {
       patch((cur) => ({ offerStatus: { ...cur.offerStatus, [`${shopId}:${jobId}`]: status } }))
@@ -1663,8 +1776,10 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
       setOfferStatus,
       replaceOfferStatus,
       setMode,
+      reoffers,
+      reofferJob,
     }),
-    [state, demoShopId, reset, uploadParts, route, fund, getShops, getShop, setOfferStatus, replaceOfferStatus, setMode]
+    [state, demoShopId, reset, uploadParts, route, fund, getShops, getShop, setOfferStatus, replaceOfferStatus, setMode, reoffers, reofferJob]
   )
 
   return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>

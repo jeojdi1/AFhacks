@@ -16,7 +16,8 @@ extendStrings("en", {
   "wallet.summary.clear": "Nothing needs action",
   "wallet.notRouted": "Jobs at risk appear once Northgate matches its parts list to shops.",
   "wallet.notHeldSection": "Not held",
-  "wallet.notHeldBody": "Muster has no record of these. Holding one can unlock more jobs (see Grow).",
+  "wallet.notHeldBody": "Muster has no record of this certificate. Holding it can unlock more jobs",
+  "wallet.notHeldGrow": "(see Grow)",
   "wallet.loadError": "Could not load certificates",
   "wallet.retry": "Try again",
 
@@ -49,6 +50,7 @@ extendStrings("en", {
   "wallet.row.illustrative": "Synthetic shop: this date is illustrative.",
   "wallet.row.addExpiry": "Add expiry date",
   "wallet.row.editExpiry": "Change expiry date",
+  "wallet.row.seeWhatItTakes": "See what it takes",
   "wallet.row.notHeld": "Not held",
   "wallet.row.noDate": "Muster has no expiry date for this.",
   "wallet.row.actByAssumption": "Act-by offset is an assumption, not an official deadline",

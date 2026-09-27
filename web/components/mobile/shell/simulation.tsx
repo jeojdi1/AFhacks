@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
 import { useDemo } from "@/lib/data/store"
 import { useAppActions } from "@/lib/app/actions-store"
 import { AppApiError } from "@/lib/app/api"
-import { SIM_TICK_MS, setSimulating, simulateTick, tickExhausted, useSimulating } from "@/lib/app/demo-sim"
+import { SIM_TICK_MS, SIM_WAIT_MS, setSimulating, simulateTick, tickExhausted, tickWaiting, useSimulating } from "@/lib/app/demo-sim"
 import { extendStrings, t } from "@/lib/app/strings"
 
 extendStrings("en", {
@@ -25,6 +25,10 @@ extendStrings("en", {
   "sim.updateEngine": "Update the engine",
   "sim.updateEngineBody": "This engine can't simulate shops yet. Restart it with the latest code.",
   "sim.failed": "Simulation stopped",
+  "sim.failedBody": "The engine didn't accept the next simulated answer. Turn it on again to retry.",
+  "sim.startedOver": "Northgate started over. Simulation is off until offers are sent again.",
+  "sim.waiting": "{count} more shops are waiting for Northgate to fund the welder training.",
+  "sim.waiting_one": "One more shop is waiting for Northgate to fund the welder training.",
 })
 
 /** Small "Simulated" chip (icon + text) for feed rows written by the simulator. */
@@ -44,6 +48,36 @@ export function SimulatedChip({ className }: { className?: string }) {
   )
 }
 
+/**
+ * sessionStorage (this tab): a notice to show once. The laptop's Start over makes LiveStepSync
+ * reload the phone right away, which would wipe a toast shown just before, so the runner
+ * saves it here and shows it after the reload.
+ */
+const NOTICE_KEY = "muster.app.v1.simNotice"
+
+function stopForStartOver() {
+  setSimulating(false)
+  try {
+    window.sessionStorage.setItem(NOTICE_KEY, String(Date.now()))
+  } catch {
+    /* storage blocked: the toast below may be lost if the page reloads */
+  }
+  toast.message(t("sim.startedOver"), { id: "sim-started-over" })
+}
+
+/** True once, right after a reload that followed a start-over (saved in the last 15 s). */
+function takeNotice(): boolean {
+  try {
+    const v = window.sessionStorage.getItem(NOTICE_KEY)
+    if (!v) return false
+    window.sessionStorage.removeItem(NOTICE_KEY)
+    const at = Number(v)
+    return Number.isFinite(at) && Date.now() - at < 15000
+  } catch {
+    return false
+  }
+}
+
 /** True while the toggle is on and the page is in live mode (the runner only runs then). */
 export function useSimulationActive(): boolean {
   const on = useSimulating()
@@ -53,48 +87,106 @@ export function useSimulationActive(): boolean {
 
 /**
  * Mounted once in the /m layout. Ticks every 8 s while simulation is on in live
- * mode; stops itself when the engine says the queue is empty, or when the engine
- * has no simulator (404 → "Update the engine").
+ * mode. It skips ticks while nothing is routed (empty / uploaded). When only a gated
+ * step is left (the engine says waiting > 0: another shop's request waits for Northgate
+ * to fund TP-01) it keeps checking every 15 s instead of stopping. It stops itself when
+ * the queue is empty, when the laptop started over (400/409 → quiet notice, never the raw
+ * engine detail), or when the engine has no simulator (404 → "Update the engine").
  */
 export function SimulationRunner() {
   const active = useSimulationActive()
-  const { apiUrl } = useDemo()
-  const { refresh } = useAppActions()
+  const { apiUrl, stage } = useDemo()
+  const { refresh, routedAt, source } = useAppActions()
   const busy = React.useRef(false)
+  const stageRef = React.useRef(stage)
+
+  // A start-over notice saved just before a reload.
+  React.useEffect(() => {
+    if (!takeNotice()) return
+    const id = window.setTimeout(() => toast.message(t("sim.startedOver"), { id: "sim-started-over" }), 600)
+    return () => window.clearTimeout(id)
+  }, [])
+
+  // The engine's routed_at went away (the laptop pressed Start over). LiveStepSync reloads this
+  // tab in the same commit, so stop now and leave the notice for after the reload.
+  const routedRef = React.useRef<string | null | undefined>(undefined)
+  React.useEffect(() => {
+    if (source !== "engine") return
+    const was = routedRef.current
+    routedRef.current = routedAt
+    if (active && was && !routedAt) stopForStartOver()
+  }, [routedAt, source, active])
+
+  React.useEffect(() => {
+    const was = stageRef.current
+    stageRef.current = stage
+    // The laptop pressed Start over while simulating: the same quiet pause as a 400 from a tick.
+    const wasRouted = was === "routed" || was === "funded"
+    if (active && wasRouted && (stage === "empty" || stage === "uploaded")) stopForStartOver()
+  }, [stage, active])
 
   React.useEffect(() => {
     if (!active) return
     let stopped = false
+    let timer: number | undefined
+    let waitingShown = false
+    let delay = SIM_TICK_MS
+
     const tick = async () => {
       if (busy.current || stopped) return
       if (typeof document !== "undefined" && document.visibilityState !== "visible") return
+      // Nothing routed yet (or the laptop started over): no offers for simulated shops to answer.
+      if (stageRef.current === "empty" || stageRef.current === "uploaded") return
       busy.current = true
       try {
         const r = await simulateTick(apiUrl)
         if (stopped) return
         void refresh()
+        const waiting = tickWaiting(r)
+        const played = r?.event !== null && r?.event !== undefined
         if (tickExhausted(r)) {
           setSimulating(false)
           toast.message(t("sim.finished"), { description: t("sim.finishedBody") })
+        } else if (waiting > 0 && !played) {
+          // Only the gated step is left: check back slowly until Northgate funds.
+          delay = SIM_WAIT_MS
+          if (!waitingShown) {
+            waitingShown = true
+            toast.message(t("sim.waiting", { count: waiting }))
+          }
+        } else {
+          delay = SIM_TICK_MS
+          if (played) waitingShown = false
         }
       } catch (e) {
         if (stopped) return
         if (e instanceof AppApiError && e.network) return // offline banner covers it; try again next tick
+        if (e instanceof AppApiError && (e.status === 400 || e.status === 409)) {
+          // The laptop pressed Start over (nothing routed): a quiet pause, not an error.
+          stopForStartOver()
+          return
+        }
         setSimulating(false)
         if (e instanceof AppApiError && (e.routeMissing || e.status === 404 || e.status === 405)) {
           toast.error(t("sim.updateEngine"), { description: t("sim.updateEngineBody") })
         } else {
-          toast.error(t("sim.failed"), { description: e instanceof AppApiError ? e.detail : String(e) })
+          // Never surface the engine's detail from demo endpoints (it names API routes).
+          toast.error(t("sim.failed"), { description: t("sim.failedBody") })
         }
       } finally {
         busy.current = false
       }
     }
-    void tick()
-    const id = window.setInterval(() => void tick(), SIM_TICK_MS)
+
+    const loop = async () => {
+      await tick()
+      if (stopped) return
+      timer = window.setTimeout(() => void loop(), delay)
+    }
+    void loop()
     return () => {
       stopped = true
-      window.clearInterval(id)
+      if (timer !== undefined) window.clearTimeout(timer)
     }
   }, [active, apiUrl, refresh])
 

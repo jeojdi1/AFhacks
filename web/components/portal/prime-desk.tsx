@@ -6,21 +6,52 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { Activity, ClipboardList, Gauge, Inbox, MessageCircleQuestion, Search, TriangleAlert, Wrench, XCircle, type LucideIcon } from "lucide-react"
+import { toast } from "sonner"
+import {
+  Activity,
+  ClipboardList,
+  Gauge,
+  Inbox,
+  Loader2,
+  MessageCircleQuestion,
+  MessageSquareReply,
+  Search,
+  TriangleAlert,
+  Wrench,
+  XCircle,
+  type LucideIcon,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/lib/data/store"
 import { decisionKey, useAppActions } from "@/lib/app/actions-store"
+import { declineResolved, useReoffers } from "@/lib/search/reoffers"
 import { feedItems, type FeedContext, type FeedTone } from "@/lib/app/feed"
-import { isSimulatedEvent } from "@/lib/app/sim-flag"
+import { replyForDecision, replyTemplates, sendPrimeReply, usePrimeReplies, useSyncRepliesWithRouting } from "@/lib/app/prime-replies"
+import { isSimulatedEvent, isSimulatedRecord } from "@/lib/app/sim-flag"
+import type { OfferDecisionRec } from "@/lib/app/types"
 import { t } from "@/lib/app/strings"
 import { fmtMoney } from "@/lib/format"
 import { SimulatedChip } from "@/components/mobile/shell/simulation"
+import { Button } from "@/components/ui/button"
 import { PortalPage, Panel, BigAction } from "./portal-page"
 import { PromiseMeter } from "./promise-meter"
 import { StartDemo, useRouted } from "./start-demo"
 import { useWithParams } from "@/lib/ui/use-with-params"
 
 const OBLIGATION_FALLBACK = 500_000_000
+
+interface AttentionRow {
+  key: string
+  jobId: string
+  shop: string
+  kind: "declined" | "question"
+  /** Reason (declines) or question topic. */
+  detail: string
+  /** The shop's own words (the decision note), e.g. "Can delivery start in November?". */
+  note: string | null
+  simulated: boolean
+  decision: OfferDecisionRec
+}
 
 const TONE_DOT: Record<FeedTone, string> = {
   success: "bg-assigned",
@@ -47,6 +78,12 @@ export function PrimeDesk() {
   const wp = useWithParams()
   const actions = useAppActions()
   const routed = useRouted()
+  // Declines Northgate already sent to another shop (demo re-offer) leave the list.
+  const reoffers = useReoffers()
+  const primeReplies = usePrimeReplies()
+  useSyncRepliesWithRouting(actions.routedAt, actions.ready)
+  const [replying, setReplying] = React.useState<string | null>(null)
+  const repliesRef = React.useRef<HTMLDivElement>(null)
   const { ledger, program, assignments, blocked, jobs, gaps, offerStatus } = demo
 
   const replies = React.useMemo(() => {
@@ -62,19 +99,22 @@ export function PrimeDesk() {
     return { accepted, declined, waiting: assignments.length - accepted - declined }
   }, [assignments, actions.decisions, offerStatus])
 
-  // Declines and open questions need Northgate's attention: pinned above the activity list.
+  // Declines and unanswered questions need Northgate's attention: pinned above the activity list.
+  // A question leaves the list once Northgate replies (engine decision.reply or a reply recorded here).
   const needsAttention = React.useMemo(() => {
     const byJob = new Map(assignments.map((a) => [decisionKey(a.shop_id, a.job_id), a]))
-    const out: { key: string; jobId: string; shop: string; kind: "declined" | "question"; detail: string; simulated: boolean }[] = []
+    const out: AttentionRow[] = []
     for (const [key, d] of Object.entries(actions.decisions)) {
       const a = byJob.get(key)
       if (!a || (d.decision !== "declined" && d.decision !== "question")) continue
+      if (d.decision === "declined" && declineResolved(reoffers, d.shop_id, d.job_id)) continue
+      if (d.decision === "question" && replyForDecision(d, primeReplies)) continue
       const evKind = d.decision === "declined" ? "offer_declined" : "offer_question"
-      let simulated = false
+      let simulated = isSimulatedRecord(d)
       for (let i = actions.events.length - 1; i >= 0; i--) {
         const e = actions.events[i]
         if (e.kind === evKind && e.shop_id === d.shop_id && e.job_id === d.job_id) {
-          simulated = isSimulatedEvent(e)
+          simulated ||= isSimulatedEvent(e)
           break
         }
       }
@@ -91,12 +131,37 @@ export function PrimeDesk() {
             : d.question_code
               ? t(`question.${d.question_code}`)
               : "question",
+        note: d.note?.trim() || null,
         simulated,
+        decision: d,
       })
     }
     // Declines first, then questions; by job id.
     return out.sort((x, y) => (x.kind === y.kind ? x.jobId.localeCompare(y.jobId) : x.kind === "declined" ? -1 : 1))
-  }, [assignments, actions.decisions, actions.events])
+  }, [assignments, actions.decisions, actions.events, primeReplies, reoffers])
+
+  // Same send path as /m/prime: the engine's reply route when live, else recorded on this device.
+  const reply = async (n: AttentionRow, code: string, text: string) => {
+    setReplying(n.key)
+    try {
+      const engine = demo.mode === "live" && actions.source === "engine" ? demo.apiUrl : null
+      const r = await sendPrimeReply(engine, n.decision, code, text)
+      if (r.via === "engine") toast.success(t("pa.q.sent"), { description: `“${text}” · ${t("pa.q.sentBody", { shop: n.shop })}` })
+      else toast.success(t("pa.q.sentDemo"), { description: t("pa.q.sentDemoBody") })
+      // The row (and the button that had focus) is gone: keep focus in the panel.
+      requestAnimationFrame(() => repliesRef.current?.focus({ preventScroll: true }))
+    } catch (e) {
+      toast.error(t("pa.q.failed"), { description: e instanceof Error ? e.message : String(e) })
+    } finally {
+      setReplying(null)
+    }
+  }
+
+  /** Activity rows for questions Northgate has answered get a "Replied" tag. */
+  const repliedQuestion = (shopId: string | null, jobId: string | null): boolean => {
+    if (!shopId || !jobId) return false
+    return !!replyForDecision(actions.decisions[decisionKey(shopId, jobId)], primeReplies)
+  }
 
   const ctx = React.useMemo<FeedContext>(
     () => ({ prime: "Northgate", packages: gaps?.suggestions ?? [] }),
@@ -163,7 +228,7 @@ export function PrimeDesk() {
 
         <Panel title="Shop replies" icon={Activity} testId="panel-replies">
           {routed ? (
-            <>
+            <div ref={repliesRef} tabIndex={-1} className="flex flex-col gap-3 outline-none">
               <div className="grid grid-cols-3 gap-2">
                 <Count n={replies.accepted} label="accepted" tone="text-assigned" />
                 <Count n={replies.waiting} label="waiting" tone="text-foreground" />
@@ -192,12 +257,42 @@ export function PrimeDesk() {
                           <span className="text-muted-foreground">· {n.detail}</span>
                           {n.simulated ? <SimulatedChip /> : null}
                         </p>
-                        <Link
-                          href={wp(`/prime/suppliers?job=${encodeURIComponent(n.jobId)}`)}
-                          className="self-start font-medium text-slate-800 underline underline-offset-4 hover:text-foreground"
-                        >
-                          Find another shop
-                        </Link>
+                        {n.kind === "question" ? (
+                          <>
+                            {n.note ? <p className="break-words text-slate-700" data-testid="question-note">“{n.note}”</p> : null}
+                            <div className="flex flex-wrap gap-2" role="group" aria-label={`Reply to ${n.shop} about ${n.jobId}`}>
+                              {replyTemplates(n.decision.question_code).map(({ code, text }) => (
+                                <Button
+                                  key={code}
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-auto min-h-8 bg-white py-1 whitespace-normal"
+                                  disabled={replying === n.key}
+                                  aria-busy={replying === n.key || undefined}
+                                  onClick={() => void reply(n, code, text)}
+                                  data-testid="desk-reply-template"
+                                >
+                                  {replying === n.key ? (
+                                    <Loader2 className="size-3.5 animate-spin motion-reduce:animate-none" aria-hidden />
+                                  ) : (
+                                    <MessageSquareReply className="size-3.5" aria-hidden />
+                                  )}
+                                  {text}
+                                </Button>
+                              ))}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {n.note ? <p className="break-words text-slate-700">“{n.note}”</p> : null}
+                            <Link
+                              href={wp(`/prime/suppliers?job=${encodeURIComponent(n.jobId)}`)}
+                              className="self-start font-medium text-slate-800 underline underline-offset-4 hover:text-foreground"
+                            >
+                              Find another shop
+                            </Link>
+                          </>
+                        )}
                       </div>
                     </li>
                   ))}
@@ -211,6 +306,15 @@ export function PrimeDesk() {
                       <span className="min-w-0">
                         <span className="font-medium text-foreground">{it.title}</span>
                         {it.detail ? <span className="text-muted-foreground"> · {it.detail}</span> : null}
+                        {it.kind === "offer_question" && repliedQuestion(it.shop_id, it.job_id) ? (
+                          <span
+                            className="ml-1.5 inline-flex h-6 items-center gap-1 rounded-full bg-assigned-soft px-2 align-middle text-xs font-medium text-assigned"
+                            data-testid="activity-replied"
+                          >
+                            <MessageSquareReply className="size-3.5" aria-hidden />
+                            Replied
+                          </span>
+                        ) : null}
                         {it.simulated ? <SimulatedChip className="ml-1.5 align-middle" /> : null}
                       </span>
                     </li>
@@ -221,7 +325,7 @@ export function PrimeDesk() {
                   <Inbox className="size-4" aria-hidden /> No replies yet. Shops answer from their phone.
                 </p>
               )}
-            </>
+            </div>
           ) : (
             <p className="text-sm text-muted-foreground">Shops reply once they have offers.</p>
           )}

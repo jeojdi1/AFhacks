@@ -14,6 +14,7 @@ import { useWithParams } from "@/lib/ui/use-with-params";
 import { sc } from "@/components/gaps/story-copy";
 
 import { categoryColors, SC } from "./tokens";
+import { TrainingCapNote } from "./training-cap";
 
 type Row = LedgerResponse["multiplier_breakdown"][number];
 
@@ -249,6 +250,8 @@ export function MultiplierChart({
           );
         })}
       </ul>
+
+      <TrainingCapNote ledger={ledger} rulesLabel={ledger.rules_label} className="border-t border-slate-100 pt-3" />
 
       <p className="text-xs text-slate-500">{cc("score.chart.foot")}</p>
     </Card>

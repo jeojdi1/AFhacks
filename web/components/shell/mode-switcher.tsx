@@ -17,7 +17,7 @@ const OPTIONS = [
   {
     mode: "fixtures" as const,
     title: c("mode.demo"),
-    body: "Replays saved answers. Works offline.",
+    body: "Replays saved answers. No engine needed.",
     dot: "bg-amber-500",
   },
 ]

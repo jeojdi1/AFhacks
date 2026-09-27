@@ -16,6 +16,7 @@ import { cc } from "@/lib/ui/copy-c";
 import { sc } from "@/components/gaps/story-copy";
 
 import { CreditSplit } from "./credit-split";
+import { EvidencePackButton } from "./evidence-pack-button";
 import { summarizeFunding } from "./funding";
 import { MultiplierChart } from "./multiplier-chart";
 import { ObligationMeter } from "./obligation-meter";
@@ -68,9 +69,12 @@ export function ScorecardView() {
       title={c("score.h1")}
       className="mb-4"
       right={
-        <span className="inline-flex h-7 items-center rounded-full border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700">
-          {ledger?.rules_label || RULES_LABEL}
-        </span>
+        <div className="flex flex-wrap items-start gap-2 sm:justify-end">
+          <span className="inline-flex h-7 items-center self-center rounded-full border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700">
+            {ledger?.rules_label || RULES_LABEL}
+          </span>
+          <EvidencePackButton ledger={ledger} />
+        </div>
       }
     />
   );

@@ -1,20 +1,49 @@
 "use client"
 
 import * as React from "react"
-import { ChevronDown, ExternalLink, Lock, Search, TriangleAlert } from "lucide-react"
+import Link from "next/link"
+import { ArrowRight, ChevronDown, ExternalLink, Lock, Search, TriangleAlert } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
-import { CERT_LABEL, GLOSSARY } from "@/lib/format"
+import { CERT_LABEL, GLOSSARY, certCountsForMatching } from "@/lib/format"
 import { certPlain } from "@/lib/ui/plain"
 import { t } from "@/lib/app/strings"
 import { fmtDay, fmtLongDate, toISODate, addDays } from "@/lib/app/today"
 import { certShortName, fmtCredit, fmtWork, ruleFor } from "@/lib/app/renewals"
+import { growHref } from "@/lib/app/readiness"
 import type { CertDeclaration, CertWithDates, Renewal } from "@/lib/app/types"
 import { CertStatusChip, DateBasisChip, StageBadge } from "./stage-badge"
 import { CountdownBar } from "./countdown-bar"
 import { AddExpirySheet } from "./add-expiry-sheet"
 import "./wallet-strings"
+
+/**
+ * Held for the wallet = a status the rules count (verified / declared / pending_training).
+ * A shop-declared expiry date never makes a not-held certificate held: the engine keeps its
+ * status, so Today, Grow and the laptop would disagree.
+ */
+export function certRowHeld(cert: Pick<CertWithDates, "status">): boolean {
+  return certCountsForMatching(cert.status)
+}
+
+const noopSubscribe = () => () => {}
+const serverQuery = () => ""
+/** "?mode=…&api=…" from the current URL (only those two), so a link keeps the data source. */
+function readCarryQuery(): string {
+  try {
+    const q = new URLSearchParams(window.location.search)
+    const out = new URLSearchParams()
+    for (const k of ["mode", "api"]) {
+      const v = q.get(k)
+      if (v) out.set(k, v)
+    }
+    const s = out.toString()
+    return s ? `?${s}` : ""
+  } catch {
+    return ""
+  }
+}
 
 /** DOM id / URL hash for a cert type ("CGP", "NADCAP-HEAT_TREAT"). */
 export function certAnchor(certType: string): string {
@@ -44,7 +73,9 @@ export function CertRow({
   onToggle,
   routed,
   declare,
+  shopId,
 }: {
+  shopId?: string
   cert: CertWithDates
   renewal: Renewal
   today: Date
@@ -54,7 +85,9 @@ export function CertRow({
   declare: (certType: string, expiresAt: string, certNumber?: string) => Promise<CertDeclaration | null>
 }) {
   const rule = ruleFor(cert.type)
-  const held = cert.status !== "unknown" || !!cert.declaration
+  const held = certRowHeld(cert)
+  const carry = React.useSyncExternalStore(noopSubscribe, readCarryQuery, serverQuery)
+  const sid = shopId ?? cert.shop_id
   const dated = held && !!renewal.expires_at
   // Plain label first ("Welding certification (CWB W47.1)"); the acronym never stands alone.
   const name = certPlain(cert.type).first || CERT_LABEL[cert.type] || certShortName(cert.type)
@@ -154,7 +187,16 @@ export function CertRow({
               ) : null}
             </dl>
           ) : (
-            <p className="text-[15px] text-muted-foreground">{held ? t("wallet.row.noDate") : t("wallet.notHeldBody")}</p>
+            held ? (
+              <p className="text-[15px] text-muted-foreground">{t("wallet.row.noDate")}</p>
+            ) : (
+              <p className="text-[15px] text-muted-foreground">
+                {t("wallet.notHeldBody")}{" "}
+                <Link href={`${growHref(sid)}${carry}`} className="font-medium text-brand underline underline-offset-4">
+                  {t("wallet.notHeldGrow")}
+                </Link>
+              </p>
+            )
           )}
 
           {/* Date provenance */}
@@ -263,18 +305,32 @@ export function CertRow({
             <p className="text-sm text-muted-foreground">{t("wallet.row.noRegistry")}</p>
           )}
 
-          <Button variant={dated ? "outline" : "default"} size="touch" className="w-full" onClick={openSheet}>
-            {declaration ? t("wallet.row.editExpiry") : t("wallet.row.addExpiry")}
-          </Button>
-          <AddExpirySheet
-            key={sheetKey}
-            open={sheetOpen}
-            onOpenChange={setSheetOpen}
-            certType={cert.type}
-            initialDate={declaration?.expires_at ?? null}
-            initialNumber={declaration?.cert_number ?? null}
-            declare={declare}
-          />
+          {held ? (
+            <>
+              <Button variant={dated ? "outline" : "default"} size="touch" className="w-full" onClick={openSheet}>
+                {declaration ? t("wallet.row.editExpiry") : t("wallet.row.addExpiry")}
+              </Button>
+              <AddExpirySheet
+                key={sheetKey}
+                open={sheetOpen}
+                onOpenChange={setSheetOpen}
+                certType={cert.type}
+                initialDate={declaration?.expires_at ?? null}
+                initialNumber={declaration?.cert_number ?? null}
+                declare={declare}
+              />
+            </>
+          ) : (
+            // Not held: a date can't make it held. Show what it takes instead (Grow item).
+            <Link
+              href={`${growHref(sid, cert.type)}${carry}`}
+              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-base font-medium outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+              data-testid="cert-see-what-it-takes"
+            >
+              {t("wallet.row.seeWhatItTakes")}
+              <ArrowRight className="size-4 shrink-0" aria-hidden />
+            </Link>
+          )}
         </div>
       ) : null}
     </li>

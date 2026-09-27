@@ -85,6 +85,7 @@ A small-shop owner, quality lead or trainee will open Muster on their phone only
   - "Trainee: Seat 3, TP-01" → `/m/trainee/TP-01?seat=3`
   - The last choice is remembered in localStorage.
   - Below the cards is a "Other shops with offers" list, built from `useDemo().assignments` and grouped by `shop_id`.
+  - That list and the **Demo version** panel (mode switch, seed, simulation) sit inside a **Presenter tools** section, closed by default. `/m?presenter=1` opens it and keeps it open for that tab (`?presenter=0` clears it). **Fill with demo activity** asks for confirmation ([Cancel] [Reset for everyone]) before it seeds.
 - **`web/app/m/layout.tsx`**:
   - one column, `max-w-[430px] mx-auto`
   - on desktop, a thin border and rounded corners so the page reads as a phone frame in the video

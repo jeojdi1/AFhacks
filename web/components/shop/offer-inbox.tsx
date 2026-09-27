@@ -10,6 +10,7 @@ import { certPlain } from "@/lib/ui/plain"
 import { MultiplierPill, NewBadge, TermText } from "./badges"
 import { t } from "@/lib/app/strings"
 import { DECISION_NOTE_MAX, REASON_CODES, type ReasonCode } from "@/lib/app/types"
+import { SimulatedChip } from "@/components/mobile/shell/simulation"
 import type { CertT, OfferT } from "./types"
 
 /**
@@ -33,6 +34,8 @@ export interface InboxDecision {
   question_code?: string | null
   /** Saved on this device, not yet sent. */
   pending?: boolean
+  /** Written by the demo simulator, not the shop (see decisionIsSimulated in lib/app/sim-flag). */
+  simulated?: boolean
 }
 
 const CERT_IN_REASON: [RegExp, string][] = [
@@ -187,8 +190,9 @@ export function OfferInbox({
                     <>
                       <span className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-sm font-medium text-white">
                         <Check className="size-4" aria-hidden />
-                        {ce("shop.inbox.accepted")}
+                        {dec?.simulated ? ce("shop.inbox.accepted.sim") : ce("shop.inbox.accepted")}
                       </span>
+                      {dec?.simulated ? <SimulatedChip /> : null}
                       <span className="text-sm text-zinc-500">{ce("shop.inbox.accepted.note", { h: o.hours_week })}</span>
                       {dec?.pending ? <WillSend /> : null}
                     </>
@@ -196,8 +200,15 @@ export function OfferInbox({
                     <>
                       <span className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-zinc-100 px-3 text-sm font-medium text-zinc-600">
                         <X className="size-4" aria-hidden />
-                        {dec?.reason_code ? t("decision.declinedWith", { reason: t(`reason.${dec.reason_code}`) }) : ce("shop.inbox.declined")}
+                        {dec?.simulated
+                          ? dec.reason_code
+                            ? ce("shop.inbox.declined.simWith", { reason: t(`reason.${dec.reason_code}`) })
+                            : ce("shop.inbox.declined.sim")
+                          : dec?.reason_code
+                            ? t("decision.declinedWith", { reason: t(`reason.${dec.reason_code}`) })
+                            : ce("shop.inbox.declined")}
                       </span>
+                      {dec?.simulated ? <SimulatedChip /> : null}
                       {dec?.pending ? <WillSend /> : null}
                       <Button variant="ghost" size="sm" disabled={isBusy} onClick={() => void run(o.job_id, () => onAccept(o.job_id))}>
                         {ce("shop.inbox.acceptInstead")}
@@ -224,6 +235,7 @@ export function OfferInbox({
                           {dec?.question_code ? t("decision.questionSent", { question: t(`question.${dec.question_code}`) }) : "Question sent"}
                         </span>
                       ) : null}
+                      {status === "question" && dec?.simulated ? <SimulatedChip className="mr-1" /> : null}
                       <Button
                         size="lg"
                         className="bg-emerald-700! px-4 text-white! hover:bg-emerald-800!"

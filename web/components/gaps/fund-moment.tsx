@@ -18,6 +18,8 @@ import { Term } from "@/components/muster/term";
 import { shortDescription } from "./labels";
 import { sc } from "./story-copy";
 import { useArmed, useCountUp } from "./motion";
+import { useDemo } from "@/lib/data/store";
+import { TrainingCapNote } from "@/components/scorecard/training-cap";
 
 /** Timeline (ms after the panel is on screen). */
 export const MOMENT = {
@@ -110,6 +112,7 @@ export function FundMoment({
   reducedMotion: boolean;
 }) {
   const wp = useWithParams();
+  const { ledger } = useDemo();
   const ref = useRef<HTMLElement>(null);
   const play = animate && !reducedMotion;
   const armed = useArmed(play ? result.package_id : null, MOMENT.start);
@@ -190,6 +193,21 @@ export function FundMoment({
         {cd("fund.caveat")}
         {tenX ? cd("fund.caveat.tenX") : ""}
       </p>
+      {/* Training-credit cap: from the ledger (all funded training), else this fund result. */}
+      <TrainingCapNote
+        ledger={
+          ledger && ledger.transactions.some((t) => t.origin === "training")
+            ? ledger
+            : {
+                obligation_cad:
+                  ledger?.obligation_cad ??
+                  (after.obligation_met_pct > 0 ? after.credit_total_cad / after.obligation_met_pct : 0),
+                transactions: [result.training_txn],
+              }
+        }
+        rulesLabel={ledger?.rules_label}
+        className="mt-1.5 text-[13px] text-zinc-600"
+      />
 
       <div className="mt-6 grid gap-5 lg:grid-cols-12">
         {/* (2) Credit counter + stuck jobs */}

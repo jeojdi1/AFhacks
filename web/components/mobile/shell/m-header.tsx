@@ -75,7 +75,7 @@ export function ModeBadge({ className }: { className?: string }) {
       : t("header.mode.notConnectedTitle")
     : mode === "live"
       ? "Talking to the Muster engine"
-      : "Checked-in demo data; works offline"
+      : "Checked-in demo data; no engine needed"
   return (
     <span
       className={cn(

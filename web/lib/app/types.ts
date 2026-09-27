@@ -113,6 +113,7 @@ export const EVENT_KINDS = [
   "capacity_confirmed",
   "cert_declared",
   "offer_reply",
+  "reoffered",
 ] as const
 export type EventKind = (typeof EVENT_KINDS)[number]
 

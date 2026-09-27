@@ -203,6 +203,14 @@ def test_funding_request_waits_until_tp01_is_funded(client):
     assert [(r["package_id"], r["shop_id"]) for r in reqs] == [("TP-02", "syn-026")]
 
 
+def test_tick_reports_steps_waiting_for_the_fund_moment(client):
+    seed(client)
+    assert tick(client)["waiting"] == len(FUNDING_STEPS)
+    ok(client.post("/programs/northgate/training/TP-01/fund"))
+    r = tick(client)
+    assert r["waiting"] == 0 and r["event"] is not None
+
+
 def test_funding_request_is_last_in_the_queue():
     kinds = [act["type"] for _, act in simulate.TICK_QUEUE]
     assert "funding" in kinds and kinds.index("funding") == len(kinds) - 1
@@ -243,7 +251,7 @@ def test_ticks_after_exhaustion_are_noops(client):
     _run_all(client)
     rev, n = revision(), len(events(client))
     for _ in range(3):
-        assert tick(client) == {"event": None, "remaining": 0}
+        assert tick(client) == {"event": None, "remaining": 0, "waiting": 1}  # TP-02 request waits for TP-01
     assert revision() == rev and len(events(client)) == n
     status = ok(client.get("/demo/simulate/status"))
     assert status["queue_length"] == len(simulate.TICK_QUEUE)

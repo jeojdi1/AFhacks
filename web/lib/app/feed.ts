@@ -21,8 +21,8 @@ extendStrings("en", {
   "prime.glance.met": "Credit so far",
   "prime.glance.metOf": "of {obligation} owed",
   "prime.glance.metPct": "of what's owed",
-  "prime.glance.smb": "Work to small businesses",
-  "prime.glance.smbOf": "{pct} of the {target} small-business target",
+  "prime.glance.smb": "Small-business target",
+  "prime.glance.smbOf": "{achieved} of {target} ({pct})",
   "prime.glance.training": "Training credit",
   "prime.glance.trainingNone": "No training funded yet",
   "prime.glance.trainingSome": "{count} training plans funded",
@@ -61,6 +61,9 @@ extendStrings("en", {
   "feed.reply": "You replied to {shop} on {job}: “{text}”",
   "feed.reply.detail": "About: {question}",
   "feed.undo.detail": "Offer is open again",
+  "feed.reoffered": "You sent {job} to {shop}",
+  "feed.reoffered.detail": "{from} declined it · still counted as placed (demo)",
+  "feed.reoffered.detailNoFrom": "Still counted as placed (demo)",
   "feed.funding": "{shop} asked you to fund {requirement} training",
   "feed.funding.detail": "{cost} → {credit} credit",
   "feed.funded": "{package} funded → {count} jobs unblocked",
@@ -404,6 +407,16 @@ export function eventItem(e: AppEvent, ledger: LedgerResponse | null, ctx: FeedC
         detail: t("feed.undo.detail"),
         action: e.shop_id && e.job_id ? { label: t("feed.action.view"), href: withFromPrime(shopOfferHref(e.shop_id, e.job_id)) } : null,
       }
+    case "reoffered": {
+      const from = shortShopName(str(p.from_shop_name)) || str(p.from_shop_id)
+      return {
+        ...base,
+        tone: "info",
+        title: t("feed.reoffered", { shop, job: e.job_id ?? "" }),
+        detail: from ? t("feed.reoffered.detail", { from }) : t("feed.reoffered.detailNoFrom"),
+        action: e.shop_id && e.job_id ? { label: t("feed.action.view"), href: withFromPrime(shopOfferHref(e.shop_id, e.job_id)) } : null,
+      }
+    }
     case "funding_requested": {
       const pkg = e.package_id ? ctx.packages?.find((x) => x.id === e.package_id) : undefined
       const requirement = str(p.requirement) ?? pkg?.gap?.requirement ?? ""

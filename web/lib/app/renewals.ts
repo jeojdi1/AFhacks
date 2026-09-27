@@ -131,9 +131,9 @@ export function renewalFor(
   const rule = ruleFor(cert.type)
   const expiry = parseAppDate(cert.expires_at)
   const expiresAt = expiry ? toISODate(expiry) : null
-  // "Not held" never shows a stage, unless the shop itself declared a date. A certificate whose
+  // "Not held" never shows a stage (a self-declared date does not make it held). A certificate whose
   // welders are still in training (pending_training) is not held yet, so it never gets a renewal stage.
-  const held = certIsHeld(cert.status) || !!cert.declaration
+  const held = certIsHeld(cert.status)
   const actByDays = rule.act_by_days ?? 0
   const remindDays = rule.remind_days ?? FILE.defaults.remind_days
   const actBy = held && expiresAt ? toISODate(addDays(expiresAt, -actByDays)) : null

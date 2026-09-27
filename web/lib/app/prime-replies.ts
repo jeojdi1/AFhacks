@@ -16,7 +16,38 @@
 
 import * as React from "react"
 import { AppApiError, appFetch, newIdempotencyKey } from "./api"
-import type { OfferDecisionRec } from "./types"
+import { extendStrings, t } from "./strings"
+import type { OfferDecisionRec, QuestionCode } from "./types"
+
+// Reply copy, shared by /m/prime (prime-actions.tsx) and the laptop desk (/prime).
+extendStrings("en", {
+  "pa.q.reply.lead_time": "Yes, November works",
+  "pa.q.reply.quantity_split": "Yes, two lots is fine",
+  "pa.q.reply.material_supply": "We'll supply the material",
+  "pa.q.reply.first_article": "Yes, send a first article",
+  "pa.q.reply.generic": "We'll confirm by Friday",
+  "pa.q.sent": "Reply sent",
+  "pa.q.sentBody": "{shop} sees it on its phone.",
+  "pa.q.sentDemo": "Reply sent (demo)",
+  "pa.q.sentDemoBody": "Recorded on this device only: this engine has no reply route.",
+  "pa.q.failed": "Could not send the reply",
+})
+
+/** Canned replies for a question: one that answers its topic, then a generic holding reply. */
+const REPLY_CODES: Record<QuestionCode, string> = {
+  lead_time: "yes_date",
+  quantity_split: "yes_split",
+  material_supply: "we_supply",
+  first_article: "yes_fai",
+}
+
+/** The reply chips for one question (same set on the phone and the laptop). */
+export function replyTemplates(q: QuestionCode | null): { code: string; text: string }[] {
+  const out: { code: string; text: string }[] = []
+  if (q && REPLY_CODES[q]) out.push({ code: REPLY_CODES[q], text: t(`pa.q.reply.${q}`) })
+  out.push({ code: "confirm_friday", text: t("pa.q.reply.generic") })
+  return out
+}
 
 export const REPLIES_KEY = "muster.app.v1.replies"
 const CHANGE_EVENT = "muster:replies-change"

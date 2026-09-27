@@ -322,6 +322,8 @@ export interface Offer {
   credit_cad: number;
   reasons: string[];
   status: AssignmentStatus;
+  /** Set when Northgate re-offered this declined job to this shop (demo): the shop that declined. */
+  reoffered_from?: string | null;
 }
 
 /** GET /shops/{id} → readiness[]: jobs this shop fails on exactly one requirement. */

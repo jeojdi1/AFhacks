@@ -7,7 +7,7 @@ import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ArrowRight, CircleCheck, Inbox, RotateCw } from "lucide-react"
-import { fmtMoney } from "@/lib/format"
+import { certDisplay, fmtMoney } from "@/lib/format"
 import { useDemo } from "@/lib/data/store"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
 import { EmptyState } from "@/components/muster/empty-state"
@@ -40,8 +40,9 @@ extendStrings("en", {
   "today.stat.hoursConfirmed": "{free} free confirmed",
   "today.stat.hours.note": "Weekly hours per job are demo estimates of production load",
   "today.stat.certs": "certificates in place",
-  "today.stat.certs.detail": "of {total} tracked",
-  "today.stat.certs.detailTraining": "of {total} tracked · {training} in training",
+  "today.stat.certs_one": "certificate in place",
+  "today.stat.certs.detail": "of {total} needed for your offers",
+  "today.stat.certs.detailTraining": "of {total} needed for your offers · {training} in training",
   "today.hero.kicker": "From Northgate, a defence company",
   "today.hero.title": "{count} offers waiting for your answer",
   "today.hero.title_one": "1 offer waiting for your answer",
@@ -52,6 +53,51 @@ extendStrings("en", {
 })
 
 const CHECKIN_HASH = "#checkin"
+
+/**
+ * Certificate groups, the same checklist the laptop's /shops/[id] Certificates card uses
+ * (components/shop/certifications-card.tsx GROUPS): every Nadcap scope is one group.
+ */
+const CERT_GROUPS: { key: string; match: (type: string) => boolean }[] = [
+  { key: "CGP", match: (x) => x === "CGP" },
+  { key: "CPCSC_L1", match: (x) => x === "CPCSC_L1" },
+  { key: "ISO9001", match: (x) => x === "ISO9001" },
+  { key: "AS9100", match: (x) => x === "AS9100" },
+  { key: "NADCAP", match: (x) => x.startsWith("NADCAP") },
+  { key: "CWB_W47.1", match: (x) => x === "CWB_W47.1" },
+]
+const CERT_RANK: Record<string, number> = { verified: 3, declared: 2, pending_training: 1, unknown: 0 }
+
+/**
+ * "N of M needed in place · K in training", counted exactly like the laptop's Certificates card:
+ * the listed groups are the ones held, in training, or needed by this shop's offers and its
+ * one-step (readiness) jobs; the CWB readiness item is dropped once training is funded.
+ */
+function certNeededCount(
+  certs: { type: string; status: string }[],
+  offerJobIds: string[],
+  readiness: { kind: string; requirement: string; jobs_unlocked?: string[] }[],
+  requiredCerts: (jobId: string) => string[],
+  funded: boolean
+): { held: number; inTraining: number; needed: number } {
+  const shown = funded ? readiness.filter((r) => !(r.kind === "cert" && r.requirement === "CWB_W47.1")) : readiness
+  const needed = new Set<string>([
+    ...offerJobIds.flatMap(requiredCerts),
+    ...shown.flatMap((r) => [...(r.kind === "cert" && r.requirement ? [r.requirement] : []), ...(r.jobs_unlocked ?? []).flatMap(requiredCerts)]),
+  ])
+  let held = 0
+  let inTraining = 0
+  let listed = 0
+  for (const g of CERT_GROUPS) {
+    const best = certs.filter((c) => g.match(c.type)).reduce<string>((a, c) => ((CERT_RANK[c.status] ?? 0) > (CERT_RANK[a] ?? 0) ? c.status : a), "unknown")
+    const d = certDisplay(best)
+    const isNeeded = [...needed].some((x) => g.match(x))
+    if (d === "held") held += 1
+    if (d === "in_training") inTraining += 1
+    if (d !== "missing" || isNeeded) listed += 1
+  }
+  return { held, inTraining, needed: listed }
+}
 
 function Skeleton() {
   return (
@@ -157,6 +203,18 @@ export function TodayView({ shopId }: { shopId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [offers, bundle.shop, certs, actions.capacity]
   )
+
+  // Same count as the laptop's /shops/[id] Certificates card, so both views agree.
+  const certCount = React.useMemo(() => {
+    const funded = stage === "funded" || (detail?.training ?? []).some((x) => x.status === "funded")
+    return certNeededCount(
+      certs,
+      offers.map((o) => o.job_id),
+      detail?.readiness ?? [],
+      (id) => jobsById[id]?.required_certs ?? [],
+      funded
+    )
+  }, [certs, offers, detail, jobsById, stage])
 
   const routed = stage === "routed" || stage === "funded" || (detail?.offers.length ?? 0) > 0
   const open = routed ? openOffers(bundle) : []
@@ -281,12 +339,12 @@ export function TodayView({ shopId }: { shopId: string }) {
             tag={<AssumptionTag note={t("today.stat.hours.note")} />}
           />
           <Stat
-            value={`${stats.certs_in_place}`}
-            label={t("today.stat.certs")}
+            value={`${certCount.held}`}
+            label={t("today.stat.certs", { count: certCount.held })}
             detail={
-              stats.certs_in_training > 0
-                ? t("today.stat.certs.detailTraining", { total: stats.certs_total, training: stats.certs_in_training })
-                : t("today.stat.certs.detail", { total: stats.certs_total })
+              certCount.inTraining > 0
+                ? t("today.stat.certs.detailTraining", { total: certCount.needed, training: certCount.inTraining })
+                : t("today.stat.certs.detail", { total: certCount.needed })
             }
           />
         </section>

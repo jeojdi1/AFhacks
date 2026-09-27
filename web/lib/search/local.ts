@@ -129,6 +129,9 @@ function buildCities(): Map<string, City> {
 
 const CITIES = buildCities()
 
+/** Every listed shop's name (synthetic and public): the search box's name index. */
+export const SHOP_NAMES: string[] = [...new Set([...SYNTHETIC, ...PUBLIC].map((s) => s.name).filter((n): n is string => !!n))]
+
 /** City names for the "near" picker, alphabetical. */
 export const CITY_NAMES: string[] = [...CITIES.values()].map((c) => c.name).sort((a, b) => a.localeCompare(b))
 
