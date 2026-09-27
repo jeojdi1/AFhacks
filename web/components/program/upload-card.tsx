@@ -13,10 +13,17 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import type { Job } from "@/lib/api/types";
+import type { Job, PartsUploadResponse } from "@/lib/api/types";
+import { fx } from "@/lib/data/fixture-source";
 import { fmtMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Stage } from "@/lib/data/store";
+
+// Value of the checked-in Northgate list, so the card copy cannot drift from the loaded chip.
+const DEMO_UPLOAD = fx<PartsUploadResponse>("POST", "/programs/northgate/parts");
+const DEMO_LINES = DEMO_UPLOAD?.jobs.length ?? 40;
+const DEMO_TOTAL = (DEMO_UPLOAD?.jobs ?? []).reduce((s, j) => s + (j.est_value_cad ?? 0), 0);
+const DEMO_JOB_IDS = new Set((DEMO_UPLOAD?.jobs ?? []).map((j) => j.id));
 
 export interface UploadCardProps {
   stage: Stage;
@@ -59,7 +66,7 @@ export function UploadCard({ stage, busy, jobs, fileName: storeFileName, onUploa
               pick(e.dataTransfer.files?.[0]);
             }}
             className={cn(
-              "m-4 flex cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed px-6 py-10 text-center transition-colors",
+              "m-4 flex cursor-pointer flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed px-6 py-10 text-center transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2",
               dragging
                 ? "border-primary/60 bg-primary/5"
                 : "border-slate-300 bg-slate-50/60 hover:border-slate-400 hover:bg-slate-50",
@@ -100,13 +107,14 @@ export function UploadCard({ stage, busy, jobs, fileName: storeFileName, onUploa
               <div>
                 <p className="text-base font-medium text-slate-900">Northgate demo parts list</p>
                 <p className="mt-0.5 text-sm text-slate-500">
-                  40 lines from a fictional armoured-vehicle program, fleet-lifetime quantities (~$40M).
+                  {DEMO_LINES} lines from a fictional armoured-vehicle program, fleet-lifetime quantities
+                  {DEMO_TOTAL > 0 ? ` (about ${fmtMoney(DEMO_TOTAL, { compact: true })})` : ""}.
                 </p>
               </div>
             </div>
             <Button
               size="lg"
-              className="h-11 w-full text-[15px]"
+              className="h-auto min-h-11 w-full py-2 text-[15px] whitespace-normal"
               disabled={isBusy}
               onClick={() => {
                 setPickedName(null);
@@ -118,7 +126,7 @@ export function UploadCard({ stage, busy, jobs, fileName: storeFileName, onUploa
               ) : (
                 <Sparkles data-icon="inline-start" />
               )}
-              {uploading && !fileName ? busy : "Load Northgate demo parts list (40 lines)"}
+              {uploading && !fileName ? busy : `Load Northgate demo parts list (${DEMO_LINES} lines)`}
             </Button>
             {isBusy && !uploading ? (
               <p className="flex items-center gap-1.5 text-xs text-slate-500">
@@ -138,6 +146,9 @@ export function UploadCard({ stage, busy, jobs, fileName: storeFileName, onUploa
   const controlled = jobs.filter((j) => j.controlled).length;
   const total = jobs.reduce((s, j) => s + (j.est_value_cad ?? 0), 0);
   const routed = stage === "routed" || stage === "funded";
+  // Name the demo list only when the loaded jobs are the demo list's jobs.
+  const isDemoList =
+    jobs.length === DEMO_JOB_IDS.size && DEMO_JOB_IDS.size > 0 && jobs.every((j) => DEMO_JOB_IDS.has(j.id));
 
   return (
     <Card className="py-0">
@@ -146,7 +157,8 @@ export function UploadCard({ stage, busy, jobs, fileName: storeFileName, onUploa
           <div className="flex items-center gap-2">
             <CheckCircle2 className="size-5 text-emerald-600" />
             <p className="text-base font-medium text-slate-900">
-              Parts list loaded{fileName ? `: ${fileName}` : ": Northgate demo parts list"}
+              Parts list loaded
+              {fileName ? `: ${fileName}` : isDemoList ? ": Northgate demo parts list" : ""}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

@@ -71,7 +71,7 @@ export function SuggestionCard({ pkg, funded, pending, disabled, error, onFund }
           )}
         >
           <span className="text-4xl leading-none font-bold tracking-tight tabular-nums">{pkg.multiplier}x</span>
-          <span className={cn("mt-1 max-w-[9rem] text-[11px] leading-tight", isIndigenous ? "text-zinc-300" : "text-zinc-500")}>
+          <span className={cn("mt-1 max-w-[9rem] text-[11px] leading-tight", isIndigenous ? "text-zinc-200" : "text-zinc-600")}>
             {multiplierLabel(pkg.multiplier)}
           </span>
         </div>

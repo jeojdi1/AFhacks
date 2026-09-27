@@ -23,7 +23,7 @@ export function WorkedExample({ txn, shop, partNo }: { txn: CreditTxn; shop?: Sh
   return (
     <Card className="gap-4 px-6 py-6 [--card-spacing:--spacing(6)]">
       <div>
-        <h3 className="text-base font-semibold text-slate-900">How one job earns credit</h3>
+        <h2 className="text-base font-semibold text-slate-900">How one job earns credit</h2>
         <p className="text-sm text-slate-500">
           Part <span className="font-medium text-slate-700 tabular-nums">{partNo ?? txn.ref_id}</span>
           {shop ? (

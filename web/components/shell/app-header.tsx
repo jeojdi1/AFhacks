@@ -33,12 +33,16 @@ export function AppHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/80">
-      <div className="mx-auto flex h-16 w-full max-w-[1280px] items-center gap-4 px-6">
-        <Link href="/" className="shrink-0 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring/50" aria-label="Muster home">
+      <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2 sm:h-16 sm:flex-nowrap sm:px-6 sm:py-0">
+        <Link href="/" className="shrink-0 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring" aria-label="Muster home">
           <BrandMark />
         </Link>
 
-        <nav className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto" aria-label="Main">
+        {/* Phones: the nav gets its own full-width, scrollable row under the brand row. */}
+        <nav
+          className="order-last flex w-full min-w-0 items-center gap-1 overflow-x-auto sm:order-none sm:w-auto sm:flex-1"
+          aria-label="Main"
+        >
           {items.map((it, i) => {
             const active = it.match(pathname)
             const groupStart = i === 0 || items[i - 1].group !== it.group
@@ -79,11 +83,18 @@ export function AppHeader() {
           })}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:ml-0">
           <ModeSwitcher />
-          <Button variant="outline" size="lg" onClick={() => void reset()} disabled={!ready || !!busy} className="px-3">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => void reset()}
+            disabled={!ready || !!busy}
+            className="px-3"
+            aria-label="Reset demo"
+          >
             {resetting ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : <RotateCcw data-icon="inline-start" />}
-            Reset demo
+            <span className="hidden sm:inline">Reset demo</span>
           </Button>
         </div>
       </div>

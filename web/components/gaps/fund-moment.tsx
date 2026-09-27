@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CircleCheck, TriangleAlert, TrendingUp } from "lucide-react";
 import { cn } from "cn";
@@ -19,9 +19,14 @@ export const MOMENT = {
   flipStagger: 150,
 } as const;
 
+/** Glue each " + " to the clause after it so a wrap never leaves a dangling "+". */
+function glueClauses(text: string): string {
+  return text.replace(/ \+ /g, " +\u00a0");
+}
+
 function Headline({ text }: { text: string }) {
   // Highlight the multiplier, e.g. "(5x)".
-  const parts = text.split(/(\(\d+x\))/);
+  const parts = glueClauses(text).split(/(\(\d+x\))/);
   return (
     <>
       {parts.map((p, i) =>
@@ -83,7 +88,14 @@ function Meter({
       </div>
       <div className="mt-1.5 flex justify-between text-[13px] text-zinc-500">
         <span>{note}</span>
-        <span className="font-medium text-emerald-700 tabular-nums">
+        {/* Appears once the counter has landed, so the delta never runs ahead of the numbers. */}
+        <span
+          className={cn(
+            "font-medium text-emerald-700 tabular-nums transition-opacity duration-300",
+            armed ? "opacity-100" : "opacity-0",
+          )}
+          style={{ transitionDelay: animate ? `${MOMENT.count}ms` : "0ms" }}
+        >
           +{deltaPts.toFixed(1)} pts
         </span>
       </div>
@@ -161,21 +173,33 @@ export function FundMoment({
     enabled: play,
   });
 
+  const headlineRef = useRef<HTMLHeadingElement>(null);
+  // Screen readers hear the headline once, after the count-up (not every frame of it).
+  const [announcement, setAnnouncement] = useState("");
+
   useEffect(() => {
     if (!animate) return;
     ref.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
-  }, [animate, reducedMotion]);
+    // The Fund button is replaced by "Funded"; move focus here instead of letting it drop to <body>.
+    headlineRef.current?.focus({ preventScroll: true });
+    const id = window.setTimeout(
+      () => setAnnouncement(result.headline),
+      reducedMotion ? 150 : MOMENT.start + MOMENT.count,
+    );
+    return () => window.clearTimeout(id);
+  }, [animate, reducedMotion, result.headline]);
 
   const { before, after, package: pkg, credit_added_breakdown: br } = result;
+  const tenX = pkg.multiplier === 10 || pkg.recipient_type === "indigenous_institution";
   const totalAdded = Math.max(1, br.training_cad + br.jobs_cad);
   const trainingShare = br.training_cad / totalAdded;
 
   return (
     <section
       ref={ref}
-      aria-live="polite"
+      aria-labelledby={`fund-headline-${result.package_id}`}
       className={cn(
-        "scroll-mt-6 rounded-2xl border border-emerald-200 bg-gradient-to-b from-emerald-50/70 to-white p-6 md:p-8",
+        "scroll-mt-24 rounded-2xl border border-emerald-200 bg-gradient-to-b from-emerald-50/70 to-white p-6 md:p-8",
         play && "animate-in fade-in-0 slide-in-from-top-2 duration-500",
       )}
     >
@@ -201,9 +225,21 @@ export function FundMoment({
       </div>
 
       {/* (1) Headline */}
-      <h2 className="mt-4 text-3xl leading-tight font-semibold tracking-tight text-balance text-zinc-900 md:text-[40px]">
+      <h2
+        ref={headlineRef}
+        id={`fund-headline-${result.package_id}`}
+        tabIndex={-1}
+        className="mt-4 text-3xl leading-tight font-semibold tracking-tight text-balance text-zinc-900 outline-none md:text-[40px]"
+      >
         <Headline text={result.headline} />
       </h2>
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        {announcement}
+      </p>
+      <p className="mt-2 text-[13px] text-zinc-600" data-testid="fund-caveat">
+        Training cost is an assumption · Simplified ITB rules for demo
+        {tenX ? " · 10x Indigenous workforce credit needs Defence Investment Agency confirmation" : ""}
+      </p>
 
       <div className="mt-7 grid gap-6 lg:grid-cols-12">
         {/* (2) Credit counter */}

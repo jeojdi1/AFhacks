@@ -40,15 +40,15 @@ export function OfferInbox({
 
   return (
     <section className="rounded-xl border border-zinc-200 bg-white">
-      <header className="flex flex-wrap items-end justify-between gap-3 border-b border-zinc-100 px-6 py-5">
-        <div>
+      <header className="flex items-end justify-between gap-6 border-b border-zinc-100 px-6 py-5">
+        <div className="min-w-0 flex-1">
           <h2 className="text-lg font-semibold tracking-tight text-zinc-900">Offer inbox</h2>
           <p className="mt-0.5 text-sm text-zinc-500">
             Defence jobs Muster routed to this shop. Accepting tells the prime you will take the work.
           </p>
         </div>
         {sorted.length > 0 && (
-          <div className="text-right">
+          <div className="shrink-0 text-right">
             <div className="text-2xl font-semibold tabular-nums text-zinc-900">
               {fmtMoney(totalValue, { compact: true })}
             </div>
@@ -87,7 +87,7 @@ export function OfferInbox({
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2 text-sm text-zinc-500">
                       <span className="font-medium text-zinc-700">
-                        {o.prime_name} <span className="font-normal text-zinc-400">(fictional)</span>
+                        {o.prime_name} <span className="font-normal text-zinc-600">(fictional)</span>
                       </span>
                       <span aria-hidden>·</span>
                       <span className="font-mono text-xs">{o.part_no}</span>

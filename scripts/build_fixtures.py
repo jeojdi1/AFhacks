@@ -987,21 +987,28 @@ class State:
         needed = [x for x in job["required_certs"] if x != "CPCSC_L1"]
         main_cert = next((x for x in CERT_REASON_PRIORITY if x in needed), None)
         proc = PROCESS_LABEL[job["process_tags"][0]]
-        holders = [sid for sid, fails in process_shops if "certs" not in fails]
-        full = [sid for sid in holders if "capacity" in self.failing(sid, job)]
-        lacking = [sid for sid, fails in process_shops if "certs" in fails]
+        # Mirrors engine/gaps.py: only shops that fail nothing but certs/capacity count toward
+        # the certified-capacity story (an envelope/CGP/CPCSC miss is not "at capacity").
+        fit = [(sid, fails) for sid, fails in process_shops if not (set(fails) - {"certs", "capacity"})]
+        holders = [sid for sid, fails in fit if "certs" not in fails]
+        full = [sid for sid, fails in fit if "certs" not in fails and "capacity" in fails]
+        lacking = [sid for sid, fails in fit if "certs" in fails]
         if main_cert:
             label = CERT_LABEL[main_cert]
             free = sorted({self.remaining(s) for s in full}, reverse=True)
             free_txt = " and ".join(str(f) for f in free)
-            if len(full) == len(holders) and len(full) == 2:
+            if len(full) == len(holders) == 1:
+                head = (f"The only {label} {proc} shop that fits is at capacity ({free_txt} h/week "
+                        f"free vs {job['hours_week']} needed)")
+            elif len(full) == len(holders) == 2:
                 head = (f"Both {label} {proc} shops are at capacity ({free_txt} h/week free vs "
                         f"{job['hours_week']} needed)")
             else:
                 head = f"{len(full)} of {len(holders)} {label} {proc} shops are at capacity"
             other = (f"1 other {proc} shop lacks" if len(lacking) == 1
                      else f"{len(lacking)} other {proc} shops lack")
-            reason = f"{head}; {other} {label} (certified-welder shortage)"
+            reason = f"{head}; {other} {label}" if lacking else head
+            reason += " (certified-welder shortage)"
         else:
             reason = f"No shop passes every filter; most common failure: {reason_code}"
         return {

@@ -35,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <ProgramContextBar />
             <main className="flex w-full flex-1 flex-col">{children}</main>
             <AppFooter />
-            <Toaster theme="light" position="top-right" closeButton />
+            <Toaster theme="light" position="bottom-right" closeButton />
           </TooltipProvider>
         </DemoProvider>
       </body>

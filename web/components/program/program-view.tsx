@@ -126,7 +126,7 @@ export function ProgramView() {
           />
           <Link
             href="/gaps"
-            className="group rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="group rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring"
           >
             <StatCard
               label="Blocked"

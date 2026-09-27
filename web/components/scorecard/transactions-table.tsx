@@ -57,7 +57,7 @@ export function TransactionsTable({
     <Card className="gap-4 px-0 py-6 [--card-spacing:--spacing(6)]">
       <div className="flex flex-wrap items-start justify-between gap-3 px-6">
         <div>
-          <h3 className="text-base font-semibold text-slate-900">Credit transactions</h3>
+          <h2 className="text-base font-semibold text-slate-900">Credit transactions</h2>
           <p className="text-sm text-slate-500">
             {transactions.length} entries in the ledger. Every row: value × CCV × multiplier = credit.
           </p>

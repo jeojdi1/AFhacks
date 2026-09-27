@@ -1,6 +1,6 @@
 "use client"
 
-import type * as React from "react"
+import { useId, type ReactNode } from "react"
 import { cn } from "@/lib/utils"
 import { GLOSSARY } from "@/lib/format"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -14,21 +14,29 @@ export function Term({
   /** Key into GLOSSARY, e.g. "CWB". */
   abbr: string
   /** Visible text (defaults to the acronym itself). */
-  children?: React.ReactNode
+  children?: ReactNode
   className?: string
 }) {
+  const id = useId()
   const meaning = GLOSSARY[abbr]
   if (!meaning) return <>{children ?? abbr}</>
   return (
-    <Tooltip>
-      <TooltipTrigger
-        render={<abbr />}
-        tabIndex={0}
-        className={cn("cursor-help underline decoration-slate-400 decoration-dotted underline-offset-4", className)}
-      >
-        {children ?? abbr}
-      </TooltipTrigger>
-      <TooltipContent>{meaning}</TooltipContent>
-    </Tooltip>
+    <>
+      <Tooltip>
+        <TooltipTrigger
+          render={<abbr />}
+          tabIndex={0}
+          aria-describedby={id}
+          className={cn("cursor-help underline decoration-slate-500 decoration-dotted underline-offset-4", className)}
+        >
+          {children ?? abbr}
+        </TooltipTrigger>
+        <TooltipContent>{meaning}</TooltipContent>
+      </Tooltip>
+      {/* Screen readers get the meaning as the description even when the tooltip is closed. */}
+      <span id={id} hidden>
+        {meaning}
+      </span>
+    </>
   )
 }

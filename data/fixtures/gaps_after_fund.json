@@ -19,7 +19,7 @@
       "value_cad": 1501000.0,
       "hours_week": 40,
       "reason_code": "capacity",
-      "reason": "2 of 3 CWB W47.1 welding shops are at capacity; 3 other welding shops lack CWB W47.1 (certified-welder shortage)",
+      "reason": "The only CWB W47.1 welding shop that fits is at capacity (16 h/week free vs 40 needed); 1 other welding shop lacks CWB W47.1 (certified-welder shortage)",
       "eligible_shop_count": 1,
       "failing_filters": {
         "process": 24,

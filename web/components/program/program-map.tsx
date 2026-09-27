@@ -32,7 +32,7 @@ export function ProgramMap({ site, shops, lines, highlight }: ProgramMapProps) {
 
 function MapLegend({ busyShops, idleShops }: { busyShops: number; idleShops: number }) {
   return (
-    <div className="pointer-events-none absolute top-3 right-3 z-[500] flex flex-col gap-1.5 rounded-lg border border-slate-200 bg-white/95 px-3 py-2.5 text-xs text-slate-700 shadow-sm backdrop-blur">
+    <div className="pointer-events-none absolute top-3 right-3 z-[500] hidden flex-col gap-1.5 sm:flex rounded-lg border border-slate-200 bg-white/95 px-3 py-2.5 text-xs text-slate-700 shadow-sm backdrop-blur">
       <LegendItem
         swatch={
           <span className="block size-3 rotate-45 rounded-[2px] border-2 border-white bg-[#B42318] ring-1 ring-[#B42318]" />

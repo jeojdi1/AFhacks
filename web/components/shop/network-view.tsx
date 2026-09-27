@@ -33,7 +33,7 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 }
 
 const selectCls =
-  "h-9 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-800 outline-none focus-visible:ring-3 focus-visible:ring-zinc-300"
+  "h-9 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-800 outline-none focus-visible:ring-3 focus-visible:ring-zinc-500"
 
 export function NetworkView() {
   const demo = useDemo()
@@ -296,7 +296,7 @@ export function NetworkView() {
                           ) : (
                             <span className="text-zinc-500">Non-SME</span>
                           )}
-                          <div className="text-xs text-zinc-400">{s.employee_band}</div>
+                          <div className="text-xs text-zinc-600">{s.employee_band}</div>
                         </td>
                         <td className="px-3 py-3.5">
                           <div className="flex max-w-[300px] flex-wrap gap-1.5">

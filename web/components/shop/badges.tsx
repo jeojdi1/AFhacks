@@ -98,7 +98,7 @@ export function CertChip({ type, status }: { type: string; status: string }) {
   const meta = certStatusMeta(status)
   return (
     <span
-      className={cn(pill, "h-6 px-2", meta.className, !meta.counts && "opacity-70")}
+      className={cn(pill, "h-6 px-2", meta.className, !meta.counts && "border-dashed")}
       title={`${certLabel(type)}: ${meta.label}`}
     >
       <span className={cn("size-1.5 rounded-full", meta.dot)} aria-hidden />

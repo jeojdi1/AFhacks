@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef, useState, type RefObject } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, type BarShapeProps } from "recharts";
 
@@ -14,6 +16,39 @@ type Row = LedgerResponse["multiplier_breakdown"][number];
 const ROW_H = 76;
 const AXIS_W = 340;
 const RIGHT_W = 210;
+/** Below this container width the label column cannot fit beside the bars: stack instead. */
+const STACK_BELOW = 640;
+/** Work-value outline (dashed) drawn on top of the credit bar so it is never hidden. */
+const VALUE_STROKE_ON_BAR = "#FFFFFF";
+const VALUE_STROKE = "#334155"; // slate-700
+
+/** Width of an element, tracked with ResizeObserver (0 before the first measure). */
+function useWidth<T extends HTMLElement>(): [RefObject<T | null>, number] {
+  const ref = useRef<T>(null);
+  const [w, setW] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => setW(entries[0]?.contentRect.width ?? 0));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return [ref, w];
+}
+
+function pillFill(row: Row): string {
+  const empty = row.credit_cad <= 0;
+  if (empty || row.category === "regular") return "#64748B"; // slate-500: white text 4.76:1
+  return categoryColors(row.category).solid;
+}
+
+/** Second line to the right of a bar. Training rows spell out the multiplier so a thin bar still reads. */
+function subLabel(row: Row): string {
+  if (isTraining(row)) {
+    return `${fmtMoney(row.value_cad, { compact: true })} training → ${fmtMoney(row.credit_cad, { compact: true })} (${row.multiplier}x)`;
+  }
+  return `from ${fmtMoney(row.value_cad, { compact: true })} of work`;
+}
 
 /** Rectangle with a 4px rounded data-end and a square baseline (horizontal bars). */
 function barPath(x: number, y: number, w: number, h: number, r = 4): string {
@@ -55,24 +90,35 @@ export function MultiplierChart({
   const smeShare = sme ? sme.credit_cad / total : 0;
 
   const goToGaps = () => router.push("/gaps");
+  const [boxRef, boxW] = useWidth<HTMLDivElement>();
+  const axisW = boxW > 0 ? Math.min(AXIS_W, Math.round(boxW * 0.35)) : AXIS_W;
+  const rightW = boxW > 0 ? Math.min(RIGHT_W, Math.round(boxW * 0.25)) : RIGHT_W;
 
   return (
     <Card className="gap-5 px-6 py-6 [--card-spacing:--spacing(6)]">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="max-w-2xl">
-          <h3 className="text-lg font-semibold text-slate-900">Credit by multiplier</h3>
-          <p className="text-sm text-slate-500">
-            Each solid bar is ITB credit earned; the pale bar behind it is the work value it came from.
-            Routing jobs to small Canadian shops doubles the credit.
+          <h2 className="text-lg font-semibold text-slate-900">Credit by multiplier</h2>
+          <p className="text-sm text-slate-600">
+            Each solid bar is ITB credit earned; the dashed outline is the work value it came from. Routing jobs
+            to small Canadian shops doubles the credit.
           </p>
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
+          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600" data-testid="multiplier-legend">
             <span className="inline-flex items-center gap-1.5">
-              <span className="inline-block h-2.5 w-4 rounded-sm" style={{ backgroundColor: SC.textSecondary }} aria-hidden />
-              ITB credit (solid)
+              <span className="inline-flex gap-0.5" aria-hidden>
+                <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: categoryColors("regular").solid }} />
+                <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: categoryColors("sme_direct").solid }} />
+                <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: categoryColors("training").solid }} />
+              </span>
+              ITB credit (solid, coloured by multiplier)
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="inline-block h-2.5 w-4 rounded-sm" style={{ backgroundColor: SC.inkSoft }} aria-hidden />
-              Work value (pale)
+              <span
+                className="inline-block h-2.5 w-4 rounded-sm border-[1.5px] border-dashed"
+                style={{ borderColor: VALUE_STROKE }}
+                aria-hidden
+              />
+              Work value (dashed outline)
             </span>
           </div>
         </div>
@@ -85,20 +131,40 @@ export function MultiplierChart({
         ) : null}
       </div>
 
-      <div className="w-full" style={{ height: rows.length * ROW_H + 16 }}>
+      {/* Screen readers get the numbers as a list; the SVG below is decorative. */}
+      <ul className="sr-only" aria-label="Credit by multiplier">
+        {rows.map((row) => (
+          <li key={row.category}>
+            {row.label}, {row.multiplier}x: {fmtMoney(row.credit_cad)} credit from {fmtMoney(row.value_cad)} of{" "}
+            {isTraining(row) ? "training" : "work"}, {unitLabel(row)}.
+            {row.credit_cad <= 0 ? (
+              <>
+                {" "}
+                <Link href="/gaps">Unlock via training</Link>
+              </>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+
+      <div ref={boxRef} className="w-full min-w-0">
+        {boxW > 0 && boxW < STACK_BELOW ? (
+          <StackedRows rows={rows} maxV={maxV} fundedCategories={fundedCategories} />
+        ) : (
+      <div className="w-full" style={{ height: rows.length * ROW_H + 16 }} aria-hidden>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={rows}
             layout="vertical"
-            margin={{ top: 8, right: RIGHT_W, bottom: 8, left: 0 }}
+            margin={{ top: 8, right: rightW, bottom: 8, left: 0 }}
             barSize={24}
-            accessibilityLayer
+            accessibilityLayer={false}
           >
             <XAxis type="number" hide domain={[0, maxV]} />
             <YAxis
               type="category"
               dataKey="category"
-              width={AXIS_W}
+              width={axisW}
               interval={0}
               tickLine={false}
               axisLine={{ stroke: "#CBD5E1" }}
@@ -109,17 +175,17 @@ export function MultiplierChart({
                 const y = Number(props.y ?? 0);
                 const empty = row.credit_cad <= 0;
                 const funded = fundedCategories?.has(row.category) && !empty;
-                const pillFill = empty ? "#94A3B8" : row.category === "regular" ? "#64748B" : categoryColors(row.category).solid;
+                // Dim empty rows with a lighter (still 4.5:1+) text colour, not opacity.
                 return (
-                  <g transform={`translate(${x},${y})`} opacity={empty ? 0.55 : 1}>
-                    <text x={-58} y={-3} textAnchor="end" fontSize={15} fontWeight={600} fill={SC.textPrimary}>
+                  <g transform={`translate(${x},${y})`}>
+                    <text x={-58} y={-3} textAnchor="end" fontSize={15} fontWeight={600} fill={empty ? SC.textSecondary : SC.textPrimary}>
                       {row.label}
                     </text>
                     <text x={-58} y={16} textAnchor="end" fontSize={13} fill={SC.textMuted}>
                       {funded ? "✓ Funded · " : ""}
                       {unitLabel(row)}
                     </text>
-                    <rect x={-50} y={-12} width={38} height={24} rx={12} fill={pillFill} />
+                    <rect x={-50} y={-12} width={38} height={24} rx={12} fill={pillFill(row)} />
                     <text x={-31} y={5} textAnchor="middle" fontSize={13} fontWeight={700} fill="#fff">
                       {row.multiplier}x
                     </text>
@@ -160,7 +226,7 @@ export function MultiplierChart({
                 const w = Math.max(0, props.width ?? 0);
                 const h = props.height ?? 0;
                 if (!row) return <g />;
-                const { solid, soft } = categoryColors(row.category);
+                const { solid } = categoryColors(row.category);
                 const midY = y + h / 2;
 
                 if (row.credit_cad <= 0) {
@@ -175,12 +241,7 @@ export function MultiplierChart({
                           fill={SC.accent}
                           fontWeight={600}
                           style={{ cursor: "pointer" }}
-                          role="link"
-                          tabIndex={0}
                           onClick={goToGaps}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") goToGaps();
-                          }}
                         >
                           unlock via training →
                         </tspan>
@@ -192,10 +253,21 @@ export function MultiplierChart({
                 const ghostW = row.credit_cad > 0 ? (w * row.value_cad) / row.credit_cad : 0;
                 const tipX = x + Math.max(w, ghostW) + 12;
                 const isSme = row.category === "sme_direct";
+                // The value outline sits inside the credit bar when the multiplier lifts credit above value.
+                const inside = ghostW <= w;
                 return (
                   <g>
-                    <path d={barPath(x, y, ghostW, h)} fill={soft} />
                     <path d={barPath(x, y, w, h)} fill={solid} />
+                    {ghostW > 0 ? (
+                      <path
+                        d={barPath(x + 0.75, y + 0.75, Math.max(0, ghostW - 1.5), h - 1.5)}
+                        fill="none"
+                        stroke={inside ? VALUE_STROKE_ON_BAR : VALUE_STROKE}
+                        strokeWidth={1.5}
+                        strokeDasharray="5 3"
+                        data-series="value"
+                      />
+                    ) : null}
                     {isSme && w > 64 ? (
                       <text x={x + w - 10} y={midY + 5} textAnchor="end" fontSize={14} fontWeight={700} fill="#fff">
                         2x
@@ -205,7 +277,7 @@ export function MultiplierChart({
                       {fmtMoney(row.credit_cad, { compact: true })} credit
                     </text>
                     <text x={tipX} y={midY + 15} fontSize={13} fill={SC.textMuted}>
-                      from {fmtMoney(row.value_cad, { compact: true })} of {isTraining(row) ? "training" : "work"}
+                      {subLabel(row)}
                     </text>
                   </g>
                 );
@@ -213,6 +285,8 @@ export function MultiplierChart({
             />
           </BarChart>
         </ResponsiveContainer>
+      </div>
+        )}
       </div>
 
       <p className="text-xs text-slate-500">
@@ -225,4 +299,65 @@ export function MultiplierChart({
 
 function isTraining(row: Row): boolean {
   return row.category === "training" || row.category === "indigenous_training";
+}
+
+/** Narrow screens: label above each bar, plain HTML so nothing is clipped. */
+function StackedRows({
+  rows,
+  maxV,
+  fundedCategories,
+}: {
+  rows: Row[];
+  maxV: number;
+  fundedCategories?: Set<string>;
+}) {
+  return (
+    <ul className="flex flex-col gap-4" aria-hidden data-testid="multiplier-stacked">
+      {rows.map((row) => {
+        const empty = row.credit_cad <= 0;
+        const funded = fundedCategories?.has(row.category) && !empty;
+        const creditPct = Math.max(empty ? 0 : 1.5, (row.credit_cad / maxV) * 100);
+        const valuePct = empty ? 0 : (row.value_cad / maxV) * 100;
+        return (
+          <li key={row.category} className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2">
+              <span
+                className="inline-flex h-5 items-center rounded-full px-2 text-xs font-bold text-white"
+                style={{ backgroundColor: pillFill(row) }}
+              >
+                {row.multiplier}x
+              </span>
+              <span className={empty ? "text-sm font-semibold text-slate-600" : "text-sm font-semibold text-slate-900"}>
+                {row.label}
+              </span>
+              <span className="ml-auto text-sm font-semibold tabular-nums text-slate-900">
+                {empty ? "—" : fmtMoney(row.credit_cad, { compact: true })}
+              </span>
+            </div>
+            <div className="relative h-4 rounded bg-slate-100">
+              {!empty ? (
+                <div
+                  className="absolute inset-y-0 left-0 rounded"
+                  style={{ width: `${creditPct}%`, backgroundColor: categoryColors(row.category).solid }}
+                />
+              ) : null}
+              {valuePct > 0 ? (
+                <div
+                  className="absolute inset-y-0 left-0 rounded border-[1.5px] border-dashed"
+                  style={{
+                    width: `${valuePct}%`,
+                    borderColor: valuePct <= creditPct ? VALUE_STROKE_ON_BAR : VALUE_STROKE,
+                  }}
+                />
+              ) : null}
+            </div>
+            <div className="text-xs text-slate-600">
+              {funded ? "✓ Funded · " : ""}
+              {empty ? "No credit yet · unlock via training" : subLabel(row)} · {unitLabel(row)}
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+  );
 }

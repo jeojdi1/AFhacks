@@ -7,7 +7,7 @@ function trimZero(s: string): string {
 
 /**
  * Money in CAD.
- * - compact: "$96K", "$480K", "$7.6M", "$61.2M", "$500M", "$1.2B"
+ * - compact: "$96K", "$480K", "$3.0M", "$7.6M", "$61.2M", "$500M", "$1.2B"
  * - full:    "$1,250,000" (cents only shown for amounts under $100 with a fraction)
  */
 export function fmtMoney(n: number, opts?: { compact?: boolean }): string {
@@ -20,10 +20,11 @@ export function fmtMoney(n: number, opts?: { compact?: boolean }): string {
     if (a >= 1e6) {
       // 999.95M+ would print "1000M"; promote to B instead.
       if (a >= 999_950_000) return `${sign}$1B`;
-      return `${sign}$${trimZero((a / 1e6).toFixed(a >= 1e8 ? 0 : 1))}M`;
+      // Keep one decimal below $100M ("$3.0M" beside "$3.1M"); whole millions above.
+      return `${sign}$${a >= 1e8 ? (a / 1e6).toFixed(0) : (a / 1e6).toFixed(1)}M`;
     }
     if (a >= 1e3) {
-      if (a >= 999_500) return `${sign}$1M`;
+      if (a >= 999_500) return `${sign}$1.0M`;
       return `${sign}$${trimZero((a / 1e3).toFixed(a >= 1e4 ? 0 : 1))}K`;
     }
     return `${sign}$${Math.round(a)}`;
