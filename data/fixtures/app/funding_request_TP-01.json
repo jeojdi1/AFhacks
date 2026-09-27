@@ -1,0 +1,33 @@
+{
+  "request": {
+    "package_id": "TP-01",
+    "shop_id": "syn-012",
+    "requirement": "CWB_W47.1",
+    "status": "requested",
+    "at": "2026-09-26T21:44:00Z",
+    "idempotency_key": "fixture-request-TP-01"
+  },
+  "event": {
+    "seq": 5,
+    "ts": "2026-09-26T21:44:00Z",
+    "kind": "funding_requested",
+    "shop_id": "syn-012",
+    "shop_name": "Tallowfield Fabricating Ltd.",
+    "job_id": null,
+    "package_id": "TP-01",
+    "value_cad": 5068000.0,
+    "credit_cad": 480000.0,
+    "message": "Tallowfield Fabricating Ltd. asked Northgate to fund CWB W47.1 (TP-01) · $96K → $480K credit",
+    "payload": {
+      "requirement": "CWB_W47.1",
+      "est_cost_cad": 96000.0,
+      "multiplier": 5,
+      "trainees": 4,
+      "blocked_job_ids": [
+        "NG-031",
+        "NG-032",
+        "NG-033"
+      ]
+    }
+  }
+}

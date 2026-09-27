@@ -4,8 +4,11 @@ Thin HTTP layer over ``engine.pipeline``. Every request runs under ``STATE_LOCK`
 Mutating requests load the program State from SQLite, delegate to the pipeline and save
 it back (a new revision). Read requests are memoized per revision (``engine.cache``):
 the rendered JSON of each view is computed once per State revision and served again
-until the next upload / route / fund / reset. Response shapes are docs/api.md; errors
-are ``{"detail": "<readable message>"}``.
+until the next upload / route / fund / reset / shop action. Response shapes are
+docs/api.md; errors are ``{"detail": "<readable message>"}``.
+
+Shop-side actions and the activity log (docs/api.md §6) live in ``engine.shopside``; this
+module only wires their routes, plus the ``routed`` / ``package_funded`` event hooks.
 """
 
 from __future__ import annotations
@@ -19,8 +22,9 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
+from pydantic import BaseModel, ConfigDict
 
-from engine import cache, pipeline, tagger
+from engine import cache, pipeline, shopside, tagger
 from engine.state import (
     DEFAULT_PROGRAM_ID,
     DEMO_PARTS_CSV,
@@ -43,8 +47,15 @@ app = FastAPI(title="Muster Engine", version=VERSION)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
-    # Any local port, so testers can run the web app (or several) next to the demo one.
-    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
+    # Any local port, so testers can run the web app (or several) next to the demo one,
+    # plus private LAN hosts (192.168.*, 10.*, 172.16-31.*) so a real phone on the same
+    # network can reach the engine during a demo. Never "*". (Starlette uses fullmatch.)
+    allow_origin_regex=(
+        r"https?://(localhost|127\.0\.0\.1"
+        r"|192\.168\.\d{1,3}\.\d{1,3}"
+        r"|10\.\d{1,3}\.\d{1,3}\.\d{1,3}"
+        r"|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3})(:\d+)?"
+    ),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -110,6 +121,34 @@ def _write(program_id: str, fn: Callable[[State], Any]) -> Any:
         save_state(state)
         cache.invalidate(program_id)
         return result
+
+
+def _action(program_id: str, fn: Callable[[State], tuple[Any, bool]]) -> Any:
+    """Run a shop action (engine.shopside) under the lock. It returns ``(response,
+    changed)``; the State is saved (a new revision, invalidating the cached views) only
+    when something changed, so an idempotent replay writes nothing."""
+    with STATE_LOCK:
+        state = load_state(program_id)
+        try:
+            result, changed = fn(state)
+        except shopside.ActionError as exc:
+            raise HTTPException(status_code=exc.status, detail=exc.detail) from None
+        if changed:
+            save_state(state)
+            cache.invalidate(program_id)
+        return result
+
+
+def _read_action(program_id: str, key: tuple, fn: Callable[[State], Any]) -> Response:
+    """``_read`` for shopside views: ActionError becomes an HTTP error (not cached)."""
+
+    def view(state: State) -> Any:
+        try:
+            return fn(state)
+        except shopside.ActionError as exc:
+            raise HTTPException(status_code=exc.status, detail=exc.detail) from None
+
+    return _read(program_id, key, view)
 
 
 def _is_routed(state: State) -> bool:
@@ -188,6 +227,7 @@ def upload_parts(
         state.elapsed_ms = 0
         state.tagger_counts = dict(counts)
         state.stage = "uploaded"
+        shopside.on_uploaded(state)
         return {"program_id": program_id, "count": len(jobs), "tagger": dict(counts), "jobs": jobs}
 
     return _write(program_id, op)
@@ -203,9 +243,11 @@ def route_program(program_id: str, solver: str = Query("auto")) -> dict:
         if not state.jobs:
             raise HTTPException(status_code=400, detail="Upload a parts list first")
         try:
-            return pipeline.route(state, solver=solver)
+            result = pipeline.route(state, solver=solver)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from None
+        shopside.on_routed(state, result)
+        return result
 
     return _write(program_id, op)
 
@@ -254,7 +296,7 @@ def fund_training(program_id: str, package_id: str) -> dict:
         if package_id not in state.packages:
             raise HTTPException(status_code=404, detail=f"Unknown training package '{package_id}'")
         try:
-            return pipeline.fund(state, package_id)
+            result = pipeline.fund(state, package_id)
         except ValueError as exc:
             msg = str(exc)
             if "already funded" in msg:
@@ -262,6 +304,8 @@ def fund_training(program_id: str, package_id: str) -> dict:
             if "not routed" in msg:
                 raise HTTPException(status_code=400, detail="Route the program first") from None
             raise HTTPException(status_code=400, detail=msg) from None
+        shopside.on_funded(state, result)
+        return result
 
     return _write(program_id, op)
 
@@ -281,3 +325,86 @@ def get_shop(shop_id: str) -> Response:
         return pipeline.shop_detail(state, shop_id)
 
     return _read(DEFAULT_PROGRAM_ID, ("shop", shop_id), view)
+
+
+# --------------------------------------------------------------------------- #
+# Shop actions and events (docs/api.md §6, additive v0.2)
+# --------------------------------------------------------------------------- #
+class _Body(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    idempotency_key: str | None = None
+
+
+class DecisionBody(_Body):
+    decision: str
+    reason_code: str | None = None
+    question_code: str | None = None
+    note: str | None = None
+
+
+class FundingRequestBody(_Body):
+    requirement: str
+
+
+class CapacityBody(_Body):
+    hours_week: float | None = None
+    by_process: dict[str, float] | None = None
+    horizon_weeks: int | None = 4
+
+
+class CertDeclarationBody(_Body):
+    expires_at: str
+    cert_number: str | None = None
+
+
+@app.post("/shops/{shop_id}/offers/{job_id}/decision")
+def decide_offer(shop_id: str, job_id: str, body: DecisionBody) -> dict:
+    data = body.model_dump()
+    return _action(DEFAULT_PROGRAM_ID, lambda s: shopside.decide(s, shop_id, job_id, data))
+
+
+@app.post("/shops/{shop_id}/funding-requests")
+def request_funding(shop_id: str, body: FundingRequestBody) -> dict:
+    data = body.model_dump()
+    return _action(DEFAULT_PROGRAM_ID, lambda s: shopside.request_funding(s, shop_id, data))
+
+
+@app.post("/shops/{shop_id}/capacity")
+def confirm_capacity(shop_id: str, body: CapacityBody) -> dict:
+    data = body.model_dump(exclude_unset=True)
+    return _action(DEFAULT_PROGRAM_ID, lambda s: shopside.confirm_capacity(s, shop_id, data))
+
+
+@app.post("/shops/{shop_id}/certifications/{cert_type}")
+def declare_certification(shop_id: str, cert_type: str, body: CertDeclarationBody) -> dict:
+    data = body.model_dump()
+    return _action(DEFAULT_PROGRAM_ID, lambda s: shopside.declare_cert(s, shop_id, cert_type, data))
+
+
+@app.get("/shops/{shop_id}/actions")
+def get_shop_actions(shop_id: str) -> Response:
+    return _read_action(DEFAULT_PROGRAM_ID, ("shop_actions", shop_id), lambda s: shopside.shop_actions(s, shop_id))
+
+
+@app.get("/programs/{program_id}/actions")
+def get_program_actions(program_id: str) -> Response:
+    _check_program(program_id)
+    return _read(program_id, ("program_actions",), shopside.program_actions)
+
+
+@app.get("/programs/{program_id}/events")
+def get_events(
+    program_id: str,
+    since: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=500)] = 100,
+) -> Response:
+    _check_program(program_id)
+    return _read(program_id, ("events", since, limit), lambda s: shopside.events_view(s, since, limit))
+
+
+@app.get("/programs/{program_id}/training/{package_id}/seats/{seat}")
+def get_trainee_seat(program_id: str, package_id: str, seat: int) -> Response:
+    _check_program(program_id)
+    return _read_action(
+        program_id, ("seat", package_id, seat), lambda s: shopside.trainee_seat(s, package_id, seat)
+    )

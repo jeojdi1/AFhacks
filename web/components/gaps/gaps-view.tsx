@@ -5,6 +5,7 @@ import { CircleCheck, TriangleAlert } from "lucide-react";
 
 import type { Assignment, BlockedJob, TrainingPackage } from "@/lib/api/types";
 import { useDemo } from "@/lib/data/store";
+import { useAppActions } from "@/lib/app/actions-store";
 import { fmtMoney } from "@/lib/format";
 import { EmptyState } from "@/components/muster/empty-state";
 import { SectionHeader } from "@/components/muster/section-header";
@@ -45,7 +46,15 @@ export function GapsView() {
 
   const routed = demo.stage === "routed" || demo.stage === "funded";
   const blockedNow: BlockedJob[] = useMemo(() => demo.gaps?.blocked ?? demo.blocked ?? [], [demo.gaps, demo.blocked]);
-  const suggestions: TrainingPackage[] = demo.gaps?.suggestions ?? [];
+  const { fundingRequests } = useAppActions();
+  // Packages the shop asked Northgate to fund (phone app, §2.5) sort first; order is otherwise unchanged.
+  const suggestions: TrainingPackage[] = useMemo(() => {
+    const list = demo.gaps?.suggestions ?? [];
+    return list
+      .map((p, i) => ({ p, i, r: fundingRequests[p.id] ? 0 : 1 }))
+      .sort((a, b) => a.r - b.r || a.i - b.i)
+      .map((x) => x.p);
+  }, [demo.gaps, fundingRequests]);
 
   // job_id → assignment created by funding a package
   const resolved = useMemo(() => {

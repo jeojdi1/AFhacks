@@ -1,0 +1,315 @@
+{
+  "label": "Readiness steps for the phone app (docs/app-spec.md §2.5, §2.8)",
+  "owner": "Agent R",
+  "accessed": "2026-09-26",
+  "rules": [
+    "A step shows a cost or a time only when it has a source_url. web/lib/app/readiness.ts drops cost_stated/time_stated otherwise.",
+    "flag: verified = a primary or official source was checked; inferred = our reading of vendor/secondary material or a primary text; assumption = not sourced.",
+    "No invented costs. AS9100 and ISO 9001 show steps only; consultant estimates are INFERRED and not shown."
+  ],
+  "requirements": {
+    "CWB_W47.1": {
+      "title": "CSA W47.1 company certification",
+      "kind": "company_cert",
+      "summary": "W47.1 certifies the company, not a person. CWB checks the shop's supervisor, procedures, engineering and every production welder, then audits it to keep the certification current.",
+      "source_url": "https://www.cwbgroup.org/services/certification/company-certification/csa-w471-fusion-welding-of-steel",
+      "registry_url": "https://www.cwbgroup.org/directory/certified-companies",
+      "steps": [
+        {
+          "label": "A qualified welding supervisor",
+          "detail": "Name at least one welding supervisor who has passed the CWB written and verbal exams.",
+          "source_url": "https://www.cwbgroup.org/services/certification/company-certification/welding-supervisor-qualification",
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "verified",
+          "fundable": false
+        },
+        {
+          "label": "Approved welding procedures (WPS)",
+          "detail": "Write a welding procedure specification for each welding process you use and have CWB accept it.",
+          "source_url": "https://www.cwbgroup.org/services/certification/company-certification/csa-w471-fusion-welding-of-steel",
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "verified",
+          "fundable": false
+        },
+        {
+          "label": "An engineer, depending on division",
+          "detail": "Division 1: a full-time engineer on staff. Division 2: a retained engineer. Division 3: no engineer required.",
+          "source_url": "https://www.cwbgroup.org/services/certification/company-certification/csa-w471-fusion-welding-of-steel",
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "verified",
+          "fundable": false
+        },
+        {
+          "label": "Every production welder tested",
+          "detail": "Each welder is tested for the processes and positions used in production (FW/S/T tickets). This is the step a prime-funded training package can pay for.",
+          "source_url": "https://www.cwbgroup.org/services/certification/welder-qualification-testing",
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "verified",
+          "fundable": true
+        },
+        {
+          "label": "Periodic CWB audits",
+          "detail": "CWB audits the company periodically to keep the certification current. Primes check the CWB certified-company directory, not a wall certificate.",
+          "source_url": "https://www.cwbgroup.org/services/public-safety/validating-certification",
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "verified",
+          "fundable": false
+        },
+        {
+          "label": "Dates and fees",
+          "detail": "Test centres set their own dates and fees. Muster does not show a cost or a schedule for this certification; ask CWB or your test centre.",
+          "source_url": null,
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "inferred",
+          "fundable": false
+        }
+      ]
+    },
+    "CGP": {
+      "title": "Controlled Goods Program registration",
+      "kind": "registration",
+      "summary": "Registration lets a shop examine, possess or transfer controlled goods, including technical data. Muster never stores drawings; the prime releases them through its own channel.",
+      "source_url": "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/about-program/register.html",
+      "registry_url": "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/find-individuals-organizations-registered-program.html",
+      "steps": [
+        {
+          "label": "Appoint a designated official",
+          "detail": "Name the person responsible for the program at your company. They go through a security assessment.",
+          "source_url": "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/about-program/register.html",
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "verified",
+          "fundable": false
+        },
+        {
+          "label": "Write a security plan",
+          "detail": "Describe how you control access to controlled goods and technical data at your site.",
+          "source_url": "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/about-program/register.html",
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "verified",
+          "fundable": false
+        },
+        {
+          "label": "Apply to register",
+          "detail": "Submit a complete application to the Controlled Goods Program.",
+          "source_url": "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/about-program/register.html",
+          "time_stated": "Up to 32 business days for complete applications",
+          "cost_stated": "Free",
+          "flag": "verified",
+          "fundable": false
+        },
+        {
+          "label": "Keep it current",
+          "detail": "Registration lasts up to 5 years. File renewal at least 90 days before it expires; if it lapses you must register again from scratch.",
+          "source_url": "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/about-program/renew-or-terminate-registration.html",
+          "time_stated": "Renew at least 90 days before expiry",
+          "cost_stated": null,
+          "flag": "verified",
+          "fundable": false
+        }
+      ]
+    },
+    "CPCSC_L1": {
+      "title": "CPCSC Level 1 (cyber security)",
+      "kind": "self_assessment",
+      "summary": "An annual self-assessment against 13 security controls. There is no public registry, so in Muster it is always shop-declared.",
+      "source_url": "https://www.canada.ca/en/public-services-procurement/news/2026/04/canadian-program-for-cyber-security-certification-level-1.html",
+      "registry_url": null,
+      "steps": [
+        {
+          "label": "Complete the self-assessment",
+          "detail": "Assess your company against the 13 Level 1 controls using the official tool, linked from the government announcement.",
+          "source_url": "https://www.canada.ca/en/public-services-procurement/news/2026/04/canadian-program-for-cyber-security-certification-level-1.html",
+          "time_stated": "Annual",
+          "cost_stated": "Free",
+          "flag": "verified",
+          "fundable": false
+        },
+        {
+          "label": "Record it as shop-declared",
+          "detail": "Add the date in your Certs tab. It reads \"shop-declared\", never \"verified\", because there is no registry to check.",
+          "source_url": null,
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "assumption",
+          "fundable": false
+        }
+      ]
+    },
+    "AS9100": {
+      "title": "AS9100 quality management",
+      "kind": "quality_system",
+      "summary": "An aerospace and defence quality system built on ISO 9001, certified by an accredited registrar. Muster shows no cost figures for it.",
+      "source_url": "https://www.p-r-i.org/registrar/resources/general-policies-and-procedures/certification",
+      "registry_url": null,
+      "steps": [
+        {
+          "label": "Build the quality system",
+          "detail": "Document and run a quality management system that meets AS9100 (ISO 9001 plus aerospace and defence requirements).",
+          "source_url": null,
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "inferred",
+          "fundable": false
+        },
+        {
+          "label": "Certification audit",
+          "detail": "An accredited certification body (registrar) audits the system and issues the certificate.",
+          "source_url": "https://www.p-r-i.org/registrar/resources/general-policies-and-procedures/certification",
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "inferred",
+          "fundable": false
+        },
+        {
+          "label": "Surveillance audits",
+          "detail": "The certificate lasts up to 3 years, with a surveillance audit every year.",
+          "source_url": "https://www.p-r-i.org/registrar/resources/general-policies-and-procedures/certification",
+          "time_stated": "Up to 3 years, audited yearly",
+          "cost_stated": null,
+          "flag": "verified",
+          "fundable": false
+        }
+      ]
+    },
+    "ISO9001": {
+      "title": "ISO 9001 quality management",
+      "kind": "quality_system",
+      "summary": "A general quality management system, certified by an accredited certification body. Muster shows no cost figures for it.",
+      "source_url": "https://www.iafcertsearch.org/",
+      "registry_url": "https://www.iafcertsearch.org/",
+      "steps": [
+        {
+          "label": "Build the quality system",
+          "detail": "Document and run a quality management system that meets ISO 9001.",
+          "source_url": null,
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "inferred",
+          "fundable": false
+        },
+        {
+          "label": "Certification audit",
+          "detail": "An accredited certification body audits the system. Primes can look the certificate up on IAF CertSearch.",
+          "source_url": "https://www.iafcertsearch.org/",
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "inferred",
+          "fundable": false
+        },
+        {
+          "label": "Surveillance audits",
+          "detail": "A 3-year certification cycle with yearly surveillance audits (assumption: the same cycle as AS9100).",
+          "source_url": null,
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "assumption",
+          "fundable": false
+        }
+      ]
+    },
+    "NADCAP": {
+      "title": "Nadcap special-process accreditation",
+      "kind": "accreditation",
+      "summary": "Accreditation for one special process (heat treat, chemical processing, coatings), run by PRI. Muster does not compute merit tiers or costs.",
+      "source_url": "https://www.p-r-i.org/",
+      "registry_url": null,
+      "steps": [
+        {
+          "label": "Self-audit for the process",
+          "detail": "Complete the Nadcap self-audit checklist for the commodity your jobs need.",
+          "source_url": null,
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "inferred",
+          "fundable": false
+        },
+        {
+          "label": "On-site audit",
+          "detail": "A PRI auditor audits the process on site; you close any findings.",
+          "source_url": null,
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "inferred",
+          "fundable": false
+        },
+        {
+          "label": "Read the expiry off the certificate",
+          "detail": "Accreditation length is printed on the certificate (typically 12 to 24 months).",
+          "source_url": null,
+          "time_stated": null,
+          "cost_stated": null,
+          "flag": "inferred",
+          "fundable": false
+        }
+      ]
+    }
+  },
+  "process_default": {
+    "title": "More hours or a new process",
+    "kind": "capacity",
+    "summary": "The jobs need more free hours (or a process you don't run yet). These steps are suggestions, not rules.",
+    "source_url": null,
+    "registry_url": null,
+    "steps": [
+      {
+        "label": "Confirm your real free hours",
+        "detail": "Tell Northgate how many hours you can staff for the next 4 weeks.",
+        "source_url": null,
+        "time_stated": null,
+        "cost_stated": null,
+        "flag": "assumption",
+        "fundable": false
+      },
+      {
+        "label": "Add trained workers",
+        "detail": "Sponsor apprentices or train workers for the process. A prime-funded training package can pay for this.",
+        "source_url": null,
+        "time_stated": null,
+        "cost_stated": null,
+        "flag": "assumption",
+        "fundable": true
+      }
+    ]
+  },
+  "other_funding": [
+    {
+      "id": "COJG",
+      "name": "Canada-Ontario Job Grant",
+      "applies_to_province": "ON",
+      "text": "Up to $10K per trainee; employers under 100 staff pay at least 1/6. Verify eligibility; stacking with prime funding not confirmed.",
+      "source_url": "https://www.ontario.ca/page/canada-ontario-job-grant-cojg",
+      "flag": "verified",
+      "stacking": "unknown"
+    }
+  ],
+  "welder_ticket": {
+    "cert_type": "CWB_WELDER_TICKET",
+    "text": "Valid 2 years while continuously employed by a CWB-certified company. Check test from 90 days before to 90 days after expiry; after that, a full retest. May lapse after 3 months without using the process (confirm on the welder's card).",
+    "source_url": "https://www.cwbgroup.org/services/certification/welder-qualification-testing",
+    "flag": "verified",
+    "note": "The 3-month non-use rule is INFERRED from card text. Same text as the CWB_WELDER_TICKET row in data/rules/renewals.json (Agent C)."
+  },
+  "seat_stages": [
+    { "id": "nominated", "label": "Nominated", "detail": "Your shop put you forward for a funded seat." },
+    { "id": "eligibility_attested", "label": "Eligibility attested", "detail": "Your shop records a yes/no attestation only." },
+    { "id": "enrolled", "label": "Enrolled", "detail": "You have a seat with the training provider." },
+    { "id": "started", "label": "Training started", "detail": "Classes and shop practice are under way." },
+    { "id": "test_booked", "label": "Test booked", "detail": "Your CWB test date is set." },
+    { "id": "passed", "label": "Test passed", "detail": "You passed the test for your process and position." },
+    { "id": "ticket_issued", "label": "Ticket issued", "detail": "Your CWB ticket is issued and your shop can put you on the jobs." }
+  ],
+  "seat_demo": {
+    "stage_after_funding": "enrolled",
+    "test_date_weeks_after_funding": 6,
+    "flag": "assumption",
+    "note": "Demo simulation: funding a package puts every seat at \"enrolled\"; the example test date is the funding date plus 6 weeks."
+  }
+}

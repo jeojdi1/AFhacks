@@ -131,6 +131,14 @@ GET  /programs/{id}/ledger                 → totals, direct/indirect, smb_prog
 GET  /programs/{id}/gaps                   → blocked jobs + training suggestions
 POST /programs/{id}/training/{pkg}/fund    → {before, after, unblocked_jobs[], credit_added, headline}
 GET  /shops            GET /shops/{id}     → shop + certifications + offers + readiness + training
+# Shop actions and events (additive v0.2, api.md §6; phone app /m). POSTs take an idempotency_key.
+POST /shops/{id}/offers/{job}/decision     accepted | declined (+reason) | question | undo
+POST /shops/{id}/funding-requests          {requirement} → request on the shop's training package
+POST /shops/{id}/capacity                  weekly free hours per process
+POST /shops/{id}/certifications/{type}     shop-declared expiry (never "verified")
+GET  /shops/{id}/actions   GET /programs/{id}/actions
+GET  /programs/{id}/events?since=&limit=   event log (routed, offer_*, funding_requested, package_funded, ...)
+GET  /programs/{id}/training/{pkg}/seats/{n}  pseudonymous trainee seat card
 ```
 
 ### Algorithms
@@ -550,4 +558,5 @@ HH:MM [lane] TASK-ID — result (demo-check: step)
 20:22 [E] H2.1/H2.3/H2.4/H2.6–H2.9 — engine + API; 255 tests; live demo-check 8/8 (demo-check: live 8/8)
 20:22 [E] H5.5 prep — pitch.md, demo-script.md (shop view before+after funding), devpost.md with final numbers (demo-check: live 8/8)
 20:28 [B] INTEGRATE — web live mode ↔ engine: full demo path in headless Chrome, 0 errors, reload restores state; H3.6 done (demo-check: live 8/8)
+22:35 [I] APP-INTEGRATE — phone app /m (T1–T8) integrated: build+lint+tsc clean, 344 tests, ruff, app fixtures up to date; scripts/smoke_mobile.mjs 20/20 live + 20/20 fixtures; §2.11 rehearsal 30/30 live (2 contexts) + 30/30 fixtures (2 tabs); original desktop path 17/17 both modes; fixes: tab badge + LiveStepSync (live phone follows laptop route/reset); demo-script phone segment (4:15, 530 words), W47.1 wording (demo-script, pitch, devpost) (demo-check: live 8/8, fixtures 8/8)
 ```

@@ -58,6 +58,16 @@ class State:
     tagger_counts: dict = field(default_factory=dict)
     config: dict = field(default_factory=dict)
     revision: int = 0
+    # Shop-side actions and the activity log (engine/shopside.py, docs/api.md §6). Additive:
+    # older databases load with these empty (from_json ignores unknown keys, and missing
+    # ones take these defaults).
+    offer_decisions: dict[str, dict] = field(default_factory=dict)  # "shop:job" → OfferDecision
+    funding_requests: dict[str, dict] = field(default_factory=dict)  # package_id → FundingRequest
+    capacity_checkins: dict[str, dict] = field(default_factory=dict)  # shop_id → CapacityCheckin
+    cert_declarations: dict[str, dict[str, dict]] = field(default_factory=dict)  # shop → type → decl
+    events: list[dict] = field(default_factory=list)  # Event, oldest first
+    event_seq: int = 0  # last Event seq issued (kept across upload clears; a reset restarts it)
+    idempotency: dict[str, dict] = field(default_factory=dict)  # idempotency_key → stored response
 
 
 def db_path() -> Path:

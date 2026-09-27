@@ -762,6 +762,17 @@ def tag_key(part_no: str, description: str) -> str:
 # ---------------------------------------------------------------------------------------------
 
 
+# One illustrative date moved into the CGP renewal window so the phone app's compliance
+# wallet has a live "urgent" example (docs/app-spec.md §2.4). Expiry is not a routing filter,
+# so no demo number moves.
+CERT_DATE_OVERRIDES = {
+    ("syn-001", "CGP"): {
+        "expires_at": "2027-01-15",
+        "note": "Synthetic shop: self-declared (illustrative date, inside the CGP renewal window for the demo)",
+    },
+}
+
+
 def build_shops():
     shops = []
     for i, d in enumerate(SHOP_DEFS):
@@ -793,6 +804,10 @@ def build_shops():
                     "verified_at": None, "expires_at": None,
                     "note": "Synthetic shop: not declared (illustrative)",
                 })
+        for c in certs:
+            override = CERT_DATE_OVERRIDES.get((d["id"], c["type"]))
+            if override:
+                c.update(override)
         shops.append((shop, certs))
     return shops
 

@@ -8,7 +8,7 @@
 
 Canada is spending $81.8B on defence and targets 70% of acquisitions going to Canadian firms (MLT Aikins). Under the Industrial and Technological Benefits (ITB) policy, every major defence contractor owes Canada business activity equal to 100% of its contract value, with 2x credit for direct small-business work, 5x for eligible skills and training, and 10x for Indigenous workforce development (ISED ITB overview).
 
-Yet the two sides of that obligation can't find each other. Primes can't find qualified small shops: each prime runs its own siloed supplier portal. And the shops that could do the work are short on certified welders; CME's September 2026 report says lower vacancies haven't solved Ontario manufacturing's workforce challenge. We wanted a tool where a prime's obligation becomes a shop's opportunity.
+Yet the two sides of that obligation can't find each other. Primes can't find qualified small shops: each prime runs its own siloed supplier portal. And the shops that could do the work are short on qualified welders; CME's September 2026 report says lower vacancies haven't solved Ontario manufacturing's workforce challenge. We wanted a tool where a prime's obligation becomes a shop's opportunity.
 
 ## What it does
 
@@ -21,7 +21,7 @@ Muster is **two-sided**. Primes pay; shops use it free.
 
 **The shop side:** a shop sees defence job offers it would never have found, accepts or declines them, sees a readiness card ("Get CWB W47.1 → qualify for N more jobs worth $X"), and sees its welders in training on the prime's money.
 
-**Demo scenario** (fictional prime Northgate Land Systems, $500M contract, SMB target 15%, synthetic shops): a 40-line, ~$42.7M work package routes as **36 assigned ($36.1M, 90% to SMEs), 4 blocked** (all 4 blocked jobs need CWB W47.1 welding). The obligation meter reads 11.5% and SMB-target progress 36.4%. Funding welder certification (TP-01): **$96K training → $480K credit (5x) + 3 jobs unblocked (+$9.1M credit)** — those 3 jobs are worth $5.1M of work; the obligation meter moves to 13.4% and SMB progress to 42.5%.
+**Demo scenario** (fictional prime Northgate Land Systems, $500M contract, SMB target 15%, synthetic shops): a 40-line, ~$42.7M work package routes as **36 assigned ($36.1M, 90% to SMEs), 4 blocked** (all 4 blocked jobs need CWB W47.1 welding). The obligation meter reads 11.5% and SMB-target progress 36.4%. Funding the qualification of 4 welders under CSA W47.1 (TP-01): **$96K training → $480K credit (5x) + 3 jobs unblocked (+$9.1M credit)** — those 3 jobs are worth $5.1M of work; the obligation meter moves to 13.4% and SMB progress to 42.5%.
 
 ## How we built it
 

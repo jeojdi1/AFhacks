@@ -3,10 +3,12 @@
 import { Fragment } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LoaderCircle, RotateCcw } from "lucide-react"
+import { LoaderCircle, RotateCcw, Smartphone } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { BUSY, useDemo } from "@/lib/data/store"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { t } from "@/lib/app/strings"
+import { ActivityBell } from "./activity-bell"
 import { BrandMark } from "./brand-mark"
 import { ModeSwitcher } from "./mode-switcher"
 
@@ -80,6 +82,16 @@ export function AppHeader() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2">
+          <Link
+            href="/m"
+            className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "px-2.5 text-muted-foreground hover:text-foreground")}
+            aria-label={t("header.phoneView")}
+            title={t("header.phoneView")}
+          >
+            <Smartphone data-icon="inline-start" aria-hidden />
+            <span className="hidden xl:inline">{t("header.phoneView")}</span>
+          </Link>
+          <ActivityBell />
           <ModeSwitcher />
           <Button variant="outline" size="lg" onClick={() => void reset()} disabled={!ready || !!busy} className="px-3">
             {resetting ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : <RotateCcw data-icon="inline-start" />}

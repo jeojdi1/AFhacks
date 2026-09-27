@@ -14,7 +14,7 @@ Rules for everything in this file: stats carry a footnote marker `[n]` pointing 
 
 - Canada: **$81.8B** on defence; target **70%** of acquisitions to Canadian firms [1]
 - Every prime owes Canada **100%** of contract value in business activity; **2x** credit for SME work, **5x** for training [2]
-- Primes can't find small shops; small shops can't find certified welders [8]
+- Primes can't find small shops; small shops can't find qualified welders [8]
 
 **Speaker notes:** The money and the obligation already exist. What's missing is the connection: a prime in London can't see a 30-person shop in Woolwich, and that shop can't hire the welders to take the job. Muster is the missing link, and it serves both sides.
 
@@ -24,7 +24,7 @@ Rules for everything in this file: stats carry a footnote marker `[n]` pointing 
 - **Train:** fund TP-01 → **$96K training → $480K credit (5x) + 3 jobs unblocked (+$9.1M credit)**; obligation **11.5% → 13.4%**, SMB target **36.4% → 42.5%**
 - **Two-sided:** primes pay; shops use it free: offers, readiness ("Get CWB W47.1 → more jobs"), certification badges
 
-**Speaker notes:** Northgate is a fictional prime with a $500M contract. Its ~$42.7M work package routes to qualified small shops, 90% of that value to small and medium shops, earning 2x credit. Four welding jobs are blocked by the CWB welder shortage. The prime funds welder certification through a college (example, not affiliated), earns 5x credit, and the jobs unblock. The shop sees the offer, accepts, and sees its welders in training.
+**Speaker notes:** Northgate is a fictional prime with a $500M contract. Its ~$42.7M work package routes to qualified small shops, 90% of that value to small and medium shops, earning 2x credit. Four welding jobs are blocked by the CWB welder shortage. The prime funds qualifying 4 welders under CSA W47.1 through a college (example, not affiliated), earns 5x credit, and the jobs unblock (W47.1 certifies the company; the welders get tickets). The shop sees the offer, accepts, and sees its welders in training.
 
 ### Slide 3: Why now, and what happens Monday
 
@@ -96,7 +96,7 @@ Government sets the rules and audits credit; it doesn't pick suppliers for prime
 Per-program subscription ~$50K/yr plus 0.5% of routed value. One ~$42.7M package routed ≈ $210K fee, plus ~$250K subscription over 5 years, versus millions in credit (assumption). Training coordination is a separate service fee.
 
 **Q: What does Waterloo get from this?**
-Waterloo Region's small machine and fab shops get defence work they'd never see; Conestoga's Skilled Trades Campus (example, not affiliated) [13] fills seats; local welders get certified on the prime's money. Waterloo EDC is third on our outreach list.
+Waterloo Region's small machine and fab shops get defence work they'd never see; Conestoga's Skilled Trades Campus (example, not affiliated) [13] fills seats; local welders get qualified under CSA W47.1 on the prime's money. Waterloo EDC is third on our outreach list.
 
 ---
 

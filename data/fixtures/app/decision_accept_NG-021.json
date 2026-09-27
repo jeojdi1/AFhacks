@@ -1,0 +1,28 @@
+{
+  "decision": {
+    "shop_id": "syn-012",
+    "job_id": "NG-021",
+    "decision": "accepted",
+    "reason_code": null,
+    "question_code": null,
+    "note": null,
+    "at": "2026-09-26T21:41:07Z",
+    "idempotency_key": "fixture-accept-NG-021"
+  },
+  "assignment_status": "accepted",
+  "event": {
+    "seq": 3,
+    "ts": "2026-09-26T21:41:07Z",
+    "kind": "offer_accepted",
+    "shop_id": "syn-012",
+    "shop_name": "Tallowfield Fabricating Ltd.",
+    "job_id": "NG-021",
+    "package_id": null,
+    "value_cad": 921600.0,
+    "credit_cad": 1677312.0,
+    "message": "Tallowfield Fabricating Ltd. accepted NG-021 (+$1.68M credit)",
+    "payload": {
+      "previous": "question"
+    }
+  }
+}

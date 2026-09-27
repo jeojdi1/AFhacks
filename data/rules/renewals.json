@@ -1,0 +1,192 @@
+{
+  "version": 1,
+  "as_of": "2026-09-26",
+  "owner": "Agent C (compliance wallet, docs/app-spec.md §2.4)",
+  "note": "Renewal rules shown in the phone wallet. act_by = expires_at - act_by_days. Stage: lapsed when today > expires_at; urgent when today >= act_by - urgent_days; window_open when today >= act_by - remind_days; ok otherwise; unknown with no date. Every value carries a flag: verified = checked against the linked primary source on as_of; assumption = our demo choice, shown with an assumption tag. Muster never computes Nadcap merit tiers and never marks a shop-entered date as verified.",
+  "defaults": {
+    "urgent_days": 30,
+    "urgent_flag": "assumption",
+    "remind_days": 60,
+    "remind_flag": "assumption"
+  },
+  "rules": [
+    {
+      "cert_type": "CGP",
+      "label": "Controlled Goods Program (CGP)",
+      "act_by_days": 90,
+      "act_by_flag": "verified",
+      "remind_days": 60,
+      "remind_flag": "assumption",
+      "processing_business_days": 32,
+      "text": "Registration lasts up to 5 years. File renewal at least 90 days before expiry. Processing takes up to 32 business days. If it lapses you must re-register from scratch.",
+      "verb": "file renewal",
+      "consequence": "A lapsed registration means re-registering from scratch, and controlled jobs (and their technical data) can't go to you in the meantime.",
+      "flag": "verified",
+      "source_url": "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/about-program/renew-or-terminate-registration.html",
+      "source_label": "canada.ca: CGP renew or terminate (modified 2025-05-08)",
+      "sources": [
+        {
+          "label": "canada.ca: CGP renew or terminate registration (modified 2025-05-08)",
+          "url": "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/about-program/renew-or-terminate-registration.html",
+          "supports": "renew at least 90 days before expiry; up to 32 business days; a lapse means re-registering"
+        },
+        {
+          "label": "canada.ca: CGP register (modified 2026-03-11)",
+          "url": "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/about-program/register.html",
+          "supports": "registration up to 5 years; no cost; 32 business days"
+        }
+      ],
+      "registry_url": "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/find-individuals-organizations-registered-program.html",
+      "registry_label": "CGP public registry (canada.ca)"
+    },
+    {
+      "cert_type": "CPCSC_L1",
+      "label": "CPCSC Level 1",
+      "act_by_days": 0,
+      "act_by_flag": "verified",
+      "remind_days": 60,
+      "remind_flag": "assumption",
+      "text": "Annual self-assessment against 13 controls using the official tool. Always shop-declared; there is no public registry.",
+      "verb": "redo the annual self-assessment",
+      "consequence": "Jobs that require CPCSC Level 1 can't be routed to you until the self-assessment is current.",
+      "flag": "verified",
+      "source_url": "https://www.canada.ca/en/public-services-procurement/news/2026/04/canadian-program-for-cyber-security-certification-level-1.html",
+      "source_label": "PSPC news: CPCSC Level 1 (2026-04)",
+      "sources": [
+        {
+          "label": "PSPC news: Canadian Program for Cyber Security Certification Level 1 (2026-04)",
+          "url": "https://www.canada.ca/en/public-services-procurement/news/2026/04/canadian-program-for-cyber-security-certification-level-1.html",
+          "supports": "13 controls; annual self-assessment; available since 2026-04-01"
+        }
+      ],
+      "registry_url": null,
+      "registry_label": null
+    },
+    {
+      "cert_type": "AS9100",
+      "label": "AS9100",
+      "act_by_days": 90,
+      "act_by_flag": "assumption",
+      "act_by_note": "Assumption: book the recertification audit about 90 days before the certificate expires.",
+      "remind_days": 60,
+      "remind_flag": "assumption",
+      "text": "Certificate up to 3 years with annual surveillance audits.",
+      "verb": "book the recertification audit",
+      "consequence": "Jobs that require AS9100 can't be routed to you once the certificate lapses.",
+      "flag": "verified",
+      "source_url": "https://www.p-r-i.org/registrar/resources/general-policies-and-procedures/certification",
+      "source_label": "PRI Registrar: certification policy",
+      "sources": [
+        {
+          "label": "PRI Registrar: general policies and procedures, certification",
+          "url": "https://www.p-r-i.org/registrar/resources/general-policies-and-procedures/certification",
+          "supports": "certificate up to 3 years; annual surveillance audits"
+        }
+      ],
+      "registry_url": "https://www.iafcertsearch.org/",
+      "registry_label": "IAF CertSearch"
+    },
+    {
+      "cert_type": "ISO9001",
+      "label": "ISO 9001",
+      "act_by_days": 90,
+      "act_by_flag": "assumption",
+      "act_by_note": "Assumption: book the recertification audit about 90 days before the certificate expires.",
+      "remind_days": 60,
+      "remind_flag": "assumption",
+      "text": "3-year certification cycle with annual surveillance (assumption: same cycle as AS9100). Check on IAF CertSearch.",
+      "verb": "book the recertification audit",
+      "consequence": "Jobs that require ISO 9001 can't be routed to you once the certificate lapses.",
+      "flag": "assumption",
+      "source_url": "https://www.iafcertsearch.org/",
+      "source_label": "IAF CertSearch (lookup only)",
+      "sources": [
+        {
+          "label": "IAF CertSearch (lookup only; the cycle length is an assumption)",
+          "url": "https://www.iafcertsearch.org/",
+          "supports": "registry lookup of accredited certificates"
+        }
+      ],
+      "registry_url": "https://www.iafcertsearch.org/",
+      "registry_label": "IAF CertSearch"
+    },
+    {
+      "cert_type": "NADCAP:*",
+      "label": "Nadcap",
+      "act_by_days": 90,
+      "act_by_flag": "assumption",
+      "act_by_note": "Assumption: schedule the reaccreditation audit about 90 days before expiry.",
+      "remind_days": 60,
+      "remind_flag": "assumption",
+      "text": "Read the expiry off the certificate (typically 12–24 months). Muster does not compute merit tiers.",
+      "verb": "schedule the reaccreditation audit",
+      "consequence": "Jobs that require this Nadcap accreditation can't be routed to you once it lapses.",
+      "flag": "verified",
+      "source_url": "https://www.p-r-i.org/nadcap/getting-started",
+      "source_label": "PRI: getting started with Nadcap",
+      "sources": [
+        {
+          "label": "PRI: Getting started with a Nadcap accreditation",
+          "url": "https://www.p-r-i.org/nadcap/getting-started",
+          "supports": "periodic reaccreditation audits, typically every 12–24 months; audits managed in PRI EAN (formerly eAuditNet)"
+        }
+      ],
+      "registry_url": "https://www.eauditnet.com",
+      "registry_label": "PRI EAN / eAuditNet (Nadcap QML)"
+    },
+    {
+      "cert_type": "CWB_W47.1",
+      "label": "CWB W47.1 (company)",
+      "act_by_days": null,
+      "act_by_flag": "assumption",
+      "act_by_note": "No fixed renewal date: company certification is kept current through CWB audits. With a shop-declared date, Muster counts to that date.",
+      "remind_days": null,
+      "remind_flag": "assumption",
+      "text": "Company certification kept current through CWB audits. Check the CWB certified-company directory.",
+      "verb": "confirm the CWB audit",
+      "consequence": "Jobs that require CWB W47.1 can't be routed to you, and your welders' tickets are only valid at a CWB-certified company.",
+      "flag": "verified",
+      "source_url": "https://www.cwbgroup.org/services/certification/company-certification/csa-w471-fusion-welding-of-steel",
+      "source_label": "CWB: CSA W47.1 company certification",
+      "sources": [
+        {
+          "label": "CWB: CSA W47.1 fusion welding of steel (company certification)",
+          "url": "https://www.cwbgroup.org/services/certification/company-certification/csa-w471-fusion-welding-of-steel",
+          "supports": "company certification; supervisor, WPS, engineer by division, tested welders, audits"
+        },
+        {
+          "label": "CWB: validating certification",
+          "url": "https://www.cwbgroup.org/services/public-safety/validating-certification",
+          "supports": "a wall certificate alone is not proof; check the directory"
+        }
+      ],
+      "registry_url": "https://www.cwbgroup.org/directory/certified-companies",
+      "registry_label": "CWB certified-company directory"
+    },
+    {
+      "cert_type": "CWB_WELDER_TICKET",
+      "label": "CWB welder ticket",
+      "used_by": "T8 trainee seat card only",
+      "act_by_days": 0,
+      "act_by_flag": "verified",
+      "remind_days": 90,
+      "remind_flag": "verified",
+      "text": "Valid 2 years while continuously employed by a CWB-certified company. Check test from 90 days before to 90 days after expiry; after that, a full retest. May lapse after 3 months without using the process (confirm on the welder's card).",
+      "verb": "book the check test",
+      "consequence": "After the 90-day grace period a full retest is needed.",
+      "flag": "verified",
+      "flag_note": "The 3-month non-use rule is INFERRED from card text.",
+      "source_url": "https://www.cwbgroup.org/services/certification/welder-qualification-testing",
+      "source_label": "CWB: welder qualification testing",
+      "sources": [
+        {
+          "label": "CWB: welder qualification testing",
+          "url": "https://www.cwbgroup.org/services/certification/welder-qualification-testing",
+          "supports": "2 years while employed at a certified company; check test within 90 days either side of expiry (3-month rule: inferred)"
+        }
+      ],
+      "registry_url": null,
+      "registry_label": null
+    }
+  ]
+}

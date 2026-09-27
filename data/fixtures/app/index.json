@@ -1,0 +1,19 @@
+{
+  "program_id": "northgate",
+  "demo_shop_id": "syn-012",
+  "demo_package_id": "TP-01",
+  "generated_by": "scripts/build_app_fixtures.py",
+  "flow": "reset → upload → route → question NG-021 (lead time) → accept NG-021 → decline NG-022 (capacity) → request funding CWB_W47.1 → capacity check-in → declare CPCSC_L1 expiry → fund TP-01 → reads",
+  "note": "Contract examples for docs/api.md §6 (additive v0.2). Reads are taken after funding TP-01. Timestamps come from a fixed demo clock.",
+  "endpoints": {
+    "POST /shops/syn-012/offers/NG-021/decision": "decision_accept_NG-021.json",
+    "POST /shops/syn-012/offers/NG-022/decision": "decision_decline_NG-022.json",
+    "POST /shops/syn-012/funding-requests": "funding_request_TP-01.json",
+    "POST /shops/syn-012/capacity": "capacity_syn-012.json",
+    "POST /shops/syn-012/certifications/CPCSC_L1": "cert_declare_syn-012_CPCSC_L1.json",
+    "GET /programs/northgate/training/TP-01/seats/3": "trainee_seat_TP-01_3.json",
+    "GET /shops/syn-012/actions": "shop_actions_syn-012.json",
+    "GET /programs/northgate/actions": "program_actions.json",
+    "GET /programs/northgate/events?since=0&limit=100": "events.json"
+  }
+}

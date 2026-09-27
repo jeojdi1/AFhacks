@@ -1,0 +1,59 @@
+{
+  "shop_id": "syn-012",
+  "routed_at": "2026-09-26T21:30:00Z",
+  "decisions": [
+    {
+      "shop_id": "syn-012",
+      "job_id": "NG-021",
+      "decision": "accepted",
+      "reason_code": null,
+      "question_code": null,
+      "note": null,
+      "at": "2026-09-26T21:41:07Z",
+      "idempotency_key": "fixture-accept-NG-021"
+    },
+    {
+      "shop_id": "syn-012",
+      "job_id": "NG-022",
+      "decision": "declined",
+      "reason_code": "capacity",
+      "question_code": null,
+      "note": null,
+      "at": "2026-09-26T21:42:30Z",
+      "idempotency_key": "fixture-decline-NG-022"
+    }
+  ],
+  "funding_requests": [
+    {
+      "package_id": "TP-01",
+      "shop_id": "syn-012",
+      "requirement": "CWB_W47.1",
+      "status": "funded",
+      "at": "2026-09-26T21:44:00Z",
+      "idempotency_key": "fixture-request-TP-01"
+    }
+  ],
+  "capacity": {
+    "shop_id": "syn-012",
+    "hours_week": 40,
+    "by_process": {
+      "welding": 40,
+      "sheet_metal": 0,
+      "painting": 0
+    },
+    "horizon_weeks": 4,
+    "confirmed_at": "2026-09-26T21:47:15Z",
+    "used_in_routing": false
+  },
+  "declared_certs": [
+    {
+      "shop_id": "syn-012",
+      "type": "CPCSC_L1",
+      "expires_at": "2027-04-30",
+      "cert_number": null,
+      "status": "declared",
+      "declared_at": "2026-09-26T21:50:00Z",
+      "note": "Shop-declared; not used for routing until reviewed"
+    }
+  ]
+}

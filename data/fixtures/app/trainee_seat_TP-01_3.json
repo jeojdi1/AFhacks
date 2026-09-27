@@ -1,0 +1,48 @@
+{
+  "program_id": "northgate",
+  "package_id": "TP-01",
+  "seat": 3,
+  "seats": 4,
+  "label": "Seat 3 of 4 · TP-01",
+  "shop_id": "syn-012",
+  "shop_name": "Tallowfield Fabricating Ltd.",
+  "shop_source": "synthetic",
+  "shop_label": "Synthetic",
+  "package_status": "funded",
+  "funding_requested_at": "2026-09-26T21:44:00Z",
+  "funded_at": "2026-09-26T21:52:40Z",
+  "stage": "enrolled",
+  "stages": [
+    "nominated",
+    "eligibility_attested",
+    "enrolled",
+    "started",
+    "test_booked",
+    "passed",
+    "ticket_issued"
+  ],
+  "stage_flag": "assumption",
+  "category": "personal_certification",
+  "recipient_example": "Conestoga College (example, not affiliated)",
+  "cert_unlock": "CWB_W47.1",
+  "capacity_unlock": {
+    "welding": 80
+  },
+  "jobs_unlocked": [
+    "NG-031",
+    "NG-032",
+    "NG-033"
+  ],
+  "jobs_unlocked_value_cad": 5068000.0,
+  "jobs_now_assigned": [
+    "NG-031",
+    "NG-032",
+    "NG-033"
+  ],
+  "example_test_date": "2026-11-07",
+  "example_test_date_flag": "assumption",
+  "eligibility_note": "Personal certification counts only for Canadian citizens or permanent residents (ITB model terms §7.5.1).",
+  "flags": [
+    "assumption"
+  ]
+}

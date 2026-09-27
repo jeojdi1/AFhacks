@@ -1,0 +1,36 @@
+{
+  "capacity": {
+    "shop_id": "syn-012",
+    "hours_week": 40,
+    "by_process": {
+      "welding": 40,
+      "sheet_metal": 0,
+      "painting": 0
+    },
+    "horizon_weeks": 4,
+    "confirmed_at": "2026-09-26T21:47:15Z",
+    "used_in_routing": false
+  },
+  "accepted_load_hours": 22,
+  "offered_load_hours": 46,
+  "over_by_hours": 0,
+  "event": {
+    "seq": 6,
+    "ts": "2026-09-26T21:47:15Z",
+    "kind": "capacity_confirmed",
+    "shop_id": "syn-012",
+    "shop_name": "Tallowfield Fabricating Ltd.",
+    "job_id": null,
+    "package_id": null,
+    "value_cad": null,
+    "credit_cad": null,
+    "message": "Tallowfield Fabricating Ltd.: 40 h/wk free · accepted 22 h/wk",
+    "payload": {
+      "hours_week": 40,
+      "horizon_weeks": 4,
+      "accepted_load_hours": 22,
+      "offered_load_hours": 46,
+      "over_by_hours": 0
+    }
+  }
+}

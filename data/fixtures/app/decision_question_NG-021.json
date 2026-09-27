@@ -1,0 +1,28 @@
+{
+  "decision": {
+    "shop_id": "syn-012",
+    "job_id": "NG-021",
+    "decision": "question",
+    "reason_code": null,
+    "question_code": "lead_time",
+    "note": null,
+    "at": "2026-09-26T21:38:12Z",
+    "idempotency_key": "fixture-question-NG-021"
+  },
+  "assignment_status": "offered",
+  "event": {
+    "seq": 2,
+    "ts": "2026-09-26T21:38:12Z",
+    "kind": "offer_question",
+    "shop_id": "syn-012",
+    "shop_name": "Tallowfield Fabricating Ltd.",
+    "job_id": "NG-021",
+    "package_id": null,
+    "value_cad": 921600.0,
+    "credit_cad": 1677312.0,
+    "message": "Tallowfield Fabricating Ltd. asked about lead time on NG-021",
+    "payload": {
+      "question_code": "lead_time"
+    }
+  }
+}

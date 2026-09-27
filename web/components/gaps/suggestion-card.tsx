@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CircleCheck, GraduationCap, LoaderCircle, MapPin, Users, Wrench } from "lucide-react";
+import { ArrowRight, CircleCheck, GraduationCap, Hand, LoaderCircle, MapPin, Users, Wrench } from "lucide-react";
 import { cn } from "cn";
 
 import type { TrainingPackage } from "@/lib/api/types";
@@ -9,6 +9,9 @@ import { CATEGORY_LABEL, fmtMoney, label } from "@/lib/format";
 import { buttonVariants } from "@/components/ui/button";
 import { AssumptionTag } from "@/components/muster/assumption-tag";
 import { StatusBadge } from "@/components/muster/status-badge";
+import { useAppActions } from "@/lib/app/actions-store";
+import { packageTitle } from "@/lib/app/copy";
+import { fmtTime } from "@/lib/app/today";
 import { BRAND_BUTTON, capacityUnlockText, gapTitle, multiplierLabel, requirementLabel } from "./labels";
 
 export interface SuggestionCardProps {
@@ -33,6 +36,8 @@ export function SuggestionCard({ pkg, funded, pending, disabled, error, onFund }
   const n = pkg.blocked_job_ids.length;
   const capText = capacityUnlockText(pkg.capacity_unlock as Record<string, number> | null);
   const isIndigenous = pkg.multiplier >= 10;
+  // Phone app (§2.5): the shop asked Northgate to fund this package.
+  const request = useAppActions().fundingRequests[pkg.id];
 
   return (
     <article
@@ -48,8 +53,17 @@ export function SuggestionCard({ pkg, funded, pending, disabled, error, onFund }
           <div className="mb-1.5 flex flex-wrap items-center gap-2">
             <span className="font-mono text-[13px] font-medium text-zinc-500">{pkg.id}</span>
             <StatusBadge kind={funded ? "funded" : "suggested"} />
+            {request ? (
+              <span
+                className="inline-flex h-6 items-center gap-1 rounded-md border border-public/25 bg-public-soft px-2 text-[13px] font-medium text-public"
+                title={`The shop asked Northgate to fund this from the Muster phone app (${request.requirement})`}
+              >
+                <Hand className="size-3.5" aria-hidden />
+                Shop requested · {fmtTime(request.at)}
+              </span>
+            ) : null}
           </div>
-          <h3 className="text-lg leading-snug font-semibold text-zinc-900">{pkg.title}</h3>
+          <h3 className="text-lg leading-snug font-semibold text-zinc-900">{packageTitle(pkg)}</h3>
           <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-zinc-600">
             <Link
               href={`/shops/${pkg.shop_id}`}
