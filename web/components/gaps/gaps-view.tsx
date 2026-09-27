@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { CircleCheck, TriangleAlert } from "lucide-react";
 
 import type { Assignment, BlockedJob, TrainingPackage } from "@/lib/api/types";
@@ -15,9 +16,11 @@ import { EmptyState } from "@/components/muster/empty-state";
 import { AutoNextStep, NextStep } from "@/components/muster/next-step";
 import { StatCard } from "@/components/muster/stat-card";
 import { StoryBanner } from "@/components/muster/story-banner";
+import { EngineUnreachable } from "@/components/shell/engine-unreachable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "@/lib/auth";
 import { scrollToFund } from "@/lib/ui/steps";
+import { useWithParams } from "@/lib/ui/use-with-params";
 import { BlockedJobCard } from "./blocked-job-card";
 import { FundMoment, MOMENT } from "./fund-moment";
 import { sc } from "./story-copy";
@@ -45,6 +48,7 @@ function PageTitle() {
  */
 export function GapsView() {
   const demo = useDemo();
+  const wp = useWithParams();
   const reduced = usePrefersReducedMotion();
 
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -175,6 +179,15 @@ export function GapsView() {
         <Skeleton className="mb-6 h-28 rounded-xl" />
         <PageTitle />
         <Skeleton className="h-72 rounded-xl" />
+      </div>
+    );
+  }
+
+  if (!routed && demo.loadFailed) {
+    return (
+      <div className={PAGE}>
+        <PageTitle />
+        <EngineUnreachable />
       </div>
     );
   }
@@ -321,6 +334,17 @@ export function GapsView() {
                     );
                   })}
                 </div>
+                {stillBlocked.length > 0 ? (
+                  <p className="mt-3 text-sm">
+                    <Link
+                      href={wp("/prime/suppliers?cert=CWB_W47.1")}
+                      className="text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                      data-testid="gaps-public-cwb"
+                    >
+                      {cd("gaps.list.publicCwb")}
+                    </Link>
+                  </p>
+                ) : null}
               </div>
               <div className="grid grid-cols-2 gap-3 lg:col-span-4 lg:mt-10 lg:grid-cols-1">
                 <StatCard

@@ -15,18 +15,19 @@ import type { ShopT } from "./types"
  * Shop page H1 (docs/ux-simplification.md §5.5): the name plus a "Synthetic demo shop" chip.
  * Story mode hides the industry code and the fixture role email.
  */
-export function ShopHeader({ shop }: { shop: ShopT }) {
+/** `back`: the first link (default "← Shops directory" → /network; Story step 5 sends it to step 4). */
+export function ShopHeader({ shop, back }: { shop: ShopT; back?: { href: string; label: string } }) {
   const { story } = useStoryMode()
   const wp = useWithParams()
   const synthetic = shop.source !== "public"
   return (
     <header className="space-y-2.5">
       <Link
-        href={wp("/network")}
+        href={wp(back?.href ?? "/network")}
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-3.5" aria-hidden />
-        {ce("shop.back")}
+        {back?.label ?? ce("shop.back")}
       </Link>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <h1 className="text-2xl font-semibold tracking-tight break-words text-foreground sm:text-3xl">{shop.name}</h1>

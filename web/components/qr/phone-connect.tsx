@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation"
 import QRCode from "qrcode"
 import { Check, Copy, RefreshCw, Wifi } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useDemo } from "@/lib/data/store"
 
 type LanInfo = { urls: string[]; port: number }
 
@@ -56,11 +57,30 @@ function phoneTarget(to: string | null): string {
 }
 
 /**
+ * Adds mode=live to the phone URL (C3-7). An "auto" phone gives up on the engine after one
+ * slow first probe and stays on demo data for the whole session, so its answers never reach
+ * this laptop. Only when this laptop is itself live through the same-origin /engine proxy
+ * (the only engine address a phone can reach); in demo data the phone keeps its fallback.
+ */
+function withLiveMode(url: string, live: boolean): string {
+  if (!live) return url
+  try {
+    const u = new URL(url)
+    u.searchParams.set("mode", "live")
+    return u.toString()
+  } catch {
+    return url
+  }
+}
+
+/**
  * Desktop panel: steps, a large QR code for the phone app on this laptop's LAN address, and the URL to copy.
  * `?to=/m/shops/syn-012` points the code at that phone screen instead of the role picker.
  */
 export function PhoneConnect() {
   const to = phoneTarget(useSearchParams().get("to"))
+  const demo = useDemo()
+  const live = demo.mode === "live" && demo.apiUrl.startsWith("/")
   const [state, setState] = useState<State>({ kind: "loading" })
   const [pick, setPick] = useState(0)
   const [copied, setCopied] = useState(false)
@@ -68,6 +88,7 @@ export function PhoneConnect() {
 
   const load = useCallback(async (index: number) => {
     setState({ kind: "loading" })
+    if (!demo.ready) return
     try {
       const res = await fetch("/api/lan", { cache: "no-store" })
       if (!res.ok) throw new Error(String(res.status))
@@ -76,13 +97,13 @@ export function PhoneConnect() {
         setState({ kind: "none", info })
         return
       }
-      const url = info.urls[Math.min(index, info.urls.length - 1)].replace(/\/m$/, "") + to
+      const url = withLiveMode(info.urls[Math.min(index, info.urls.length - 1)].replace(/\/m$/, "") + to, live)
       const svg = await QRCode.toString(url, { type: "svg", margin: 2, errorCorrectionLevel: "M", color: { dark: "#0f172a", light: "#ffffff" } })
       setState({ kind: "ready", info, url, svg })
     } catch {
       setState({ kind: "error" })
     }
-  }, [to])
+  }, [to, demo.ready, live])
 
   useEffect(() => {
     // Fetching on mount is the point of this effect: the LAN address only exists server side.

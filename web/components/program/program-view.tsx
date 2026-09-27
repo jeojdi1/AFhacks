@@ -8,6 +8,7 @@ import { AutoNextStep } from "@/components/muster/next-step";
 import { SectionHeader } from "@/components/muster/section-header";
 import { StatCard } from "@/components/muster/stat-card";
 import { StoryBanner } from "@/components/muster/story-banner";
+import { EngineUnreachable } from "@/components/shell/engine-unreachable";
 import type { PartsUploadResponse, RouteResponse, Shop } from "@/lib/api/types";
 import { fx } from "@/lib/data/fixture-source";
 import { useDemo } from "@/lib/data/store";
@@ -109,8 +110,12 @@ export function ProgramView() {
   );
 
   // ---- banner (§5.1 / §5.2) ----
+  // Live mode, engine unreachable at load and nothing cached: "ready to load" would be a guess.
+  const unreachable = demo.loadFailed && !routed && stage === "empty";
   let banner: React.ReactNode;
-  if (routed) {
+  if (unreachable) {
+    banner = null;
+  } else if (routed) {
     const vars = {
       assigned: assignedCount,
       jobs: totalJobs,
@@ -186,7 +191,9 @@ export function ProgramView() {
         </div>
       ) : null}
 
-      {!routed ? (
+      {unreachable ? <EngineUnreachable /> : null}
+
+      {!routed && !unreachable ? (
         <UploadCard
           stage={stage}
           busy={busy}

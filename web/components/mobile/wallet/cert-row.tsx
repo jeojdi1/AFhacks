@@ -74,8 +74,11 @@ export function CertRow({
   routed,
   declare,
   shopId,
+  unlocks = false,
 }: {
   shopId?: string
+  /** Not held, and a Grow (readiness) item exists for it: getting it would open more jobs. */
+  unlocks?: boolean
   cert: CertWithDates
   renewal: Renewal
   today: Date
@@ -86,6 +89,10 @@ export function CertRow({
 }) {
   const rule = ruleFor(cert.type)
   const held = certRowHeld(cert)
+  // Welders still in training (pending_training): counts for matching, but not held yet. No
+  // renewal stage, no expiry date to add, and its jobs are waiting on it, not at risk (C3-11).
+  const training = cert.status === "pending_training"
+  const welding = cert.type.startsWith("CWB")
   const carry = React.useSyncExternalStore(noopSubscribe, readCarryQuery, serverQuery)
   const sid = shopId ?? cert.shop_id
   const dated = held && !!renewal.expires_at
@@ -125,7 +132,7 @@ export function CertRow({
           <span className="text-base leading-snug font-semibold break-words">{name}</span>
           {gloss ? <span className="-mt-1 text-sm leading-snug text-muted-foreground">{gloss}</span> : null}
           <span className="flex flex-wrap items-center gap-1.5">
-            <StageBadge stage={renewal.stage} held={held} />
+            {training ? null : <StageBadge stage={renewal.stage} held={held} />}
             {held && cert.status !== "unknown" ? <CertStatusChip status={cert.status} /> : null}
             {dated ? <DateBasisChip basis={cert.date_basis} /> : null}
             {declaration?.pending ? (
@@ -142,7 +149,7 @@ export function CertRow({
             </span>
             <span className="mt-1 text-sm leading-tight text-muted-foreground">{daysCaption(renewal)}</span>
           </span>
-        ) : held ? (
+        ) : held && !training ? (
           <span className="w-[4.75rem] shrink-0 text-right text-sm text-muted-foreground">{t("wallet.days.none")}</span>
         ) : null}
         <ChevronDown
@@ -187,15 +194,26 @@ export function CertRow({
               ) : null}
             </dl>
           ) : (
-            held ? (
+            training ? (
+              <p className="text-[15px] text-muted-foreground">{t(welding ? "wallet.row.trainingBody" : "wallet.row.trainingBodyGeneric")}</p>
+            ) : held ? (
               <p className="text-[15px] text-muted-foreground">{t("wallet.row.noDate")}</p>
             ) : (
-              <p className="text-[15px] text-muted-foreground">
-                {t("wallet.notHeldBody")}{" "}
-                <Link href={`${growHref(sid)}${carry}`} className="font-medium text-brand underline underline-offset-4">
-                  {t("wallet.notHeldGrow")}
-                </Link>
-              </p>
+              <div className="flex flex-col gap-2">
+                <p className="text-[15px] text-muted-foreground">
+                  {t("wallet.notHeldBody")} {unlocks ? null : t("wallet.notHeldNoUnlock")}
+                </p>
+                {unlocks ? (
+                  <Link
+                    href={`${growHref(sid)}${carry}`}
+                    className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg bg-muted px-3 py-2 text-[15px] font-medium text-brand outline-none hover:bg-muted/70 focus-visible:ring-3 focus-visible:ring-ring/50"
+                    data-testid="cert-unlocks-grow"
+                  >
+                    <span className="min-w-0">{t("wallet.notHeldUnlocks")}</span>
+                    <ArrowRight className="size-4 shrink-0" aria-hidden />
+                  </Link>
+                ) : null}
+              </div>
             )
           )}
 
@@ -207,13 +225,34 @@ export function CertRow({
                 {t("wallet.row.declaredOn", { date: fmtDay(declaration.declared_at) })}
                 {declaration.cert_number ? ` · ${t("wallet.row.certNumber", { number: declaration.cert_number })}` : ""}
               </div>
+              {!dated && declaration.expires_at ? (
+                <div className="text-sm">{t("wallet.row.declaredExpiry", { date: fmtLongDate(declaration.expires_at) })}</div>
+              ) : null}
             </div>
           ) : dated && cert.date_basis === "illustrative" ? (
             <p className="text-sm text-muted-foreground">{t("wallet.row.illustrative")}</p>
           ) : null}
 
+          {/* Jobs waiting on it (welders in training) */}
+          {training ? (
+            <div className="rounded-lg bg-funded-soft/60 px-3 py-2.5" data-testid="cert-training-jobs">
+              <div className="text-[15px] font-semibold">{t("wallet.row.neededFor")}</div>
+              {renewal.jobs_at_risk.length ? (
+                <p className="mt-0.5 text-base">
+                  <span className="font-semibold">{renewal.jobs_at_risk.join(", ")}</span>
+                  {" · "}
+                  {fmtWork(renewal.value_at_risk_cad)} · {t(welding ? "wallet.row.startsWhenQualified" : "wallet.row.startsWhenTrained")}
+                </p>
+              ) : (
+                <p className="mt-0.5 text-[15px] text-muted-foreground">
+                  {routed ? t("wallet.row.neededForNone") : t("wallet.row.atRiskNotRouted")}
+                </p>
+              )}
+            </div>
+          ) : null}
+
           {/* Work at risk */}
-          {held ? (
+          {held && !training ? (
             <div
               className={cn(
                 "rounded-lg px-3 py-2.5",
@@ -305,7 +344,7 @@ export function CertRow({
             <p className="text-sm text-muted-foreground">{t("wallet.row.noRegistry")}</p>
           )}
 
-          {held ? (
+          {held && !training ? (
             <>
               <Button variant={dated ? "outline" : "default"} size="touch" className="w-full" onClick={openSheet}>
                 {declaration ? t("wallet.row.editExpiry") : t("wallet.row.addExpiry")}
@@ -320,7 +359,7 @@ export function CertRow({
                 declare={declare}
               />
             </>
-          ) : (
+          ) : training ? null : (
             // Not held: a date can't make it held. Show what it takes instead (Grow item).
             <Link
               href={`${growHref(sid, cert.type)}${carry}`}

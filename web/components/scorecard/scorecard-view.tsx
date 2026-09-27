@@ -6,6 +6,7 @@ import { Info } from "lucide-react";
 import { AutoNextStep } from "@/components/muster/next-step";
 import { Details } from "@/components/muster/details";
 import { EmptyState } from "@/components/muster/empty-state";
+import { EngineUnreachable } from "@/components/shell/engine-unreachable";
 import { SectionHeader } from "@/components/muster/section-header";
 import { StoryBanner } from "@/components/muster/story-banner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -89,6 +90,26 @@ export function ScorecardView() {
           <Skeleton className="h-72 rounded-xl" />
           <Skeleton className="h-80 rounded-xl" />
         </div>
+      </div>
+    );
+  }
+
+  // Live, engine down at load and nothing saved: "No credit yet" would be a guess, not a fact.
+  // No evidence-pack button here: its "Match the parts list first" hint would be a guess too.
+  if (!ledger && demo.loadFailed) {
+    return (
+      <div className={PAGE}>
+        <SectionHeader
+          size="page"
+          title={c("score.h1")}
+          className="mb-4"
+          right={
+            <span className="inline-flex h-7 items-center self-center rounded-full border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700">
+              {RULES_LABEL}
+            </span>
+          }
+        />
+        <EngineUnreachable />
       </div>
     );
   }

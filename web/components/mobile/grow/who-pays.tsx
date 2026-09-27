@@ -10,8 +10,26 @@ import { AssumptionTag } from "@/components/muster/assumption-tag"
 import { SourceLink } from "./grow-chips"
 
 /** "Who pays": the prime-fundable package (if any) and other programs the shop may qualify for. */
-export function WhoPays({ pkg, requirement }: { pkg: TrainingPackage | null; requirement: string }) {
-  const others = otherFunding()
+export function WhoPays({
+  pkg,
+  requirement,
+  funded = false,
+}: {
+  pkg: TrainingPackage | null
+  requirement: string
+  /** Already funded: past tense ("Northgate paid …"), and no other programs to apply to. */
+  funded?: boolean
+}) {
+  const others = funded ? [] : otherFunding()
+  const vars = pkg
+    ? {
+        cost: fmtMoney(pkg.est_cost_cad, { compact: true }),
+        credit: fmtMoney(pkg.est_credit_cad, { compact: true }),
+        mult: pkg.multiplier,
+        count: pkg.trainees,
+        pkg: pkg.id,
+      }
+    : null
   return (
     <section aria-labelledby="who-pays-title" className="flex flex-col gap-3">
       <h3 id="who-pays-title" className="text-lg font-semibold tracking-tight">
@@ -23,20 +41,23 @@ export function WhoPays({ pkg, requirement }: { pkg: TrainingPackage | null; req
           <div className="flex items-start gap-3">
             <Building2 className="mt-0.5 size-5 shrink-0 text-funded" aria-hidden />
             <div className="min-w-0">
-              <p className="text-base leading-snug font-semibold">
-                {t(requirement === "CWB_W47.1" ? "ready.primeFunds" : "ready.primeFundsGeneric", {
-                  cost: fmtMoney(pkg.est_cost_cad, { compact: true }),
-                  credit: fmtMoney(pkg.est_credit_cad, { compact: true }),
-                  mult: pkg.multiplier,
-                })}{" "}
+              <p className="text-base leading-snug font-semibold" data-testid="who-pays-prime">
+                {funded
+                  ? t(requirement === "CWB_W47.1" ? "ready.primeFunded" : "ready.primeFundedGeneric", vars ?? {})
+                  : t(requirement === "CWB_W47.1" ? "ready.primeFunds" : "ready.primeFundsGeneric", vars ?? {})}{" "}
                 <AssumptionTag className="align-middle" note="Training cost and credit are demo estimates (data/rules/training_costs.json)" />
               </p>
+              {funded ? (
+                <p className="mt-1 text-sm leading-snug">{t("ready.primeFundedCredit", vars ?? {})}</p>
+              ) : null}
               <p className="mt-1.5 text-sm leading-snug text-muted-foreground">
                 <span className="font-mono text-[13px]">{pkg.id}</span> · {packageTitle(pkg)}
               </p>
               {packageCaveat(pkg) ? <p className="mt-1 text-sm leading-snug text-muted-foreground">{packageCaveat(pkg)}</p> : null}
               <p className="mt-1 text-sm leading-snug text-muted-foreground">
-                {t("ready.primeFundsBody", { trainees: pkg.trainees, provider: pkg.recipient_example })}
+                {funded
+                  ? t("ready.primeFundedBody", { provider: pkg.recipient_example })
+                  : t("ready.primeFundsBody", { trainees: pkg.trainees, provider: pkg.recipient_example })}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">{t("label.simplifiedItb")}</p>
             </div>

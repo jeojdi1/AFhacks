@@ -1,11 +1,25 @@
 import type { Metadata } from "next"
 import { ShopView } from "@/components/shop/shop-view"
 import { dndHistoryFor } from "@/components/shop/dnd-history"
+import shops from "@fixtures/shops.json"
+import shopsPublic from "@fixtures/shops_public.json"
+
+type NamedShop = { id: string; name: string }
+let names: Map<string, string> | null = null
+/** Shop name from the bundled demo data (synthetic + public), or null for a shop only the live engine knows. */
+function shopName(id: string): string | null {
+  names ??= new Map(
+    [...(shops as { shops: NamedShop[] }).shops, ...(shopsPublic as { shops: NamedShop[] }).shops].map((s) => [s.id, s.name])
+  )
+  return names.get(id) ?? null
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
+  const shopId = decodeURIComponent(id)
+  const name = shopName(shopId)
   return {
-    title: decodeURIComponent(id).startsWith("pub-") ? "Shops directory · Muster" : "The shop's side · Muster",
+    title: name ? `${name} · Muster` : shopId.startsWith("pub-") ? "Shop profile · Muster" : "The shop's side · Muster",
   }
 }
 

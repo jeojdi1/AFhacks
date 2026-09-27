@@ -99,7 +99,10 @@ export function ruleFor(certType: string): RenewalRuleFull {
 // ---------------------------------------------------------------------------
 // Work at risk
 
-/** Assigned jobs at this shop that depend on the cert (declined offers are not at risk). */
+/**
+ * Assigned jobs at this shop that depend on the cert (declined offers are not at risk). For a
+ * certificate still in training (pending_training) these are the jobs waiting on it.
+ */
 export function jobsDependingOn(
   certType: string,
   ctx: { shopId: string; jobsById: Record<string, Job>; assignments: Assignment[] }
@@ -142,7 +145,11 @@ export function renewalFor(
   let daysLeft: number | null = null
   if (held && expiresAt && actBy) daysLeft = stage === "lapsed" ? daysBetween(ctx.today, expiresAt) : daysBetween(ctx.today, actBy)
 
-  const risky = held ? jobsDependingOn(cert.type, ctx) : []
+  // Held: the jobs at risk if it lapses. Welders still in training (pending_training): the offered
+  // jobs waiting on it (C3-11), so the wallet can say "Needed for NG-031, NG-032, NG-033". Either
+  // way these are this shop's live (not declined) assignments that require the certificate.
+  const training = cert.status === "pending_training"
+  const risky = held || training ? jobsDependingOn(cert.type, ctx) : []
   const flag: RuleFlag = rule.flag === "verified" && rule.act_by_flag === "verified" ? "verified" : "assumption"
 
   return {

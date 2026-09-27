@@ -168,7 +168,7 @@ test("status unknown with an illustrative date still shows Not held", () => {
   assert.equal(r.expires_at, null)
 })
 
-test("a shop-declared date on a not-held cert gets a stage and stays shop-declared", () => {
+test("a shop-declared date on a not-held cert gets no stage and stays shop-declared", () => {
   const declaration = {
     shop_id: "syn-012",
     type: "CGP" as const,
@@ -182,8 +182,10 @@ test("a shop-declared date on a not-held cert gets a stage and stays shop-declar
     cert("CGP", "2027-04-30", { status: "unknown", shop_id: "syn-012", date_basis: "shop-declared", declaration }),
     ctx("2026-09-26", "syn-012")
   )
-  assert.equal(r.act_by, "2027-01-30")
-  assert.equal(r.stage, "ok")
+  // "Not held" never shows a stage: a self-declared date does not make a certificate held.
+  assert.equal(r.act_by, null)
+  assert.equal(r.stage, "unknown")
+  assert.equal(r.expires_at, null)
   assert.equal(r.date_basis, "shop-declared")
   assert.equal(r.status, "unknown")
 })

@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { SeatCard } from "@/components/mobile/trainee/seat-card"
+import { SeatGate } from "./seat-gate"
 import { decodeParam } from "@/lib/app/readiness"
 
 export const metadata: Metadata = {
@@ -21,5 +21,5 @@ export default async function TraineeSeatPage({
   // No ?seat= means seat 1. A seat that is not a whole number from 1 up (0, abc, 1.5) is passed
   // as null so the card says the seat does not exist instead of quietly showing another seat.
   const seat = raw === undefined || raw === "" ? 1 : /^\d+$/.test(raw.trim()) && Number(raw) > 0 ? Number(raw) : null
-  return <SeatCard packageId={decodeParam(packageId)} seat={seat} />
+  return <SeatGate packageId={decodeParam(packageId)} seat={seat} />
 }

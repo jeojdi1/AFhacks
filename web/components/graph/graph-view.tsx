@@ -117,6 +117,17 @@ export function GraphView() {
     const label = labelOf(id)
     setTrail((t) => (t[t.length - 1].id === id ? t : [...t.slice(-7), { id, label }]))
   }
+  // Linked-dots list: preview a dot in the card only on keyboard focus. Hover or a mouse press
+  // must not change the card, or the list below it moves and the click lands on another dot.
+  const previewOnKeyboardFocus = (e: React.FocusEvent<HTMLButtonElement>, id: string) => {
+    let keyboard = true
+    try {
+      keyboard = e.currentTarget.matches(":focus-visible")
+    } catch {
+      /* old browser: keep the keyboard preview */
+    }
+    if (keyboard) setSelectedId(id)
+  }
   const start = (st: Stop) => {
     setSelectedId(null)
     setTrail([st])
@@ -148,26 +159,15 @@ export function GraphView() {
       testId="graph-page"
       eyebrow="Northgate Land Systems (fictional defence company) · supplier development"
       title="Supplier map"
-      lede={
-        <>
-          See who can make your parts. Pick a starting point, then click any dot to see which shops do that skill,
-          hold that certificate or work in that place, and which already did National Defence work.
-        </>
-      }
+      lede="See who can make your parts: pick a starting point, then click any dot."
     >
-      <div className="-mt-3 flex flex-col gap-2">
-        <Link
-          href={wp("/prime/suppliers")}
-          className="inline-flex w-fit items-center gap-1 text-sm font-medium text-slate-700 underline-offset-4 hover:underline"
-        >
-          <ArrowLeft className="size-4" aria-hidden />
-          Find suppliers
-        </Link>
-        <p className="text-sm text-muted-foreground">
-          Northgate Land Systems is fictional. Demo shops are synthetic. Real companies: Public data — unverified —
-          not affiliated. National Defence matches are by company name, not confirmed by the companies.
-        </p>
-      </div>
+      <Link
+        href={wp("/prime/suppliers")}
+        className="-mt-4 inline-flex w-fit items-center gap-1 text-sm font-medium text-slate-700 underline-offset-4 hover:underline"
+      >
+        <ArrowLeft className="size-4" aria-hidden />
+        Find suppliers
+      </Link>
 
       <section aria-labelledby="ego-title" className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:p-5">
         <div className="flex flex-col gap-1">
@@ -177,8 +177,8 @@ export function GraphView() {
             {ego.loading ? <LoaderCircle className="size-4 animate-spin text-muted-foreground motion-reduce:animate-none" aria-label="Loading" /> : null}
           </h2>
           <p className="text-sm text-muted-foreground">
-            The dot in the middle is what you picked. Every dot around it is linked to it: a skill, a certificate, a
-            place, a shop or a past contract. Click a dot to move it to the middle.
+            The middle dot is what you picked; every dot around it is a linked skill, certificate, place, shop or
+            past contract. Click one to move it to the middle.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2" aria-label="Start with">
@@ -244,7 +244,7 @@ export function GraphView() {
             </div>
             <div className="flex min-w-0 flex-col gap-3">
               {selected ? (
-                <div className="rounded-lg border border-border bg-muted/40 p-3" data-selected-node={selected.id}>
+                <div className="min-h-[10.5rem] rounded-lg border border-border bg-muted/40 p-3" data-selected-node={selected.id}>
                   <p className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
                     <Swatch type={selected.type} />
                     {kindStyle(selected.type).singular}
@@ -283,8 +283,7 @@ export function GraphView() {
                           <button
                             type="button"
                             onClick={() => recentre(n.id)}
-                            onMouseEnter={() => setSelectedId(n.id)}
-                            onFocus={() => setSelectedId(n.id)}
+                            onFocus={(e) => previewOnKeyboardFocus(e, n.id)}
                             className="w-full truncate rounded px-1.5 py-1 text-left text-sm hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                             title={displayLabel(n)}
                           >
@@ -299,6 +298,11 @@ export function GraphView() {
             </div>
           </div>
         ) : null}
+
+        <p className="text-sm text-muted-foreground" data-graph-disclaimer>
+          Northgate Land Systems is fictional. Demo shops are synthetic. Real companies: Public data — unverified —
+          not affiliated. National Defence matches are by company name, not confirmed by the companies.
+        </p>
 
         <div aria-label="Legend" className="flex flex-wrap gap-x-4 gap-y-1.5 border-t border-border pt-3 text-sm text-slate-700" data-graph-legend>
           {(["Shop", "Process", "Cert", "Region", "Job", "DNDVendor", "Occupation", "Manufacturer", "Prime", "Program"] as const).map((k) => (

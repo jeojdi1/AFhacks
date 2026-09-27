@@ -452,7 +452,7 @@ export function PrimeActions() {
                 <p className="text-sm text-muted-foreground">{t("pa.dec.detail")}</p>
                 {isSimulatedRecord(d) || simulatedFor(d, "offer_declined") ? <SimulatedChip className="self-start" /> : null}
                 <a
-                  href={phoneHref(findAnotherShopHref(d.job_id))}
+                  href={phoneHref(`${findAnotherShopHref(d.job_id)}&from=m`)}
                   className={cn(buttonVariants({ variant: "outline", size: "touch" }), "w-full")}
                   data-testid="find-another"
                 >

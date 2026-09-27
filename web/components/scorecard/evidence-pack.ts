@@ -5,6 +5,8 @@
 // One row per ledger transaction: work rows (origin "assignment") joined with the assignment,
 // the job and the shop; training rows (origin "training", funded packages) joined with the
 // package. Line 1 is a comment saying this is a demo, not an official ITB report.
+// The status column says where each job stands with its shop (accepted, awaiting a reply,
+// declined but still counted in this demo, or re-offered to another shop); credit never changes.
 
 import type { Assignment, CertStatus, CreditTxn, Job, ShopSource, TrainingPackage } from "@/lib/api/types";
 
@@ -14,6 +16,7 @@ export const EVIDENCE_PACK_COMMENT = "# Muster demo — simplified ITB rules —
 export const EVIDENCE_COLUMNS = [
   "row_type",
   "job_id",
+  "status",
   "part_no",
   "shop_name",
   "shop_label",
@@ -33,6 +36,19 @@ export const WORK_CHECKLIST =
   "purchase order; invoices; proof of delivery; Canadian content calculation; small-business status (employee count)";
 export const TRAINING_CHECKLIST =
   "enrolment records; completion records; invoices; citizenship/PR eligibility for personal certification (assumption)";
+export const APPRENTICE_CHECKLIST = "enrolment/apprenticeship registration; completion records; invoices";
+export const TEN_X_NOTE = "10x Indigenous credit needs Defence Investment Agency confirmation (assumption)";
+
+/** Evidence checklist for a funded training package, by its category and multiplier. */
+export function trainingChecklist(category: string | null | undefined, multiplier: number): string {
+  const base = category === "apprentice_sponsorship" ? APPRENTICE_CHECKLIST : TRAINING_CHECKLIST;
+  return multiplier === 10 ? `${base}; ${TEN_X_NOTE}` : base;
+}
+
+/** W47.1 wording rule: the engine's "Certify 4 welders to CWB W47.1 at …" → "Qualify 4 welders under CSA W47.1 at …". */
+export function plainPackageTitle(title: string): string {
+  return title.replace(/^Certify (\d+) welder(s?) to CWB W47\.1\b/, "Qualify $1 welder$2 under CSA W47.1");
+}
 
 /** A certificate as the shop record states it (status + where it comes from). */
 export interface EvidenceCert {
@@ -51,6 +67,9 @@ export interface EvidenceShop {
   certs: EvidenceCert[];
 }
 
+/** A shop's answer to an offer, as the store holds it. */
+export type EvidenceDecision = "accepted" | "declined" | "question" | "offered";
+
 export interface EvidenceInput {
   transactions: CreditTxn[];
   assignments: Assignment[];
@@ -65,6 +84,27 @@ export interface EvidenceInput {
   fundedAt: Record<string, string>;
   /** Fallback date (YYYY-MM-DD) when a row has none. */
   today: string;
+  /** "shop_id|job_id" → that shop's latest answer (overrides the assignment status). */
+  decisions?: Record<string, EvidenceDecision>;
+  /** job_id → the shop Northgate re-offered the declined job to (demo; credit unchanged). */
+  reoffers?: Record<string, { shop_id: string; shop_name: string | null }>;
+}
+
+export const decisionKeyOf = (shopId: string, jobId: string) => `${shopId}|${jobId}`;
+
+/** Plain status for a work row: accepted / offered (awaiting reply) / declined — still counted (demo) / re-offered to <shop>. */
+export function workStatus(
+  shopId: string,
+  jobId: string,
+  assignmentStatus: string | null | undefined,
+  input: Pick<EvidenceInput, "decisions" | "reoffers">,
+): string {
+  const moved = input.reoffers?.[jobId];
+  if (moved && moved.shop_id !== shopId) return `re-offered to ${moved.shop_name || moved.shop_id}`;
+  const st = input.decisions?.[decisionKeyOf(shopId, jobId)] ?? assignmentStatus ?? "offered";
+  if (st === "accepted") return "accepted";
+  if (st === "declined") return "declined — still counted (demo)";
+  return "offered (awaiting reply)";
 }
 
 const SOURCE_LABEL: Record<ShopSource, string> = { synthetic: "Synthetic", public: "Public data (unverified)" };
@@ -86,9 +126,11 @@ function pct(f: number | null | undefined): string {
   return Number.isInteger(v) ? String(v) : v.toFixed(1);
 }
 
-/** "type:status:source" for each certificate a job needs, joined with "; ". */
-export function certsReliedOn(required: readonly string[], shop: EvidenceShop | undefined): string {
-  return required
+/** "type:status:source" for each certificate a job needs (plus CGP for a controlled job), joined with "; ". */
+export function certsReliedOn(required: readonly string[], shop: EvidenceShop | undefined, controlled = false): string {
+  const types = controlled ? [...required, "CGP"] : [...required];
+  return types
+    .filter((type, i, a) => a.indexOf(type) === i)
     .map((type) => {
       const cert = shop?.certs.find((x) => x.type === type);
       return `${type}:${cert?.status ?? "not on file"}:${cert?.source || "not stated"}`;
@@ -111,7 +153,8 @@ export function buildEvidenceRows(input: EvidenceInput): EvidenceRow[] {
       training.push({
         row_type: "training",
         job_id: t.ref_id,
-        part_no: p?.title ?? t.ref_id,
+        status: "funded",
+        part_no: p?.title ? plainPackageTitle(p.title) : t.ref_id,
         shop_name: shop?.name ?? p?.shop_name ?? t.shop_id,
         shop_label: shop?.label ?? (p ? SOURCE_LABEL[p.shop_source] : ""),
         small_business: shop?.is_sme == null ? "" : shop.is_sme ? "yes" : "no",
@@ -121,7 +164,7 @@ export function buildEvidenceRows(input: EvidenceInput): EvidenceRow[] {
         credit_cad: money(t.credit_cad),
         certificates_relied_on: "",
         date: day(input.fundedAt[t.ref_id], input.today),
-        evidence_checklist: TRAINING_CHECKLIST,
+        evidence_checklist: trainingChecklist(p?.category, t.multiplier),
       });
       continue;
     }
@@ -131,6 +174,7 @@ export function buildEvidenceRows(input: EvidenceInput): EvidenceRow[] {
     work.push({
       row_type: "work",
       job_id: t.ref_id,
+      status: workStatus(t.shop_id, t.ref_id, a && a.shop_id === t.shop_id ? a.status : null, input),
       part_no: a?.part_no ?? j?.part_no ?? "",
       shop_name: shop?.name ?? a?.shop_name ?? t.shop_id,
       shop_label: shop?.label ?? (a ? SOURCE_LABEL[a.shop_source] : ""),
@@ -139,7 +183,7 @@ export function buildEvidenceRows(input: EvidenceInput): EvidenceRow[] {
       canadian_content_pct: pct(t.ccv_pct),
       multiplier: `${t.multiplier}x`,
       credit_cad: money(t.credit_cad),
-      certificates_relied_on: certsReliedOn(j?.required_certs ?? [], shop),
+      certificates_relied_on: certsReliedOn(j?.required_certs ?? [], shop, !!(j?.controlled ?? a?.controlled)),
       date: day(input.routedAt, input.today),
       evidence_checklist: WORK_CHECKLIST,
     });

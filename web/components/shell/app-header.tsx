@@ -28,16 +28,19 @@ import { BrandMark } from "./brand-mark"
 import { ModeSwitcher } from "./mode-switcher"
 
 /**
- * Row 1 of the desktop chrome (docs/ux-simplification.md §3.1): logo + tagline on the left;
- * Story mode, Shops directory, portal links, Phone app, activity bell, data-source pill,
- * Start over and the account menu on the right. The 5 story steps live in the story bar below.
+ * Row 1 of the desktop chrome (docs/ux-simplification.md §3.1): logo on the left; Story mode,
+ * Shops directory, Find suppliers (not for a shop), Find work (a signed-in shop only), Supplier
+ * map, Phone app, activity bell, data-source pill, Start over and the account menu on the right.
+ * The page links carry text labels at xl and wider, and are icons with a tooltip below that.
+ * The 5 story steps live in the story bar below.
  */
 export function AppHeader() {
   const pathname = usePathname() ?? "/"
   const { busy } = useDemo()
   const wp = useWithParams()
   const role = useSession().session?.role
-  // A signed-in shop never sees Northgate's supplier search (prime-only).
+  // A signed-in shop never sees Northgate's supplier search (prime-only); Find work is the
+  // shop's own page, so only a signed-in shop gets it (never signed out or as Northgate).
   const shopRole = role === "shop"
   // Start over wipes the shared engine for every phone: only the defence company
   // (or the signed-out presenter) gets it; a shop, college or trainee never does.
@@ -47,7 +50,7 @@ export function AppHeader() {
   const links: { key: string; label: string; href: string; icon: React.ComponentType<{ className?: string }>; active: boolean; always?: boolean; hide?: boolean }[] = [
     { key: "directory", label: c("nav.directory"), href: "/network", icon: BookOpen, active: isDirectoryPath(pathname), always: true },
     { key: "suppliers", label: c("nav.findSuppliers"), href: "/prime/suppliers", icon: Search, active: pathname.startsWith("/prime/suppliers"), hide: shopRole },
-    { key: "work", label: c("nav.findWork"), href: "/shop/work", icon: Factory, active: pathname.startsWith("/shop/work") },
+    { key: "work", label: c("nav.findWork"), href: "/shop/work", icon: Factory, active: pathname.startsWith("/shop/work"), hide: !shopRole },
     { key: "graph", label: c("nav.graph"), href: "/graph", icon: Network, active: pathname.startsWith("/graph") },
   ]
 
@@ -59,11 +62,10 @@ export function AppHeader() {
           className="flex min-w-0 items-center gap-2.5 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring"
           aria-label={c("nav.home")}
         >
-          {/* Phones: the mark alone, so the directory and phone links stay visible at 390 px. */}
+          {/* Phones: the mark alone, so the directory and phone links stay visible at 390 px. No
+              tagline: the header is capped at 1280 px and at xl the Find suppliers / Supplier map
+              labels need the room (the tagline only ever showed truncated next to them). */}
           <BrandMark className="shrink-0 max-sm:[&>span:last-child]:hidden" />
-          <span className="hidden min-w-0 truncate border-l border-border pl-2.5 text-[13px] leading-tight font-medium text-muted-foreground xl:inline">
-            {c("app.tagline")}
-          </span>
         </Link>
 
         <nav className="ml-auto flex shrink-0 items-center gap-0.5" aria-label="Main">
@@ -73,33 +75,38 @@ export function AppHeader() {
           {links.filter((l) => !l.hide).map((l) => {
             const Icon = l.icon
             return (
-              <Link
-                key={l.key}
-                href={wp(l.href)}
-                aria-current={l.active ? "page" : undefined}
-                title={l.label}
-                aria-label={l.label}
-                className={cn(
-                  "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md px-2 text-[0.9rem] font-medium whitespace-nowrap transition-colors",
-                  l.active ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  !l.always && "hidden lg:inline-flex"
-                )}
-              >
-                <Icon className="size-4 shrink-0" aria-hidden />
-                {/* The header is capped at 1280 px, so only the directory label ever fits; the rest stay
-                    icon-only at every width (label in the tooltip and aria-label). */}
-                {l.always ? <span className="hidden xl:inline">{l.label}</span> : null}
-              </Link>
+              <Tooltip key={l.key}>
+                <TooltipTrigger
+                  render={<Link href={wp(l.href)} />}
+                  aria-current={l.active ? "page" : undefined}
+                  aria-label={l.label}
+                  className={cn(
+                    "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md px-2 text-[0.9rem] font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring",
+                    l.active ? "bg-secondary text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    !l.always && "hidden lg:inline-flex"
+                  )}
+                >
+                  <Icon className="size-4 shrink-0" aria-hidden />
+                  {/* Labelled at xl and wider (1280 px+); icon-only below, with the label in the tooltip. */}
+                  <span className="hidden xl:inline">{l.label}</span>
+                </TooltipTrigger>
+                {/* The label is on screen at xl: the tooltip only speaks for the icon-only widths. */}
+                <TooltipContent side="bottom" className="xl:hidden">
+                  {l.label}
+                </TooltipContent>
+              </Tooltip>
             )
           })}
-          <Link
-            href="/m"
-            aria-label={c("nav.phone")}
-            title={c("nav.phone")}
-            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md px-2 text-[0.9rem] font-medium whitespace-nowrap text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <Smartphone className="size-4 shrink-0" aria-hidden />
-          </Link>
+          <Tooltip>
+            <TooltipTrigger
+              render={<Link href="/m" />}
+              aria-label={c("nav.phone")}
+              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md px-2 text-[0.9rem] font-medium whitespace-nowrap text-muted-foreground transition-colors outline-none hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring"
+            >
+              <Smartphone className="size-4 shrink-0" aria-hidden />
+            </TooltipTrigger>
+            <TooltipContent side="bottom">{c("nav.phone")}</TooltipContent>
+          </Tooltip>
         </nav>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-1.5">

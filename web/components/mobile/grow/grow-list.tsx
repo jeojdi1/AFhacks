@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { ChevronRight, Gauge, Inbox, Sprout } from "lucide-react"
+import { ChevronRight, Gauge, GraduationCap, Inbox, Sprout } from "lucide-react"
 import { useDemo } from "@/lib/data/store"
 import { fmtMoney } from "@/lib/format"
 import { useShopBundle } from "@/lib/app/shop-bundle"
@@ -10,7 +10,7 @@ import { t } from "@/lib/app/strings"
 import { UnreachableNotice } from "@/components/mobile/shell/unreachable-notice"
 import { useConnection } from "@/lib/app/connection"
 import { fmtDay } from "@/lib/app/today"
-import { growTitle } from "@/lib/app/copy"
+import { growTitle, trainingUnderwayTitle } from "@/lib/app/copy"
 import { buildGrowItems, growHref } from "@/lib/app/readiness"
 import { CapacitySheet } from "@/components/mobile/today/capacity-sheet"
 import { FundingChip, TierChip } from "./grow-chips"
@@ -48,6 +48,11 @@ export function GrowList({ shopId }: { shopId: string }) {
     [shopId, detail, gaps, fundResults, fundedIds, actions.fundingRequests]
   )
 
+  // Funded requirements leave the readiness list (docs/ux-simplification.md §5: never the CWB
+  // readiness message after funding) and show as a small "Training under way" row instead.
+  const open = items.filter((it) => it.funding !== "funded")
+  const underway = items.filter((it) => it.funding === "funded")
+
   const cap = actions.capacity
   const [capOpen, setCapOpen] = React.useState(false)
 
@@ -67,11 +72,11 @@ export function GrowList({ shopId }: { shopId: string }) {
         <UnreachableNotice />
       ) : !routed ? (
         <Notice title={t("ready.notRouted")} body={t("ready.notRoutedBody")} />
-      ) : items.length === 0 ? (
+      ) : open.length === 0 ? (
         <Notice title={t("grow.empty")} body={t("grow.emptyBody")} />
       ) : (
         <ul className="flex flex-col gap-3">
-          {items.map((it) => (
+          {open.map((it) => (
             <li key={it.requirement}>
               <Link
                 href={growHref(shopId, it.requirement)}
@@ -100,6 +105,38 @@ export function GrowList({ shopId }: { shopId: string }) {
           ))}
         </ul>
       )}
+
+      {ready && routed && detail && underway.length ? (
+        <section aria-labelledby="grow-underway" className="flex flex-col gap-2" data-testid="grow-underway">
+          <h3 id="grow-underway" className="text-base font-semibold text-muted-foreground">
+            {t("grow.underway.title")}
+          </h3>
+          <ul className="flex flex-col gap-2">
+            {underway.map((it) => {
+              const pkgId = it.pkg?.id ?? it.training?.package_id ?? null
+              return (
+                <li key={it.requirement}>
+                  <Link
+                    href={`${growHref(shopId, it.requirement)}#seats`}
+                    className="flex min-h-14 items-center gap-3 rounded-xl border border-funded/30 bg-funded-soft/40 px-4 py-2.5 outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 active:bg-muted"
+                  >
+                    <GraduationCap className="size-5 shrink-0 text-funded" aria-hidden />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-base leading-snug font-medium">
+                        {trainingUnderwayTitle(it.requirement, it.pkg?.trainees ?? it.training?.trainees ?? 0)}
+                      </span>
+                      <span className="mt-0.5 block text-sm text-muted-foreground">
+                        {pkgId ? t("grow.underway.paidBy", { pkg: pkgId }) : t("grow.underway.paidByNoPkg")}
+                      </span>
+                    </span>
+                    <ChevronRight className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      ) : null}
 
       {ready && routed ? (
         <button

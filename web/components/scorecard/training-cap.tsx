@@ -23,16 +23,29 @@ export interface TrainingCap {
 }
 
 /** Cap, credit used by funded training, and the share of the cap used. */
-export function trainingCapOf(ledger: Pick<LedgerResponse, "obligation_cad" | "transactions">, extraCredit = 0): TrainingCap {
+export function trainingCapOf(
+  ledger: Pick<LedgerResponse, "obligation_cad" | "transactions">,
+  extraCredit = 0,
+): TrainingCap {
   const cap = (ledger.obligation_cad || 0) * TRAINING_CAP_SHARE;
   const used =
-    ledger.transactions.reduce((s, t) => (t.origin === "training" ? s + (t.credit_cad || 0) : s), 0) + Math.max(0, extraCredit);
+    ledger.transactions.reduce(
+      (s, t) => (t.origin === "training" ? s + (t.credit_cad || 0) : s),
+      0,
+    ) + Math.max(0, extraCredit);
   return { cap, used, share: cap > 0 ? used / cap : 0 };
 }
 
 /** The line itself (text only): "Training credit can count for at most 25% … of that cap." */
-export function trainingCapText(t: TrainingCap, mode: "uses" | "wouldUse" = "uses"): string {
-  const vars = { cap: fmtMoney(t.cap, { compact: true }), used: fmtMoney(t.used, { compact: true }), pct: fmtPct(t.share, 1) };
+export function trainingCapText(
+  t: TrainingCap,
+  mode: "uses" | "wouldUse" = "uses",
+): string {
+  const vars = {
+    cap: fmtMoney(t.cap, { compact: true }),
+    used: fmtMoney(t.used, { compact: true }),
+    pct: fmtPct(t.share, 1),
+  };
   if (t.used <= 0) return c("score.cap.none", vars);
   return c(mode === "wouldUse" ? "score.cap.wouldUse" : "score.cap.line", vars);
 }
@@ -44,6 +57,7 @@ export function TrainingCapNote({
   mode = "uses",
   className,
   rulesLabel,
+  showLabel = true,
 }: {
   ledger: Pick<LedgerResponse, "obligation_cad" | "transactions">;
   /** Credit of a package about to be funded (the /m/prime confirm sheet). */
@@ -51,15 +65,23 @@ export function TrainingCapNote({
   mode?: "uses" | "wouldUse";
   className?: string;
   rulesLabel?: string;
+  /** False when the screen already carries the "Simplified ITB rules for demo" label (keep it once per screen). */
+  showLabel?: boolean;
 }) {
   const t = trainingCapOf(ledger, extraCredit);
   if (t.cap <= 0) return null;
   return (
-    <p className={cn("text-sm leading-snug text-slate-600", className)} data-testid="training-cap">
-      {trainingCapText(t, mode)}{" "}
-      <span className="inline-flex h-5 items-center rounded-full border border-dashed border-slate-400 px-2 align-middle text-xs font-medium whitespace-nowrap text-slate-600">
-        {rulesLabel || RULES_LABEL}
-      </span>
+    <p
+      className={cn("text-sm leading-snug text-slate-600", className)}
+      data-testid="training-cap"
+    >
+      {trainingCapText(t, mode)}
+      {showLabel ? " " : null}
+      {showLabel ? (
+        <span className="inline-flex h-5 items-center rounded-full border border-dashed border-slate-400 px-2 align-middle text-xs font-medium whitespace-nowrap text-slate-600">
+          {rulesLabel || RULES_LABEL}
+        </span>
+      ) : null}
     </p>
   );
 }

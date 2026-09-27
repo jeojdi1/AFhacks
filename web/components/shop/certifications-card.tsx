@@ -9,7 +9,10 @@ import { ce } from "@/lib/ui/copy-e"
 import { certPlain } from "@/lib/ui/plain"
 import { certDisplay } from "@/lib/format"
 import { CertName, CertStatusBadge, certLabel, certStatusMeta, glossNote } from "./badges"
-import type { CertT } from "./types"
+import type { CertT as CertBase } from "./types"
+
+/** A certificate, optionally with where its date comes from (the shop's own declared expiry reads "shop-declared"). */
+type CertT = CertBase & { date_basis?: string | null }
 
 /** The checklist framing: one group per requirement a defence company will ask about. */
 const GROUPS: { key: string; match: (type: string) => boolean }[] = [
@@ -84,7 +87,13 @@ function CertRow({ row }: { row: Row }) {
         const src = <SourceText cert={cert} />
         if (cert.source_url || cert.status !== "unknown") bits.push(<span key="src">{src}</span>)
         if (cert.verified_at) bits.push(<span key="chk">{ce("shop.certs.checked", { date: fmtDate(cert.verified_at) })}</span>)
-        if (cert.expires_at) bits.push(<span key="exp">{ce("shop.certs.expires", { date: fmtDate(cert.expires_at) })}</span>)
+        if (cert.expires_at)
+          bits.push(
+            <span key="exp" data-cert-expiry={cert.date_basis === "shop-declared" ? "shop-declared" : undefined}>
+              {ce("shop.certs.expires", { date: fmtDate(cert.expires_at) })}
+              {cert.date_basis === "shop-declared" ? ` · ${ce("shop.certs.shopDeclared")}` : ""}
+            </span>
+          )
         const plain = certPlain(key === "NADCAP" && cert.type.startsWith("NADCAP:") ? cert.type : key)
         return (
           <li
@@ -127,13 +136,21 @@ export function CertificationsCard({
   certifications,
   shopId,
   neededTypes,
+  offerTypes,
 }: {
   certifications: CertT[]
   shopId: string
-  /** Cert types required by this shop's offers and its one-step (readiness) jobs. */
+  /** Cert types required by this shop's offers and its one-step (readiness) jobs: the rows listed. */
   neededTypes: string[]
+  /**
+   * Cert types required by this shop's current offers only: the counter's "needed for its
+   * offers" (C3-11). A one-step job's certificate is listed but is not needed for an offer.
+   * Without it the counter shows only what is held.
+   */
+  offerTypes?: string[]
 }) {
   const needed = new Set(neededTypes)
+  const forOffers = offerTypes ? new Set(offerTypes) : null
   const rows: Row[] = GROUPS.map((g) => {
     const certs = certifications.filter((cert) => g.match(cert.type))
     const list: CertT[] =
@@ -164,6 +181,13 @@ export function CertificationsCard({
   const others = rows.filter((r) => !r.held && !r.training && !r.needed)
   const held = listed.filter((r) => r.held).length
   const inTraining = listed.filter((r) => r.training).length
+  const offerRows = forOffers ? rows.filter((r) => [...forOffers].some((t) => GROUPS.find((g) => g.key === r.key)?.match(t))) : null
+  const offerHeld = offerRows ? offerRows.filter((r) => r.held).length : 0
+  const offerNote = !offerRows
+    ? null
+    : offerRows.length === 0
+      ? "none needed for its offers"
+      : `${offerHeld} of ${offerRows.length} needed for its offers`
   const synthetic = certifications.some((x) => (x.note ?? "").toLowerCase().includes("illustrative"))
 
   return (
@@ -184,8 +208,8 @@ export function CertificationsCard({
               ))}
             </div>
             <span className="text-sm text-muted-foreground tabular-nums">
-              <span className="text-2xl font-semibold text-foreground">{held}</span>{" "}
-              {c("shop.certs.counter", { held, needed: listed.length }).replace(/^\d+\s*/, "")}
+              <span className="text-2xl font-semibold text-foreground">{held}</span> held
+              {offerNote ? <span data-cert-offer-count> · {offerNote}</span> : null}
               {inTraining ? " " : null}
               {inTraining ? (
                 <span className="font-medium text-amber-800" data-cert-training-count>

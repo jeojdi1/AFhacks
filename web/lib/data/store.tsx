@@ -59,6 +59,12 @@ export interface DemoState {
   // --- extras (beyond the shared interface) ---
   /** true once the provider has detected the mode and restored the flow. */
   ready: boolean
+  /**
+   * Live, and the engine could not be reached at load with no earlier live flow saved in this
+   * browser: the empty flow on screen is not a fact. Views show "Can't reach Muster right now"
+   * instead of their empty-step copy. Cleared as soon as the engine answers (or on demo data).
+   */
+  loadFailed: boolean
   /** Name of the uploaded CSV (fixtures mode ignores its contents). */
   fileName: string | null
   /** Package ids funded so far, in order. */
@@ -350,15 +356,26 @@ async function http<T>(
   return (await res.json()) as T
 }
 
+/** GET /health when the page decides between live and demo data. */
+const PROBE_HEALTH_MS = 4500
+/**
+ * Flow reads (the load probe and the engine watcher): at least as patient as the phone's
+ * actions store (lib/app/api.ts, 5-10 s), so a slow engine never leaves the laptop on an empty
+ * step under a Live pill while the phone, reading the same engine, shows the real data.
+ */
+const FLOW_READ_MS = 6000
+
 async function probeLive(): Promise<boolean> {
   try {
-    const h = await http<{ status?: string }>("GET", "/health", { timeoutMs: 1500 })
+    // Generous on purpose: a slow engine (or Wi-Fi) must not drop an "auto" page to demo data
+    // for the whole session. A dead host refuses the connection at once, so this rarely waits.
+    const h = await http<{ status?: string }>("GET", "/health", { timeoutMs: PROBE_HEALTH_MS })
     if (h?.status !== "ok") return false
   } catch {
     return false
   }
   try {
-    await http("GET", `/programs/${PID}`, { timeoutMs: 2500 })
+    await http("GET", `/programs/${PID}`, { timeoutMs: FLOW_READ_MS })
     return true
   } catch (e) {
     // 4xx (e.g. 404 before seeding) still means the engine is implemented.
@@ -1077,6 +1094,7 @@ function initialState(): DemoState {
     demoShopId: IDS.demoShopId,
     offerStatus: {},
     ready: false,
+    loadFailed: false,
     fileName: null,
     apiUrl: API_URL,
   }
@@ -1164,6 +1182,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
           ...flow,
           busy: null,
           error: null,
+          loadFailed: false,
           offerStatus: flow.stage === "empty" ? {} : cur.offerStatus,
           fileName: flow.stage === "empty" ? null : cur.fileName,
         }))
@@ -1208,7 +1227,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
       const fileName = p?.stage && p.stage !== "empty" ? p.fileName : null
       if (mode === "fixtures") {
         const flow = replayFixtures(p)
-        patch({ ...flow, offerStatus: p?.offerStatus ?? {}, fileName, mode, apiUrl: apiBase, ready: true, busy: null, error: null })
+        patch({ ...flow, offerStatus: p?.offerStatus ?? {}, fileName, mode, apiUrl: apiBase, ready: true, loadFailed: false, busy: null, error: null })
         return
       }
       // Live: offer answers always come from the engine (the actions store mirrors them in),
@@ -1219,7 +1238,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
         const flow = await loadLive()
         if (cancelled) return
         offlineLoadRef.current = false
-        patch({ ...flow, offerStatus: {}, fileName, mode, apiUrl: apiBase, ready: true, busy: null, error: null })
+        patch({ ...flow, offerStatus: {}, fileName, mode, apiUrl: apiBase, ready: true, loadFailed: false, busy: null, error: null })
       } catch {
         if (cancelled) return
         const cached = readLiveFlow()
@@ -1231,6 +1250,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
           mode: "live",
           apiUrl: apiBase,
           ready: true,
+          // Nothing saved from an earlier live load: the empty flow is a placeholder, not a fact.
+          loadFailed: !cached,
           busy: null,
           error: null,
         })
@@ -1319,13 +1340,13 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
       try {
         const since = seqRef.current
         const [prog, ev, acts] = await Promise.all([
-          http<ProgramResponse>("GET", `/programs/${PID}`, { timeoutMs: 3000 }),
+          http<ProgramResponse>("GET", `/programs/${PID}`, { timeoutMs: FLOW_READ_MS }),
           http<{ last_seq?: number; has_more?: boolean; events?: { kind?: string }[] }>(
             "GET",
             `/programs/${PID}/events?since=${since ?? 0}&limit=100`,
-            { timeoutMs: 3000 }
+            { timeoutMs: FLOW_READ_MS }
           ).catch(() => null),
-          http<{ routed_at?: string | null }>("GET", `/programs/${PID}/actions`, { timeoutMs: 3000 }).catch(() => null),
+          http<{ routed_at?: string | null }>("GET", `/programs/${PID}/actions`, { timeoutMs: FLOW_READ_MS }).catch(() => null),
         ])
         if (stopped || gen !== genRef.current) return
         const lastSeq = typeof ev?.last_seq === "number" ? ev.last_seq : null
@@ -1360,6 +1381,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
           patch((c2) => ({
             ...flow,
             error: null,
+            loadFailed: false,
             offerStatus: {},
             fileName: flow.stage === "empty" ? null : c2.fileName,
           }))
@@ -1416,7 +1438,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
         fx("POST", "/demo/reset")
         program = program ?? fxProgram()
       }
-      patch({ ...emptyFlow(program), offerStatus: {}, fileName: null, busy: null, error: null })
+      patch({ ...emptyFlow(program), offerStatus: {}, fileName: null, loadFailed: false, busy: null, error: null })
       toast.success("Demo reset", { description: "Shops and program seeded; no parts uploaded." })
     } catch (e) {
       handleError(e, "Reset failed")
@@ -1712,6 +1734,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
           mode: m,
           offerStatus: flow.stage === "empty" ? {} : cur.offerStatus,
           fileName: flow.stage === "empty" ? null : cur.fileName,
+          loadFailed: false,
           error: null,
           busy: null,
         })
@@ -1732,6 +1755,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
             // Offer answers come from the engine (mirrored by the actions store), not demo data.
             offerStatus: {},
             fileName: flow.stage === "empty" ? null : now.fileName,
+            loadFailed: false,
             error: null,
             busy: null,
           }))

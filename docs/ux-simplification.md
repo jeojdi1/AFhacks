@@ -133,7 +133,7 @@ Status: buildable spec, 2026-09-26 (night before the freeze).
 ### 3.1 Layout (replaces today's nav plus stepper plus context strip)
 
 **Row 1: header (64 px), `web/components/shell/app-header.tsx`**
-- Left: the Muster logo, then the tagline "Defence work for small Canadian shops" (hidden below 1024 px).
+- Left: the Muster logo only (the tagline "Defence work for small Canadian shops" is in the footer).
 - Right, in order:
   - **Story mode** switch (§6)
   - **Shops directory** (`/network`)
@@ -378,7 +378,7 @@ Legend strip in words: "**Solid green line**: job matched · **Dashed purple lin
 **Page H1:** "Fix the welder gap" (was "Gaps & Training"). The subtitle paragraph is replaced by the banner.
 
 **Banner, before funding**
-- **Summary:** "**4 welding jobs ($6.6M) are stuck.** The shops with certified welding are full, and the others don't have the certification. **Training 4 welders at Tallowfield Fabricating unsticks 3 of them.**"
+- **Summary:** "**4 welding jobs ($6.6M) are stuck.** The certified welding shops on Muster are full, and the others don't have the certification. Real shops found in public data can't be sent work until they claim their profile. **Training 4 welders at Tallowfield Fabricating unsticks 3 of them.**"
 - **Look at:** "The training card: what Northgate pays, and what it gets back."
 - **Next:** **↓ Fund the training below** (scrolls; §3.3)
 
@@ -454,7 +454,7 @@ Legend strip in words: "**Solid green line**: job matched · **Dashed purple lin
 **Certifications** (`certifications-card.tsx`)
 - **Title:** "Certificates"
 - **Story mode shows only:** certificates held, plus certificates required by this shop's offers or one-step jobs. The rest collapse into one line: "5 more not held · show". "Unknown" becomes "Not held". The illustrative-date note stays.
-- **Fix the counter** so it is computed from the rows actually listed ("1 of 3 needed in place"), and the lit dot equals the count.
+- **Counter:** "{n} held", plus "· X of Y needed for its offers" (or "· none needed for its offers") counted from the certificates its current offers require, plus "· N in training". The lit dots follow the rows listed.
 - **Hide NAICS** in Story mode. Detail mode shows it as "Industry code".
 
 ### 5.6 `/network` and `/shops/pub-*`, the "Shops directory" (extra)
@@ -672,7 +672,7 @@ The `busy.*` strings map onto the existing `BUSY` values. The store keeps its ow
 | Key | String |
 | --- | --- |
 | `gaps.h1` | Fix the welder gap |
-| `gaps.b` | **{n} welding jobs ({value}) are stuck.** The shops with certified welding are full, and the others don't have the certification. **Training 4 welders at {shop} unsticks {k} of them.** |
+| `gaps.b` | **{n} welding jobs ({value}) are stuck.** The certified welding shops on Muster are full, and the others don't have the certification. Real shops found in public data can't be sent work until they claim their profile. **Training 4 welders at {shop} unsticks {k} of them.** |
 | `gaps.b.look` | The training card: what Northgate pays, and what it gets back. |
 | `gaps.next.fund` | ↓ Fund the training below |
 | `gaps.b.funded` | Northgate funded 4 welder training seats. **{k} stuck jobs ({jobsValue} of work) can go ahead;** {left} is still stuck. |
@@ -719,7 +719,7 @@ The `busy.*` strings map onto the existing `BUSY` values. The store keeps its ow
 | `shop.stat.reach` / `.sub` | One step away / {k} more jobs |
 | `shop.stat.training` / `.sub` | Welders in training / paid by Northgate |
 | `shop.certs.title` | Certificates |
-| `shop.certs.counter` | {held} of {needed} needed in place |
+| `shop.certs.counter` | {n} held · {x} of {y} needed for its offers (or "none needed for its offers") · {k} in training |
 | `shop.certs.more` | {n} more not held · show |
 | `shop.certs.notHeld` | Not held |
 | `shop.empty.title` | Northgate hasn't sent offers yet. |

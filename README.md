@@ -52,13 +52,13 @@ The full ≤ 5:00 video script, with exact clicks and voiceover, is in [docs/dem
 
 | Shop desk (Tallowfield, synthetic) | Find suppliers |
 | --- | --- |
-| ![Tallowfield's shop desk after funding: 3 offers need a reply, next step ISO 9001, 4 welders in training paid by Northgate](docs/screenshots/shop.png) | ![Find suppliers: "CWB welding near London" understood as welding, CWB W47.1, near London (100 km); 13 shops match, real shops labelled public data, unverified, not affiliated](docs/screenshots/find-suppliers.png) |
+| ![Tallowfield's shop desk after funding: 3 offers need a reply, 1 accepted, one step to more work: ISO 9001 → 2 more jobs worth $1.2M, 4 welders in training paid by Northgate](docs/screenshots/shop.png) | ![Find suppliers: "CWB welding near London" understood as welding, CWB W47.1, near London (100 km); 13 shops match, real shops labelled public data, unverified, not affiliated](docs/screenshots/find-suppliers.png) |
 
 | Supplier map | Phone: supplier Today | Phone: defence company |
 | --- | --- | --- |
-| ![Supplier map centred on Tallowfield: its skills, certificate and region, from the capability graph](docs/screenshots/supplier-map.png) | ![Phone, Tallowfield Today: 2 offers waiting for your answer, Get CWB W47.1 → 3 more jobs · $5.1M](docs/screenshots/phone-shop.png) | ![Phone, Northgate: fund welder training, TP-01 funded, $96K → $480K credit](docs/screenshots/phone-prime.png) |
+| ![Supplier map centred on Tallowfield (synthetic): its 3 skills, 1 certificate and its region, from the capability graph](docs/screenshots/supplier-map.png) | ![Phone, Tallowfield Today: 2 offers waiting for your answer, Get CWB W47.1 → 3 more jobs · $5.1M](docs/screenshots/phone-shop.png) | ![Phone, Northgate after funding: Fund welder training with TP-02 still open ($40K → $400K credit, 10x, assumption) and TP-01 funded: $96K training → $480K credit (5x) + 3 jobs unblocked (+$9.1M credit)](docs/screenshots/phone-prime.png) |
 
-Screenshots (re-captured 2026-09-27 by clicking through the demo): production build in fixtures mode ("Demo data"), laptop at 1280×720 and phone at 390×844. Northgate Land Systems is fictional, Tallowfield and every routed shop are synthetic, and real shops appear only as "Public data — unverified — not affiliated". The search screenshot shows the in-memory graph; with Neo4j loaded the badge reads "Powered by Neo4j" and the results are the same (13 shops after funding, checked live).
+Screenshots (re-captured 2026-09-27 by clicking through the whole demo script: load, match, the phone accepts NG-021 and declines NG-022, asks for funding, Fund training, then both sign-ins): production build in fixtures mode ("Demo data"), laptop at 1280×720 and phone at 390×844. The phone Today shot is before funding; the shop desk, search, map and Northgate phone shots are after. Northgate Land Systems is fictional, Tallowfield and every routed shop are synthetic, and real shops appear only as "Public data — unverified — not affiliated". The search screenshot shows the in-memory graph; with Neo4j loaded the badge reads "Powered by Neo4j" and the results are the same (13 shops after funding, checked live).
 
 ## Portals, phone and simulation
 
@@ -80,7 +80,7 @@ make graph-up        # optional: start Neo4j, wait for it, load the graph if sta
 make dev             # dev servers: engine on :8000 (reload) and web on :3000
 make demo-check      # drive the 8-step demo path against the live engine (API_URL=http://localhost:8000)
 make fixtures-check  # verify the same 8 steps against data/fixtures (no engine needed)
-make test            # engine tests (pytest, 416 tests)
+make test            # engine tests (pytest, 419 tests)
 ```
 
 Useful knobs:
@@ -179,7 +179,7 @@ We do not scrape Canada's Business Registries, CADSI GATEWAY or IAQG OASIS. No p
 
 ## Limitations
 
-- **Simplified ledger.** The ITB rules are reduced to a credit formula and four multipliers. **The 25% cap on training credit (model terms §7.5.4.1) is not modelled in the ledger**, nor are the cash-only rule for training credit, the 50% cap on banked credit, Strategic Investment and Canadian Company Boost multipliers, or regional targets.
+- **Simplified ledger.** The ITB rules are reduced to a credit formula and four multipliers. **The 25% cap on training credit (model terms §7.5.4.1) is not modelled in the ledger** (the Fund screen only states the cap and the plan's share of it: $480K is 0.4% of $125M), nor are the cash-only rule for training credit, the 50% cap on banked credit, Strategic Investment and Canadian Company Boost multipliers, or regional targets.
 - **Demo sign-in is not real authentication.** The four accounts are fictional, anyone can pick any role, and there is one shared demo state (single tenant, local SQLite).
 - **Public shops are not onboarded.** The 78 real shops are listed for coverage only: unverified, never routed, and none has claimed a profile. Their certifications are self-declared on their websites; CPCSC is always shop-declared.
 - **ODBus coverage is uneven.** It only includes municipalities that publish business open data: 2,946 manufacturers in Ontario, British Columbia and Alberta, none in other provinces, and none from Waterloo, Cambridge, Woolwich or London.

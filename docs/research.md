@@ -56,6 +56,7 @@ Every claim here was fact-checked against its source on 2026-09-26. Claims that 
   - 38% of would-be entrants plan to hire consultants just to get through procurement.
   - Among defence-heavy firms, 30% report significant labour shortages and 21% are at or near full capacity.
 - BDC's defence FAQ: "We do not expressly match businesses with defence contractors." (V, accessed 2026-09-26) [bdc.ca/defence](https://www.bdc.ca/en/solutions/defence)
+- National Defence contracts over $10K, contracts dated 2021-01-01 to 2026-06-30 (proactive disclosure, Open Government Licence, retrieved 2026-09-26; our de-duplicated count in `data/processed/national/dnd_contracts_summary.json`): **58,965 contracts worth $82.9B to 16,097 vendors**. The top 10 vendors hold 61% of the value; Ontario vendors hold 34% of the value going to vendors in Canada (31% of all value). (V for the source; the counts are ours) [open.canada.ca](https://open.canada.ca/data/en/dataset/d8f85d91-7dec-4fd1-8055-483b77225d8b)
 
 ### Workforce data
 **Evidence for a shortage:**

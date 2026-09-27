@@ -129,7 +129,7 @@ export function ActivityItem({ item, fresh = false }: { item: FeedItem; fresh?: 
               {a.label}
             </a>
           ) : (
-            <Link href={phoneHref(a.href)} className={btn}>
+            <Link href={phoneHref(fromPhone(a.href))} className={btn}>
               {a.label}
             </Link>
           )}
@@ -137,4 +137,11 @@ export function ActivityItem({ item, fresh = false }: { item: FeedItem; fresh?: 
       ) : null}
     </li>
   )
+}
+
+/** Laptop supplier search opened from the phone: `from=m` hides the desk banner and points "back" at /m/prime. */
+function fromPhone(href: string): string {
+  if (!href.startsWith("/prime/suppliers?") || /[?&]from=/.test(href)) return href
+  const hashAt = href.indexOf("#")
+  return hashAt >= 0 ? `${href.slice(0, hashAt)}&from=m${href.slice(hashAt)}` : `${href}&from=m`
 }

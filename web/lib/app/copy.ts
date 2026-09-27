@@ -83,6 +83,16 @@ export function growTitle(req: string, kind?: string | null): string {
   return certGrowTitle(req)
 }
 
+/**
+ * Title for a funded requirement (Grow "Training under way" row, stepper header): never the
+ * "Get …" readiness wording. W47.1: "4 welders in training under CSA W47.1".
+ */
+export function trainingUnderwayTitle(req: string, trainees: number): string {
+  if (req === "CWB_W47.1") return t("copy.training.w471Funded", { count: trainees })
+  const p = certPlain(req)
+  return t("grow.underway.itemGeneric", { count: trainees, req: p.first !== p.label ? lowerFirst(p.first) : requirementName(req) })
+}
+
 /** { welding: 80 } → "+80 welding h/wk" (null when empty). */
 export function capacityUnlockShort(cu: Partial<Record<string, number>> | null | undefined): string | null {
   if (!cu) return null
@@ -142,7 +152,7 @@ extendStrings("en", {
   "ready.primeFundsGeneric": "Northgate can fund this: {cost} → {credit} ITB credit ({mult}x)",
   "ready.primeFundsBody": "{trainees} trainees with {provider}. Costs are demo estimates.",
   "ready.noPackage": "No prime-funded package for this yet",
-  "ready.noPackageBody": "Northgate funds the training packages Muster proposes on its Gaps page. This requirement doesn't have one.",
+  "ready.noPackageBody": "Northgate funds the training packages Muster proposes. This requirement doesn't have one.",
   "ready.alsoEligible": "May also be eligible",
   "ready.stackingUnknown": "Stacking with prime funding: not confirmed",
   "ready.cta": "Ask Northgate to fund this",
@@ -152,7 +162,19 @@ extendStrings("en", {
   "ready.fundedGeneric": "Funded · {count} in training",
   "ready.seeSeat": "See the seats",
   "ready.requestedToast": "Request sent to Northgate",
-  "ready.requestedToastBody": "Northgate sees it on its Gaps page.",
+  "ready.requestedToastBody": "Northgate sees your request right away.",
+  // After funding (docs/ux-simplification.md §5: never the CWB readiness wording once funded).
+  "ready.primeFunded": "Northgate paid {cost} for {count} welder seats ({pkg})",
+  "ready.primeFunded_one": "Northgate paid {cost} for 1 welder seat ({pkg})",
+  "ready.primeFundedGeneric": "Northgate paid {cost} for {count} training seats ({pkg})",
+  "ready.primeFundedGeneric_one": "Northgate paid {cost} for 1 training seat ({pkg})",
+  "ready.primeFundedCredit": "Earns Northgate {credit} ITB credit ({mult}x).",
+  "ready.primeFundedBody": "Training with {provider}. Costs are demo estimates.",
+  "ready.unlockedFunded": "Opened up by this training",
+  "grow.underway.title": "Training under way",
+  "grow.underway.itemGeneric": "{count} in training for {req}",
+  "grow.underway.paidBy": "Paid by Northgate · {pkg}",
+  "grow.underway.paidByNoPkg": "Paid by Northgate",
   "ready.notRouted": "Northgate hasn't sent offers yet",
   "ready.notRoutedBody": "Readiness items appear once Northgate routes its parts list.",
 

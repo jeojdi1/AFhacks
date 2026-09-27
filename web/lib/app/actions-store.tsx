@@ -547,13 +547,15 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }):
         // re-read from since=0, or events written after the reset are lost for good.
         const engineReset = !full && ev.last_seq < lastSeqRef.current
         if (engineReset) ev = await fetchEvents(api, 0)
-        const changed = full || engineReset || ev.events.length > 0
+        // Read the program's actions on every poll (the engine memoizes the view per
+        // revision): a reset + re-route between two polls can bring last_seq back to, or
+        // past, ours, so an empty or ordinary-looking page of events can hide a replaced
+        // log (C3-6). A new routed_at gives it away; then re-read the whole event list.
+        const acts = await appApi.getProgramActions(api)
+        const rerouted = !full && !engineReset && (acts.routed_at ?? null) !== baseRef.current.routedAt
+        if (rerouted) ev = await fetchEvents(api, 0)
+        const changed = full || engineReset || rerouted || ev.events.length > 0
         if (changed) {
-          const acts = await appApi.getProgramActions(api)
-          // A reset + re-route between two polls can push last_seq past ours; a new
-          // routed_at gives it away, so re-read the whole event list then.
-          const rerouted = !full && !engineReset && (acts.routed_at ?? null) !== baseRef.current.routedAt
-          if (rerouted) ev = await fetchEvents(api, 0)
           const events = full || engineReset || rerouted ? appendEvents([], ev.events) : appendEvents(baseRef.current.events, ev.events)
           const data = fromProgramActions(acts, events)
           putBase(data)

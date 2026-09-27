@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react"
 import Link from "next/link"
-import { ArrowRight, CheckCircle2, ChevronDown, Sparkles, Target } from "lucide-react"
+import { ArrowRight, CheckCircle2, ChevronDown, Send, Sparkles, Target } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { fmtMoney } from "@/lib/format"
 import { Term } from "@/components/muster/term"
@@ -80,6 +80,7 @@ export function ReadinessCard({
   routed,
   funded,
   shopId,
+  fundingRequested = [],
 }: {
   items: ReadinessT[]
   jobInfo: Record<string, JobInfo>
@@ -89,6 +90,8 @@ export function ReadinessCard({
   funded: boolean
   /** The shop's own "ask Northgate to fund this" screen; only Northgate funds training on /gaps. */
   shopId?: string
+  /** Requirements the shop asked Northgate to fund ("Ask Northgate to fund this"), not yet funded. */
+  fundingRequested?: string[]
 }) {
   const wp = useWithParams()
   const [open, setOpen] = useState(false)
@@ -141,7 +144,16 @@ export function ReadinessCard({
                 <ChevronDown className={cn("size-4 transition-transform motion-reduce:transition-none", open && "rotate-180")} aria-hidden />
               </button>
             )}
-            {t && t.status !== "funded" && !funded && (
+            {!funded && top.requirement && fundingRequested.includes(top.requirement) ? (
+              <span
+                className="inline-flex min-h-8 items-center gap-1.5 font-semibold text-teal-800"
+                title={c("shop.ready.fundRequested.sub")}
+                data-testid="shop-funding-requested"
+              >
+                <Send className="size-3.5" aria-hidden />
+                {c("shop.ready.fundRequested")}
+              </span>
+            ) : t && t.status !== "funded" && !funded && (
               <Link
                 href={wp(shopId ? growHref(shopId, top.requirement ?? undefined) : "/gaps")}
                 prefetch={shopId ? false : undefined}

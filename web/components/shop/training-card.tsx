@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, GraduationCap, Users } from "lucide-react"
+import { ArrowRight, GraduationCap, Send, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
 import { CATEGORY_LABEL, PROCESS_LABEL } from "@/lib/format"
@@ -38,8 +38,19 @@ function headline(t: TrainingT): string {
   return t.message
 }
 
-/** `shopId`: link "See how Northgate can fund this" to the shop's own ask-to-fund screen, not /gaps. */
-export function TrainingCard({ training, shopId }: { training: TrainingT[]; shopId?: string }) {
+/**
+ * `shopId`: link "See how Northgate can fund this" to the shop's own ask-to-fund screen, not /gaps.
+ * `fundingRequested`: package ids the shop already asked Northgate to fund (shown as awaiting Northgate).
+ */
+export function TrainingCard({
+  training,
+  shopId,
+  fundingRequested = [],
+}: {
+  training: TrainingT[]
+  shopId?: string
+  fundingRequested?: string[]
+}) {
   const wp = useWithParams()
   return (
     <section className="rounded-xl border border-zinc-200 bg-white">
@@ -102,7 +113,16 @@ export function TrainingCard({ training, shopId }: { training: TrainingT[]; shop
                         </div>
                       )}
                     </dl>
-                    {!funded && (
+                    {!funded && fundingRequested.includes(t.package_id) ? (
+                      <p
+                        className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-teal-800"
+                        title={ce("shop.ready.fundRequested.sub")}
+                        data-testid="shop-training-requested"
+                      >
+                        <Send className="size-3.5" aria-hidden />
+                        {ce("shop.ready.fundRequested")}
+                      </p>
+                    ) : !funded && (
                       <Link
                         href={wp(shopId ? growHref(shopId, t.cert_unlock ?? undefined) : "/gaps")}
                         prefetch={shopId ? false : undefined}

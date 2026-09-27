@@ -12,10 +12,19 @@ import { Button } from "@/components/ui/button";
 import type { LedgerResponse } from "@/lib/api/types";
 import { useAppActions } from "@/lib/app/actions-store";
 import { useSession } from "@/lib/auth/session";
+import { packageTitle } from "@/lib/app/copy";
 import { useDemo } from "@/lib/data/store";
+import { useReoffers } from "@/lib/search/reoffers";
 import { c } from "@/lib/ui/copy";
 
-import { EVIDENCE_PACK_FILENAME, evidencePackCsv, type EvidenceShop } from "./evidence-pack";
+import {
+  EVIDENCE_PACK_FILENAME,
+  decisionKeyOf,
+  evidencePackCsv,
+  type EvidenceDecision,
+  type EvidenceInput,
+  type EvidenceShop,
+} from "./evidence-pack";
 
 const SOURCE_LABEL = { synthetic: "Synthetic", public: "Public data (unverified)" } as const;
 
@@ -39,6 +48,7 @@ export function EvidencePackButton({ ledger }: { ledger: LedgerResponse | null }
   const actions = useAppActions();
   const { session, hydrated } = useSession();
   const [busy, setBusy] = useState(false);
+  const reofferMap = useReoffers();
 
   // Defence company or signed out only (after hydration, so it never flashes for other roles).
   if (!hydrated || (session && session.role !== "prime")) return null;
@@ -75,15 +85,27 @@ export function EvidencePackButton({ ledger }: { ledger: LedgerResponse | null }
       });
       const fundedAt: Record<string, string> = {};
       for (const e of actions.events) if (e.kind === "package_funded" && e.package_id) fundedAt[e.package_id] = e.ts;
+      // Each shop's latest answer (engine decisions in live mode, local ones in demo data) and
+      // declined jobs Northgate re-offered elsewhere: the CSV's status column (credit unchanged).
+      const decisions: Record<string, EvidenceDecision> = {};
+      for (const d of Object.values(actions.decisions)) {
+        if (d.decision === "accepted" || d.decision === "declined" || d.decision === "question")
+          decisions[decisionKeyOf(d.shop_id, d.job_id)] = d.decision;
+      }
+      const reoffers: NonNullable<EvidenceInput["reoffers"]> = {};
+      for (const [jobId, r] of reofferMap) reoffers[jobId] = { shop_id: r.shop_id, shop_name: r.shop_name };
       const csv = evidencePackCsv({
         transactions: ledger.transactions,
         assignments: demo.assignments,
         jobs: demo.jobs,
-        packages: demo.gaps?.suggestions ?? [],
+        // The web's plain titles (W47.1 wording rule: "Qualify 4 welders … under CSA W47.1").
+        packages: (demo.gaps?.suggestions ?? []).map((p) => ({ ...p, title: packageTitle(p) })),
         shops,
         routedAt: actions.routedAt,
         fundedAt,
         today: new Date().toISOString().slice(0, 10),
+        decisions,
+        reoffers,
       });
       saveCsv(csv, EVIDENCE_PACK_FILENAME);
       toast.success(c("score.evidence.done"), { description: c("score.evidence.done.body", { n: ledger.transactions.length }) });

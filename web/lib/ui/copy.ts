@@ -209,7 +209,7 @@ const BASE: Record<string, string> = {
   // §8.5 Gaps and Fund
   "gaps.h1": "Fix the welder gap",
   "gaps.b":
-    "**{n} welding jobs ({value}) are stuck.** The shops with certified welding are full, and the others don't have the certification. **Training 4 welders at {shop} unsticks {k} of them.**",
+    "**{n} welding jobs ({value}) are stuck.** The certified welding shops on Muster are full, and the others don't have the certification. Real shops found in public data can't be sent work until they claim their profile. **Training 4 welders at {shop} unsticks {k} of them.**",
   "gaps.b.look": "The training card: what Northgate pays, and what it gets back.",
   "gaps.next.fund": "↓ Fund the training below",
   "gaps.b.funded":
@@ -232,6 +232,7 @@ const BASE: Record<string, string> = {
   "gaps.rules.body":
     "Eligible training type: welder certification for Canadian citizens or permanent residents (ITB model terms §7.5.1). Training credit is capped at 25% of what's owed. ITB is run by the Defence Investment Agency since July 16, 2026.",
   "gaps.list.title": "{n} stuck welding jobs",
+  "gaps.list.publicCwb": "Certified shops in public data haven't joined yet — see them",
   "gaps.list.fixChip": "Unsticks with {id}",
   "gaps.list.why": "Why no shop can take it",
   "gaps.why.process": "{n} don't do this welding process",
@@ -269,6 +270,8 @@ const BASE: Record<string, string> = {
   "shop.ready.cwb.plain":
     "Welding certification from the Canadian Welding Bureau: the company is certified, and each welder passes a test. Northgate can pay for the welder training.",
   "shop.ready.fundLink": "See how Northgate can fund this →",
+  "shop.ready.fundRequested": "Funding requested · awaiting Northgate",
+  "shop.ready.fundRequested.sub": "The shop asked Northgate to pay for the welder training.",
   "shop.inbox.title": "Job offers from Northgate",
   "shop.inbox.sub": "No bidding: each job was offered only to you.",
   "shop.stat.offers": "Offers from Northgate",
@@ -544,6 +547,7 @@ const BASE: Record<string, string> = {
   "shop.b.empty.look": "Job offers from Northgate, and what one step would unlock.",
   "shop.b.eyebrow.other": "A synthetic demo shop · not part of the 5-step story",
   "shop.back": "Shops directory",
+  "shop.back.step4": "Step 4: Fix the welder gap",
   "shop.ready.eyebrow": "What one step would unlock",
   "shop.ready.jobs": "{k} jobs · {value}",
   "shop.ready.showJobs": "Show the {k} jobs",
@@ -578,6 +582,7 @@ const BASE: Record<string, string> = {
   "shop.certs.selfDeclared": "Self-declared",
   "shop.certs.checked": "Checked {date}",
   "shop.certs.expires": "Expires {date}",
+  "shop.certs.shopDeclared": "shop-declared",
   "shop.certs.cpcsc": "Self-assessed · no public registry.",
   "shop.certs.illustrative": "Dates and statuses on synthetic shops are illustrative.",
   "shop.training.title": "Welder training",
@@ -673,11 +678,11 @@ const BASE: Record<string, string> = {
   "shop.inbox.declined.simWith": "Declined by the demo simulator: {reason}",
   // Training-credit cap (C2-15). cap = what's owed × 25%; used = credit from funded training.
   "score.cap.line":
-    "Training credit can count for at most 25% of what Northgate owes: {cap} under the simplified demo rules (ITB model terms §7.5.4.1). This plan uses {used}, {pct} of that cap.",
+    "Training credit can count for at most 25% of what Northgate owes: {cap} (ITB model terms §7.5.4.1). Funded training so far uses {used}, {pct} of that cap.",
   "score.cap.none":
-    "Training credit can count for at most 25% of what Northgate owes: {cap} under the simplified demo rules (ITB model terms §7.5.4.1). No training funded yet (0% of the cap).",
+    "Training credit can count for at most 25% of what Northgate owes: {cap} (ITB model terms §7.5.4.1). No training funded yet (0% of the cap).",
   "score.cap.wouldUse":
-    "Training credit can count for at most 25% of what Northgate owes: {cap} under the simplified demo rules (ITB model terms §7.5.4.1). With this plan, training uses {used}, {pct} of that cap.",
+    "Training credit can count for at most 25% of what Northgate owes: {cap} (ITB model terms §7.5.4.1). With this plan, training uses {used}, {pct} of that cap.",
   // Evidence pack (C2-16)
   "score.evidence": "Download evidence pack (CSV)",
   "score.evidence.busy": "Building the evidence pack…",

@@ -251,7 +251,7 @@ export function MultiplierChart({
         })}
       </ul>
 
-      <TrainingCapNote ledger={ledger} rulesLabel={ledger.rules_label} className="border-t border-slate-100 pt-3" />
+      <TrainingCapNote ledger={ledger} showLabel={false} className="border-t border-slate-100 pt-3" />
 
       <p className="text-xs text-slate-500">{cc("score.chart.foot")}</p>
     </Card>

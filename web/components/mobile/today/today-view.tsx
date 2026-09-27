@@ -41,8 +41,10 @@ extendStrings("en", {
   "today.stat.hours.note": "Weekly hours per job are demo estimates of production load",
   "today.stat.certs": "certificates in place",
   "today.stat.certs_one": "certificate in place",
-  "today.stat.certs.detail": "of {total} needed for your offers",
-  "today.stat.certs.detailTraining": "of {total} needed for your offers · {training} in training",
+  "today.stat.certs.detail": "{held} of {total} needed for your offers",
+  "today.stat.certs.detailTraining": "{held} of {total} needed for your offers · {training} in training",
+  "today.stat.certs.detailNone": "none needed for your offers",
+  "today.stat.certs.detailNoneTraining": "none needed for your offers · {training} in training",
   "today.hero.kicker": "From Northgate, a defence company",
   "today.hero.title": "{count} offers waiting for your answer",
   "today.hero.title_one": "1 offer waiting for your answer",
@@ -69,34 +71,32 @@ const CERT_GROUPS: { key: string; match: (type: string) => boolean }[] = [
 const CERT_RANK: Record<string, number> = { verified: 3, declared: 2, pending_training: 1, unknown: 0 }
 
 /**
- * "N of M needed in place · K in training", counted exactly like the laptop's Certificates card:
- * the listed groups are the ones held, in training, or needed by this shop's offers and its
- * one-step (readiness) jobs; the CWB readiness item is dropped once training is funded.
+ * The certificates stat (C3-11): how many certificate groups the shop holds, and how many of the
+ * groups its current offers require are in place. Only the offers' required_certs count as
+ * "needed for your offers" (a one-step Grow item is not needed for an offer the shop already has).
  */
 function certNeededCount(
   certs: { type: string; status: string }[],
   offerJobIds: string[],
-  readiness: { kind: string; requirement: string; jobs_unlocked?: string[] }[],
-  requiredCerts: (jobId: string) => string[],
-  funded: boolean
-): { held: number; inTraining: number; needed: number } {
-  const shown = funded ? readiness.filter((r) => !(r.kind === "cert" && r.requirement === "CWB_W47.1")) : readiness
-  const needed = new Set<string>([
-    ...offerJobIds.flatMap(requiredCerts),
-    ...shown.flatMap((r) => [...(r.kind === "cert" && r.requirement ? [r.requirement] : []), ...(r.jobs_unlocked ?? []).flatMap(requiredCerts)]),
-  ])
+  requiredCerts: (jobId: string) => string[]
+): { held: number; inTraining: number; needed: number; neededHeld: number } {
+  const needed = new Set<string>(offerJobIds.flatMap(requiredCerts))
   let held = 0
   let inTraining = 0
-  let listed = 0
+  let neededGroups = 0
+  let neededHeld = 0
   for (const g of CERT_GROUPS) {
     const best = certs.filter((c) => g.match(c.type)).reduce<string>((a, c) => ((CERT_RANK[c.status] ?? 0) > (CERT_RANK[a] ?? 0) ? c.status : a), "unknown")
     const d = certDisplay(best)
     const isNeeded = [...needed].some((x) => g.match(x))
     if (d === "held") held += 1
     if (d === "in_training") inTraining += 1
-    if (d !== "missing" || isNeeded) listed += 1
+    if (isNeeded) {
+      neededGroups += 1
+      if (d === "held") neededHeld += 1
+    }
   }
-  return { held, inTraining, needed: listed }
+  return { held, inTraining, needed: neededGroups, neededHeld }
 }
 
 function Skeleton() {
@@ -205,16 +205,15 @@ export function TodayView({ shopId }: { shopId: string }) {
   )
 
   // Same count as the laptop's /shops/[id] Certificates card, so both views agree.
-  const certCount = React.useMemo(() => {
-    const funded = stage === "funded" || (detail?.training ?? []).some((x) => x.status === "funded")
-    return certNeededCount(
-      certs,
-      offers.map((o) => o.job_id),
-      detail?.readiness ?? [],
-      (id) => jobsById[id]?.required_certs ?? [],
-      funded
-    )
-  }, [certs, offers, detail, jobsById, stage])
+  const certCount = React.useMemo(
+    () =>
+      certNeededCount(
+        certs,
+        offers.map((o) => o.job_id),
+        (id) => jobsById[id]?.required_certs ?? []
+      ),
+    [certs, offers, jobsById]
+  )
 
   const routed = stage === "routed" || stage === "funded" || (detail?.offers.length ?? 0) > 0
   const open = routed ? openOffers(bundle) : []
@@ -342,9 +341,13 @@ export function TodayView({ shopId }: { shopId: string }) {
             value={`${certCount.held}`}
             label={t("today.stat.certs", { count: certCount.held })}
             detail={
-              certCount.inTraining > 0
-                ? t("today.stat.certs.detailTraining", { total: certCount.needed, training: certCount.inTraining })
-                : t("today.stat.certs.detail", { total: certCount.needed })
+              certCount.needed === 0
+                ? certCount.inTraining > 0
+                  ? t("today.stat.certs.detailNoneTraining", { training: certCount.inTraining })
+                  : t("today.stat.certs.detailNone")
+                : certCount.inTraining > 0
+                  ? t("today.stat.certs.detailTraining", { held: certCount.neededHeld, total: certCount.needed, training: certCount.inTraining })
+                  : t("today.stat.certs.detail", { held: certCount.neededHeld, total: certCount.needed })
             }
           />
         </section>

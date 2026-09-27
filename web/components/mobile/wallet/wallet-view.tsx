@@ -34,7 +34,7 @@ function hashTarget(): string | null {
 export function WalletView({ shopId }: { shopId: string }) {
   const { stage } = useDemo()
   const bundle = useShopBundle(shopId)
-  const { certs, offers, assignmentsById, jobsById, shop, loading, error, refresh, actions } = bundle
+  const { certs, offers, assignmentsById, jobsById, shop, loading, error, refresh, actions, detail } = bundle
   const routed = stage === "routed" || stage === "funded"
   const [today] = React.useState(() => appToday())
   const [openSet, setOpenSet] = React.useState<Set<string>>(() => new Set())
@@ -100,6 +100,11 @@ export function WalletView({ shopId }: { shopId: string }) {
   }, [])
 
   const declare = actions.declareCertExpiry
+  // Not-held certificates with a Grow (readiness) item: getting them opens more jobs (C3-11).
+  const unlockTypes = React.useMemo(
+    () => new Set((detail?.readiness ?? []).filter((r) => r.kind === "cert").map((r) => r.requirement)),
+    [detail]
+  )
 
   if (error && !certs.length) {
     return (
@@ -191,6 +196,7 @@ export function WalletView({ shopId }: { shopId: string }) {
             {notHeld.map(({ cert, renewal }) => (
               <CertRow
                 key={cert.type}
+                unlocks={unlockTypes.has(cert.type)}
                 cert={cert}
                 renewal={renewal}
                 today={today}

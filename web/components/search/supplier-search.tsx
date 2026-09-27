@@ -11,6 +11,8 @@ import { toast } from "sonner"
 import { ArrowLeft, CircleCheck, Info, LoaderCircle, Lock, Search, SearchX, TriangleAlert, UserRoundX, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PortalPage } from "@/components/portal/portal-page"
+import { useFromPhone } from "@/components/portal/role-banner"
+import { usePhoneHref } from "@/components/mobile/shell/use-phone-href"
 import { useWithParams } from "@/lib/ui/use-with-params"
 import { useDemo } from "@/lib/data/store"
 import { useAppActions } from "@/lib/app/actions-store"
@@ -215,6 +217,11 @@ function useJobContext(jobId: string | null) {
 
 export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
   const wp = useWithParams()
+  const phoneHref = usePhoneHref()
+  // Opened from the phone's "Find another shop" (?from=m): the way back is the phone's desk.
+  const fromPhone = useFromPhone()
+  const deskHref = fromPhone ? phoneHref("/m/prime") : wp("/prime")
+  const deskLabel = fromPhone ? "Northgate's desk (phone)" : "Northgate's desk"
   const [filters, setFilters] = React.useState<Filters>(INITIAL)
   const [text, setText] = React.useState("")
   const [understood, setUnderstood] = React.useState<string[] | null>(null)
@@ -387,7 +394,7 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
         if (!r) return false
         toast.success(`${job.id} offered to ${label}`, {
           description: "It's a new offer for them. Credit stays counted as placed (demo).",
-          action: { label: "Northgate's desk", onClick: () => router.push(wp("/prime")) },
+          action: { label: deskLabel, onClick: () => router.push(deskHref) },
         })
         return true
       },
@@ -410,15 +417,17 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
       eyebrow="Northgate Land Systems (fictional defence company) · supplier development"
       title="Find suppliers"
       badges={data ? <EngineBadge engine={data.engine} origin={origin} /> : null}
-      lede="Search small Canadian shops by what you need made. Demo shops are synthetic; real shops come from public data and are never sent work until they claim their profile."
+      lede="Search small Canadian shops by what you need made."
     >
-      <div className="-mt-3 flex flex-wrap items-center gap-x-5 gap-y-1">
+      <div className="-mt-4 flex flex-wrap items-center gap-x-5 gap-y-1">
         <Link
-          href={wp("/prime")}
+          href={deskHref}
+          prefetch={fromPhone ? false : undefined}
+          data-desk-link
           className="inline-flex w-fit items-center gap-1 text-sm font-medium text-slate-700 underline-offset-4 hover:underline"
         >
           <ArrowLeft className="size-4" aria-hidden />
-          Northgate&apos;s desk
+          {deskLabel}
         </Link>
         <Link
           href={wp("/graph")}
@@ -462,8 +471,8 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
                     Offered to {shortShopName(sentToCurrent.shop_name) || sentToCurrent.shop_id}. It&apos;s a new offer for
                     them; credit stays counted as placed (demo).
                   </span>
-                  <Link href={wp("/prime")} className="font-medium underline underline-offset-4">
-                    Back to Northgate&apos;s desk
+                  <Link href={deskHref} prefetch={fromPhone ? false : undefined} className="font-medium underline underline-offset-4">
+                    Back to {deskLabel}
                   </Link>
                 </p>
               ) : ctx.declinedName ? (
@@ -493,7 +502,7 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
         </section>
       ) : null}
 
-      <section aria-labelledby="need-label" className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:p-5">
+      <section aria-labelledby="need-label" className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
         <form onSubmit={onSubmit} className="flex flex-col gap-2" role="search">
           <label id="need-label" htmlFor="need" className="text-lg font-semibold tracking-tight">
             What do you need made?
@@ -706,14 +715,6 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
             ) : null}
           </div>
 
-          <p className="flex items-start gap-2 rounded-lg border border-public/25 bg-public-soft px-3 py-2 text-sm text-slate-800">
-            <Info className="mt-0.5 size-4 shrink-0 text-public" aria-hidden />
-            <span>
-              Real shops were discovered in public data (Statistics Canada, company websites). They aren&apos;t sent
-              work until they claim their profile. Only synthetic demo shops receive Northgate&apos;s demo offers.
-            </span>
-          </p>
-
           {error ? (
             <p role="alert" className="rounded-lg border border-blocked/30 bg-blocked-soft px-3 py-2 text-sm text-slate-800">
               {error}
@@ -774,6 +775,14 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
                 ))
               : null}
           </div>
+
+          <p data-real-shops-note className="flex items-start gap-2 rounded-lg border border-public/25 bg-public-soft px-3 py-2 text-sm text-slate-800">
+            <Info className="mt-0.5 size-4 shrink-0 text-public" aria-hidden />
+            <span>
+              Real shops were discovered in public data (Statistics Canada, company websites). They aren&apos;t sent
+              work until they claim their profile. Only synthetic demo shops receive Northgate&apos;s demo offers.
+            </span>
+          </p>
 
           <SearchExplainer />
         </section>

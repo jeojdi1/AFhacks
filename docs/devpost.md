@@ -41,7 +41,7 @@ Muster is **two-sided**. Primes pay; shops use it free.
 - **Data:** Statistics Canada's Open Database of Businesses (2,946 manufacturers, NAICS 331–336), National Defence proactive-disclosure contracts (58,965 contracts), CanadaBuys open tenders and Job Bank outlooks, all under the Open Government Licence; ITB obligation totals from ISED's web pages (Government of Canada website terms); 78 real shops from public company websites (facts only, unverified, not affiliated, never routed). Entity linking matches shops, ODBus sites and DND vendors by name and location. The routing demo itself runs on 30 labelled synthetic shops.
 - **Phone app:** a mobile-first `/m` route set (four-role picker; shop Today, Offers, Certs, Grow; defence company; college; trainee seat card) on the same engine, reached over Wi-Fi through a same-origin `/engine` proxy, so an accept on the phone shows up on the prime's laptop in seconds.
 - **Rules:** simplified ITB rules (100% obligation, CCV, multipliers, SMB target, training categories) live in versioned JSON with a source for each value. Training costs are labelled assumption.
-- **Quality gates:** 416 pytest tests for the engine (including "a controlled job is never eligible for a non-CGP shop" and Neo4j-vs-memory search parity), and a `demo_check.py` that walks all 8 demo steps against the live API or the fixtures.
+- **Quality gates:** 419 pytest tests for the engine (including "a controlled job is never eligible for a non-CGP shop" and Neo4j-vs-memory search parity), and a `demo_check.py` that walks all 8 demo steps against the live API or the fixtures.
 
 ## Challenges we ran into
 

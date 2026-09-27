@@ -1,8 +1,11 @@
+"use client"
+
 import type * as React from "react"
 import { Eye } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { c } from "@/lib/ui/copy"
 import { STEPS } from "@/lib/ui/steps"
+import { useStoryChrome } from "@/components/shell/chrome-gate"
 
 /**
  * The card directly under the story bar on every story page (docs/ux-simplification.md §5.0).
@@ -34,6 +37,9 @@ export function StoryBanner({
   eyebrow?: React.ReactNode
   className?: string
 }) {
+  // Northgate's numbered steps are the prime's story: hidden for a shop, college or trainee.
+  const storyChrome = useStoryChrome()
+  if (step !== null && !storyChrome) return null
   const t = tone ?? (step === 5 ? "shop" : step === null ? "extra" : "prime")
   const label = step ? STEPS[step - 1]?.label : null
   const eyebrowText = eyebrow ?? (step && label ? c("banner.step", { n: step, label }) : c("banner.extra"))

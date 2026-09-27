@@ -6,7 +6,7 @@ import { useDemo } from "@/lib/data/store"
 import { fmtMoney } from "@/lib/format"
 import { useShopBundle } from "@/lib/app/shop-bundle"
 import { extendStrings, t } from "@/lib/app/strings"
-import { capacityUnlockShort, growTitle, requirementName, requirementShort } from "@/lib/app/copy"
+import { capacityUnlockShort, growTitle, requirementName, requirementShort, trainingUnderwayTitle } from "@/lib/app/copy"
 import { growItemFor, packageFor, requirementDef, seatDemo, seatStages, type GrowItem, type ReadinessStepDef } from "@/lib/app/readiness"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
 import { FlagChip, FundingChip, SourceLink, TierChip } from "./grow-chips"
@@ -129,6 +129,8 @@ export function ReadinessStepper({ shopId, requirement }: { shopId: string; requ
   const def = React.useMemo(() => requirementDef(requirement, item?.kind), [requirement, item?.kind])
   const pkg = item?.pkg ?? packageFor(gaps, shopId, requirement)
   const capText = capacityUnlockShort(pkg?.capacity_unlock ?? item?.training?.capacity_unlock ?? null)
+  // Funded: no "Get …" readiness wording and no "can fund" offer (docs/ux-simplification.md §5).
+  const funded = item?.funding === "funded"
 
   if (!ready || (bundle.loading && !detail)) {
     return (
@@ -148,7 +150,9 @@ export function ReadinessStepper({ shopId, requirement }: { shopId: string; requ
           {item?.funding === "requested" ? <FundingChip item={item} /> : null}
         </div>
         <h2 className="mt-2 text-xl leading-snug font-semibold tracking-tight">
-          {growTitle(requirement, item?.kind ?? guessKind(requirement, bundle.shop?.processes))}
+          {funded && item
+            ? trainingUnderwayTitle(requirement, item.pkg?.trainees ?? item.training?.trainees ?? 0)
+            : growTitle(requirement, item?.kind ?? guessKind(requirement, bundle.shop?.processes))}
         </h2>
         {def ? (
           <p className="mt-0.5 text-sm font-medium text-muted-foreground">{def.title}</p>
@@ -158,7 +162,9 @@ export function ReadinessStepper({ shopId, requirement }: { shopId: string; requ
 
         {item && item.jobs.length ? (
           <div className="mt-3">
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{t("ready.unlocks")}</p>
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              {t(funded ? "ready.unlockedFunded" : "ready.unlocks")}
+            </p>
             <p className="mt-1 text-base leading-relaxed">
               <span className="font-mono text-[15px]">{item.jobs.join(" · ")}</span>
               <span className="text-muted-foreground"> · </span>
@@ -213,7 +219,7 @@ export function ReadinessStepper({ shopId, requirement }: { shopId: string; requ
       )}
 
       {/* Who pays */}
-      {routed && (item || pkg) ? <WhoPays pkg={pkg} requirement={requirement} /> : null}
+      {routed && (item || pkg) ? <WhoPays pkg={pkg} requirement={requirement} funded={funded} /> : null}
 
       {routed && item ? <FundingBar item={item} actions={actions} /> : null}
     </div>

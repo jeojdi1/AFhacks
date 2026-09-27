@@ -5,6 +5,7 @@ import { Check, Clock, Inbox, MessageCircleQuestion, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { fmtMoney } from "@/lib/format"
+import { fmtMoney2 } from "@/components/muster/credit-equation"
 import { ce } from "@/lib/ui/copy-e"
 import { certPlain } from "@/lib/ui/plain"
 import { MultiplierPill, NewBadge, TermText } from "./badges"
@@ -20,6 +21,15 @@ import type { CertT, OfferT } from "./types"
 function plainReason(r: string): string {
   if (/^SME\b/.test(r)) return ce("shop.reason.sme")
   const lc = (t: string) => t.charAt(0).toLowerCase() + t.slice(1)
+  // "Welding + Painting + CWB W47.1" → "Welding, painting · needs welding certification (CWB W47.1)"
+  const parts = r.split(" + ")
+  const last = parts[parts.length - 1]
+  const certType = parts.length > 1 ? CERT_IN_REASON.find(([re]) => re.test(last))?.[1] : undefined
+  if (certType) {
+    const procs = parts.slice(0, -1).map((p, i) => (i === 0 ? p : lc(p))).join(", ")
+    return `${procs} · needs ${lc(certPlain(certType).first)}`
+  }
+  if (parts.length > 1 && !/^(Does not|Missing)\b/.test(r)) return parts.map((p, i) => (i === 0 ? p : lc(p))).join(", ")
   return r
     .replace(/\bCWB W47\.1\b/g, lc(certPlain("CWB_W47.1").first))
     .replace(/^CGP-registered\b/, certPlain("CGP").first)
@@ -156,7 +166,7 @@ export function OfferInbox({
                         reasonInTraining(r, certStatus) ? (
                           <li key={r} className="flex items-center gap-1.5" data-reason-training>
                             <Clock className="size-3.5 text-amber-700" aria-hidden />
-                            {plainReason(r)} (welders in training)
+                            {plainReason(r)} — welders in training
                           </li>
                         ) : (
                           <li key={r} className="flex items-center gap-1.5">
@@ -179,7 +189,7 @@ export function OfferInbox({
                       className="flex flex-wrap items-center justify-end gap-1.5 text-sm text-zinc-600"
                       title={`${fmtMoney(o.credit_cad)} credit toward what Northgate owes`}
                     >
-                      {ce("shop.inbox.earns", { credit: fmtMoney(o.credit_cad, { compact: true }) })}
+                      {ce("shop.inbox.earns", { credit: fmtMoney2(o.credit_cad) })}
                       <MultiplierPill multiplier={o.multiplier} />
                     </div>
                   </div>

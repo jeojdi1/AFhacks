@@ -8,7 +8,7 @@ Owner: Lane B (shared). Source of truth for field names. Any change is a `CONTRA
 - **Money** is CAD dollars as numbers, rounded to cents.
 - **Every `*_pct` field is a fraction in [0, 1]** (`0.15` = 15%). The web formats it.
 - Every credit number is computed as `value_cad × ccv_pct × multiplier` (CLAUDE.md §3.5).
-- **Examples** in §3, §6, §7 and §8 come from real calls to the engine (`MUSTER_DB` on a scratch file, reset → upload → route → fund TP-01, and seed → tick → shop actions → fund; re-checked against a live engine with Neo4j loaded on 2026-09-27); timestamps, `seq`, `elapsed_ms` and lists are trimmed. The consistent, checked numbers live in `/data/fixtures`.
+- **Examples** in §3, §6, §7 and §8 come from real calls to the engine (`MUSTER_DB` on a scratch file, reset → upload → route → fund TP-01, and seed → tick → shop actions → fund; re-checked against a live engine with Neo4j loaded on 2026-09-27: all 29 routes called, the §6 / §7 / §8 examples compared field by field); timestamps, `seq`, `elapsed_ms` and lists are trimmed. The consistent, checked numbers live in `/data/fixtures`.
 
 ### Endpoint index
 
@@ -587,11 +587,14 @@ The same lists across every shop, for the prime feed and the Gaps "Shop requeste
 ### `POST /programs/{program_id}/jobs/{job_id}/reoffer`
 Demo re-offer: Northgate sends a job a shop **declined** to another qualified synthetic shop (the supplier card's "Offer NG-005 to …"). Body `{ "shop_id": "syn-001", "idempotency_key"?: "…" }`. The only record is a `reoffered` event: **assignments, credit, the ledger and the obligation % never change** (the credit stays counted as placed). The new shop then sees the job in `GET /shops/{id}` `offers`, `GET /search/jobs` (`status: "offered_to_you"`, `reoffered_from`) and its `actions.reoffers`, and can accept, decline or ask a question through the §6 decision endpoint; the shop that declined gets 409 `… re-offered …` if it tries to answer again. A new route, an upload or a reset clears every re-offer. The simulator never plays a scripted answer on a re-offered job.
 ```json
-{ "reoffer": { "job_id": "NG-005", "shop_id": "syn-001", "shop_name": "Tessellate Precision Machining Inc.",
-               "from_shop_id": "syn-002", "from_shop_name": "…", "status": "offered",
-               "value_cad": 0.0, "credit_cad": 0.0, "at": "2026-09-27T…Z", "seq": 12 },
-  "event": { "kind": "reoffered", "shop_id": "syn-001", "job_id": "NG-005",
-             "payload": { "from_shop_id": "syn-002", "from_shop_name": "…", "demo": true }, "…": "…" } }
+// POST /programs/northgate/jobs/NG-022/reoffer  {"shop_id": "syn-026"}  (after syn-012 declined NG-022)
+{ "reoffer": { "job_id": "NG-022", "shop_id": "syn-026", "shop_name": "Keelbar Heavy Fabrication Ltd.",
+               "from_shop_id": "syn-012", "from_shop_name": "Tallowfield Fabricating Ltd.", "status": "offered",
+               "value_cad": 777600.0, "credit_cad": 1415232.0, "at": "2026-09-27T10:31:47Z", "seq": 19 },
+  "event": { "seq": 19, "kind": "reoffered", "shop_id": "syn-026", "job_id": "NG-022",
+             "value_cad": 777600.0, "credit_cad": 1415232.0,
+             "message": "Northgate offered NG-022 to Keelbar Heavy Fabrication Ltd. after Tallowfield Fabricating Ltd. declined it (credit stays counted as placed, demo)",
+             "payload": { "from_shop_id": "syn-012", "from_shop_name": "Tallowfield Fabricating Ltd.", "demo": true }, "…": "…" } }
 ```
 (`value_cad` / `credit_cad` are the assignment's.) Errors: 400 `shop_id is required`; 400 when the shop is not synthetic; 404 unknown program, job not placed, or unknown shop; 409 `Job '…' is not declined (… has it: offered)`; 409 `… already declined …` (the holder or any shop that declined it); 409 `… does not pass …'s filters (processes, certificates, size or distance)`; 400 before routing.
 

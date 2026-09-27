@@ -71,7 +71,7 @@ The credit is worth far more than our fee, and a stronger Value Proposition, gen
 No. Only the prime's cash in the §7.5.1 categories counts, training credit is capped at 25% of the obligation (§7.5.4.1) [3], and the Defence Investment Agency decides. We produce the evidence.
 
 **Q: What happens Monday?**
-We incorporate and request a concept review from the DIA's ITB team. CME Defence and Waterloo EDC introduce us to shops. That means 15 shop interviews in 30 days and one prime pilot LOI in 90.
+We incorporate, request a concept review from the DIA's ITB team, and ask CME Defence and Waterloo EDC for shop introductions. Goal: 15 shop interviews in 30 days and one prime pilot LOI in 90.
 
 **Q: Why would a shop trust a platform the prime pays for?** *(draft)*
 It's free for shops, they see exactly why they were or weren't matched, and they can decline any offer from their phone, with a reason. The prime's credit depends on the shop doing the work, so the prime needs the shop to succeed.
@@ -88,7 +88,7 @@ Job Bank rates the general welder outlook in Ontario "very limited" [17]. The ga
 No one in the middle. The prime pays the college or apprenticeship sponsor directly, the DIA decides eligibility, and Muster keeps the per-job audit trail.
 
 **Q: Your data only covers a few cities. How do you get national coverage?**
-Our graph already holds 2,946 StatCan manufacturers and 1,099 National Defence vendors from 58,965 contracts [7][21], plus 78 local shops from company sites (public, unverified, not affiliated). Next, shops claim their profiles, and CME Defence and Waterloo EDC bring members in.
+Our graph already holds 2,946 StatCan manufacturers and 1,099 National Defence vendors from 58,965 contracts [7][21], plus 78 local shops from company sites (public, unverified, not affiliated). Next, shops claim their profiles, and we ask CME Defence and Waterloo EDC to introduce members.
 
 **Q: Is any of this real data?**
 The routing demo is fictional and synthetic by design. Search and the supplier map use real open data: StatCan ODBus, National Defence contracts, CanadaBuys tenders, Job Bank [7][21][22]. Each real company is labelled unverified, not affiliated, never sent work.

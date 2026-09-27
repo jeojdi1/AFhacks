@@ -20,6 +20,7 @@ import { sc } from "./story-copy";
 import { useArmed, useCountUp } from "./motion";
 import { useDemo } from "@/lib/data/store";
 import { TrainingCapNote } from "@/components/scorecard/training-cap";
+import { fmtMoney2 } from "@/components/muster/credit-equation";
 
 /** Timeline (ms after the panel is on screen). */
 export const MOMENT = {
@@ -86,7 +87,7 @@ function MiniFlip({ a, armed, animate, delayMs }: { a: Assignment; armed: boolea
             <div className="flex items-center gap-2">
               <span className="font-mono text-[13px] font-semibold text-emerald-900">{a.job_id}</span>
               <span className="text-[13px] font-semibold text-emerald-700 tabular-nums" title={fmtMoney(a.credit_cad)}>
-                +{fmtMoney(a.credit_cad, { compact: true })} credit
+                +{fmtMoney2(a.credit_cad)} credit
               </span>
             </div>
             <div className="truncate text-sm text-zinc-800">{desc}</div>
@@ -205,7 +206,7 @@ export function FundMoment({
                 transactions: [result.training_txn],
               }
         }
-        rulesLabel={ledger?.rules_label}
+        showLabel={false}
         className="mt-1.5 text-[13px] text-zinc-600"
       />
 

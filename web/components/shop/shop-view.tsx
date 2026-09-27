@@ -27,11 +27,13 @@ import { isDemoShopPath } from "@/lib/ui/steps"
 import { useStoryMode } from "@/lib/ui/story-mode"
 import { useWithParams } from "@/lib/ui/use-with-params"
 import { useSession } from "@/lib/auth/session"
+import { useStoryChrome } from "@/components/shell/chrome-gate"
 import { cn } from "@/lib/utils"
 import { CapabilitiesCard } from "./capabilities-card"
 import { CertificationsCard } from "./certifications-card"
 import { OfferInbox, type InboxDecision } from "./offer-inbox"
 import { decisionIsSimulated } from "@/lib/app/sim-flag"
+import { withCertDates } from "@/lib/app/shop-bundle"
 import { ReadinessCard } from "./readiness-card"
 import { ShopHeader } from "./shop-header"
 import { TrainingCard } from "./training-card"
@@ -216,6 +218,20 @@ function RoutableShopView({ id }: { id: string }) {
   }, [jobs, blocked])
 
   const back = useSuppliersBack(isDemoShopPath(`/shops/${id}`, demoShopId))
+  const storyChrome = useStoryChrome()
+
+  // The shop's own actions (phone app §2.5/§2.8), as the shop desk shows them: a declared expiry
+  // overrides the date ("shop-declared"), and an open funding request replaces the fund link.
+  const shownCerts = useMemo(
+    () => (data ? withCertDates(data.certifications, id, shopActions.declaredCerts, data.shop.source) : []),
+    [data, id, shopActions.declaredCerts]
+  )
+  const openRequests = useMemo(
+    () => Object.values(shopActions.fundingRequests).filter((r) => r.status !== "funded"),
+    [shopActions.fundingRequests]
+  )
+  const fundingRequested = useMemo(() => openRequests.map((r) => r.requirement), [openRequests])
+  const fundingRequestedPkgs = useMemo(() => openRequests.map((r) => r.package_id), [openRequests])
 
   // /shop's "All certificates →" links to #certificates: scroll there once the card has rendered.
   const hasData = !!result?.data
@@ -371,20 +387,34 @@ function RoutableShopView({ id }: { id: string }) {
 
   return (
     <div className="space-y-6" data-shop-kind="onboarded">
-      <StoryBanner
-        step={isDemoShop ? 5 : null}
-        tone="shop"
-        eyebrow={isDemoShop ? undefined : ce("shop.b.eyebrow.other")}
-        summary={<Rich text={summary} />}
-        lookAt={lookAt}
-        next={back ? <BackToSuppliers fromSuppliers={back.fromSuppliers} /> : <AutoNextStep />}
-        className="mb-0"
+      {/* The STEP 5 OF 5 banner is Northgate's story: same gate as the story bar (chrome-gate.tsx). */}
+      {storyChrome ? (
+        <StoryBanner
+          step={isDemoShop ? 5 : null}
+          tone="shop"
+          eyebrow={isDemoShop ? undefined : ce("shop.b.eyebrow.other")}
+          summary={<Rich text={summary} />}
+          lookAt={lookAt}
+          next={back ? <BackToSuppliers fromSuppliers={back.fromSuppliers} /> : <AutoNextStep />}
+          className="mb-0"
+        />
+      ) : null}
+
+      <ShopHeader
+        shop={shop}
+        back={storyChrome && isDemoShop && !back ? { href: "/gaps", label: ce("shop.back.step4") } : undefined}
       />
 
-      <ShopHeader shop={shop} />
-
       {routed ? (
-        <ReadinessCard items={readiness} jobInfo={jobInfo} training={training} routed={routed} funded={funded} shopId={shop.id} />
+        <ReadinessCard
+          items={readiness}
+          jobInfo={jobInfo}
+          training={training}
+          routed={routed}
+          funded={funded}
+          shopId={shop.id}
+          fundingRequested={fundingRequested}
+        />
       ) : null}
 
       <div className="grid items-start gap-6 lg:grid-cols-12">
@@ -408,14 +438,19 @@ function RoutableShopView({ id }: { id: string }) {
           )}
         </div>
         <div className="min-w-0 lg:col-span-5">
-          <TrainingCard training={training} shopId={shop.id} />
+          <TrainingCard training={training} shopId={shop.id} fundingRequested={fundingRequestedPkgs} />
         </div>
       </div>
 
       {stats}
 
       <div id="certificates" className="scroll-mt-24">
-        <CertificationsCard certifications={certifications} shopId={shop.id} neededTypes={neededTypes} />
+        <CertificationsCard
+          certifications={shownCerts}
+          shopId={shop.id}
+          neededTypes={neededTypes}
+          offerTypes={[...new Set(offers.flatMap((o) => certsByJob[o.job_id] ?? []))]}
+        />
       </div>
 
       <Details summary={ce("shop.caps.show")} openSummary={ce("shop.caps.hide")}>
@@ -870,40 +905,43 @@ function PublicShopView({ id, dnd }: { id: string; dnd: DndHistory | null }) {
       <div className="grid items-start gap-6 lg:grid-cols-12">
         <div className="min-w-0 lg:col-span-7">
           <Card title={ce("pub.caps.title")} sub={ce("pub.caps.sub")}>
-            <dl className="space-y-5">
-              <div className="space-y-2">
-                <dt className="flex flex-wrap items-center justify-between gap-2 text-sm font-medium text-slate-700">
-                  Processes
-                  {sourceFor("processes") && (
-                    <span className="text-xs font-normal text-muted-foreground">
-                      Source: <SourceLink url={sourceFor("processes")!} />
-                    </span>
-                  )}
-                </dt>
-                <dd>
-                  <Chips items={processes} empty="No processes stated." />
-                </dd>
-              </div>
-              <div className="space-y-2">
-                <dt className="flex flex-wrap items-center justify-between gap-2 text-sm font-medium text-slate-700">
-                  Materials
-                  {sourceFor("materials") && (
-                    <span className="text-xs font-normal text-muted-foreground">
-                      Source: <SourceLink url={sourceFor("materials")!} />
-                    </span>
-                  )}
-                </dt>
-                <dd>
-                  <Chips items={materials} empty="Not stated on the company website." />
-                </dd>
-              </div>
-              <div className="space-y-2">
-                <dt className="text-sm font-medium text-slate-700">Machines</dt>
-                <dd>
-                  <Chips items={machines} empty="Not stated on the company website." />
-                </dd>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-5">
+              <dl className="space-y-5">
+                <div className="space-y-2">
+                  <dt className="flex flex-wrap items-center justify-between gap-2 text-sm font-medium text-slate-700">
+                    Processes
+                    {sourceFor("processes") && (
+                      <span className="text-xs font-normal text-muted-foreground">
+                        Source: <SourceLink url={sourceFor("processes")!} />
+                      </span>
+                    )}
+                  </dt>
+                  <dd>
+                    <Chips items={processes} empty="No processes stated." />
+                  </dd>
+                </div>
+                <div className="space-y-2">
+                  <dt className="flex flex-wrap items-center justify-between gap-2 text-sm font-medium text-slate-700">
+                    Materials
+                    {sourceFor("materials") && (
+                      <span className="text-xs font-normal text-muted-foreground">
+                        Source: <SourceLink url={sourceFor("materials")!} />
+                      </span>
+                    )}
+                  </dt>
+                  <dd>
+                    <Chips items={materials} empty="Not stated on the company website." />
+                  </dd>
+                </div>
+                <div className="space-y-2">
+                  <dt className="text-sm font-medium text-slate-700">Machines</dt>
+                  <dd>
+                    <Chips items={machines} empty="Not stated on the company website." />
+                  </dd>
+                </div>
+              </dl>
+              {/* Size and capacity: their own <dl>, so each box is a direct <div> child (valid dl). */}
+              <dl className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-lg border border-border px-4 py-3">
                   <dt className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Size</dt>
                   <dd className="mt-1 text-sm text-foreground">
@@ -920,8 +958,8 @@ function PublicShopView({ id, dnd }: { id: string; dnd: DndHistory | null }) {
                     <div className="text-xs text-muted-foreground">{ce("pub.capacity.later")}</div>
                   </dd>
                 </div>
-              </div>
-            </dl>
+              </dl>
+            </div>
           </Card>
         </div>
 
