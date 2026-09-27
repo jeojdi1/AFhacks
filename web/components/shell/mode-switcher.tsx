@@ -35,7 +35,8 @@ export function ModeSwitcher() {
         aria-label={`Data source: ${current.title}. Click to switch.`}
       >
         <span className={cn("size-2 rounded-full", ready ? current.dot : "animate-pulse bg-slate-400")} aria-hidden />
-        {ready ? current.title : "Detecting API…"}
+        <span className="hidden sm:inline">{ready ? current.title : "Detecting API…"}</span>
+        <span className="sm:hidden">{ready ? (mode === "live" ? "Live" : "Demo") : "…"}</span>
         <ChevronDown className="size-3.5 text-muted-foreground" aria-hidden />
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 gap-3 p-3">
@@ -46,12 +47,15 @@ export function ModeSwitcher() {
         <div className="flex flex-col gap-1.5">
           {OPTIONS.map((o) => {
             const active = o.mode === mode
+            // Demo mode stays available mid-step so a hung engine never traps the presenter;
+            // switching bumps the store generation, so the in-flight result is discarded.
+            const blocked = !!busy && o.mode !== "fixtures"
             return (
               <button
                 key={o.mode}
                 type="button"
-                disabled={!ready || !!busy}
-                title={busy ? "Wait for the current step to finish" : undefined}
+                disabled={!ready || blocked}
+                title={blocked ? "Wait for the current step to finish" : undefined}
                 onClick={() => {
                   if (!active) setMode(o.mode)
                 }}

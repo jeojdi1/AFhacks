@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles, TriangleAlert } from "lucide-react";
 
 import { StatusBadge } from "@/components/muster/status-badge";
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import type { TagSource } from "@/lib/api/types";
 import { fmtKm, fmtMoney, label, PROCESS_LABEL } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -45,7 +46,7 @@ export function JobsTable({ rows, routed, filter, onFilterChange }: JobsTablePro
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Tabs value={filter} onValueChange={(v) => onFilterChange(v as JobFilter)}>
+        <Tabs value={filter} onValueChange={(v) => onFilterChange(v as JobFilter)} className="max-w-full min-w-0 overflow-x-auto">
           <TabsList className="h-9!">
             {filters.map((f) => (
               <TabsTrigger key={f.id} value={f.id} className="px-3 text-sm" disabled={!routed && (f.id === "assigned" || f.id === "blocked")}>
@@ -115,7 +116,7 @@ function JobRowView({ row: r }: { row: JobRow }) {
         <Tooltip>
           <TooltipTrigger
             render={<span />}
-            className="block max-w-[240px] cursor-default truncate text-slate-800"
+            className="line-clamp-2 block max-w-[300px] cursor-default whitespace-normal text-slate-800"
           >
             {r.description}
           </TooltipTrigger>
@@ -130,6 +131,7 @@ function JobRowView({ row: r }: { row: JobRow }) {
 
       <TableCell className="py-3">
         <ProcessChips tags={r.processTags} />
+        <TagSourceChip source={r.tagSource} warning={r.tagWarning} />
       </TableCell>
 
       <TableCell className="py-3">
@@ -145,7 +147,7 @@ function JobRowView({ row: r }: { row: JobRow }) {
       {a ? (
         <>
           <TableCell className="py-3">
-            <div className="max-w-[220px] truncate font-medium text-slate-900" title={a.shop_name}>
+            <div className="line-clamp-2 max-w-[260px] font-medium whitespace-normal text-slate-900" title={a.shop_name}>
               {a.shop_name}
             </div>
             <div className="mt-1 flex items-center gap-1.5">
@@ -235,6 +237,51 @@ function ProcessChips({ tags }: { tags: string[] }) {
             +{rest}
           </TooltipTrigger>
           <TooltipContent>{tags.slice(2).map((t) => label(PROCESS_LABEL, t)).join(", ")}</TooltipContent>
+        </Tooltip>
+      ) : null}
+    </div>
+  );
+}
+
+const TAG_SOURCE_LABEL: Record<TagSource, { text: string; title: string }> = {
+  llm: { text: "Tagged by Claude", title: "Claude read this line and tagged its processes, material and certs" },
+  cache: {
+    text: "Claude (cached)",
+    title: "Tagged by Claude earlier; the saved result was reused so the demo runs offline",
+  },
+  rules: { text: "Keyword rules", title: "Tagged by the keyword fallback (Claude was not available for this line)" },
+};
+
+function TagSourceChip({ source, warning }: { source: TagSource | null; warning: string | null }) {
+  if (!source && !warning) return null;
+  const info = source ? TAG_SOURCE_LABEL[source] : null;
+  return (
+    <div className="mt-1.5 flex items-center gap-1" data-testid="tag-source">
+      {info ? (
+        <span
+          title={info.title}
+          className={cn(
+            "inline-flex h-5 items-center gap-1 rounded-md px-1.5 text-[11px] font-medium whitespace-nowrap",
+            source === "rules" ? "bg-slate-50 text-slate-600 ring-1 ring-slate-200" : "bg-sky-50 text-sky-800 ring-1 ring-sky-200",
+          )}
+        >
+          {source === "rules" ? null : <Sparkles className="size-3" aria-hidden />}
+          {info.text}
+        </span>
+      ) : null}
+      {warning ? (
+        <Tooltip>
+          <TooltipTrigger
+            render={<span />}
+            tabIndex={0}
+            aria-label={`Needs review: ${warning}`}
+            data-testid="tag-warning"
+            className="inline-flex h-5 cursor-default items-center gap-0.5 rounded-md bg-amber-50 px-1 text-[11px] font-medium text-amber-800 ring-1 ring-amber-300"
+          >
+            <TriangleAlert className="size-3.5 text-amber-600" aria-hidden />
+            Review
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs text-sm">{warning}</TooltipContent>
         </Tooltip>
       ) : null}
     </div>

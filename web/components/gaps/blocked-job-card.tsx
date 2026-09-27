@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { CircleCheck, TriangleAlert, ArrowRight, Clock, Store } from "lucide-react";
 import { cn } from "cn";
 
@@ -68,12 +69,12 @@ function FailingFilters({ filters }: { filters: BlockedJob["failing_filters"] })
               <span
                 className={cn(
                   "text-base leading-none font-semibold tabular-nums",
-                  n > 0 ? "text-amber-800" : "text-zinc-300",
+                  n > 0 ? "text-amber-800" : "text-zinc-500",
                 )}
               >
                 {n}
               </span>
-              <span className={cn("mt-1 text-[11px] leading-none", n > 0 ? "text-zinc-600" : "text-zinc-400")}>
+              <span className={cn("mt-1 text-[11px] leading-none", n > 0 ? "text-zinc-700" : "text-zinc-600")}>
                 {FILTER_LABEL[k]}
               </span>
             </div>
@@ -154,7 +155,7 @@ function BackFace({
   unblockedBy?: string;
 }) {
   return (
-    <div className="flex h-full flex-col gap-3 rounded-xl border border-emerald-300 bg-emerald-50 p-4">
+    <div className="flex flex-col gap-3 rounded-xl border border-emerald-300 bg-emerald-50 p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="font-mono text-[13px] font-medium text-emerald-900">{a.part_no}</div>
@@ -172,7 +173,7 @@ function BackFace({
           {a.shop_city ? <span className="text-emerald-800"> ({a.shop_city})</span> : null}
         </div>
       </div>
-      <div className="mt-auto flex flex-wrap items-baseline gap-x-5 gap-y-1 text-sm text-zinc-700">
+      <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-sm text-zinc-700">
         <span title={fmtMoney(a.value_cad)}>
           <span className="text-lg font-semibold text-zinc-900 tabular-nums">
             {fmtMoney(a.value_cad, { compact: true })}
@@ -206,6 +207,23 @@ export function BlockedJobCard({
 }: BlockedJobCardProps) {
   const tags = blocked?.process_tags ?? processTags ?? [];
   const certs = blocked?.required_certs ?? requiredCerts ?? [];
+  const flipped = showResolved;
+  const bothFaces = Boolean(blocked && resolved);
+  // sawFront: this card was shown blocked-side-up with both faces known, so a
+  // flip is (or was) on screen. settled: that flip finished, so the card can
+  // drop the hidden blocked face and shrink to the green content.
+  const [sawFront, setSawFront] = useState(false);
+  const [settled, setSettled] = useState(false);
+  if (bothFaces && !flipped && !sawFront) setSawFront(true);
+  if (!flipped && settled) setSettled(false);
+
+  const flipping = bothFaces && flipped && sawFront && !settled && !reducedMotion;
+  useEffect(() => {
+    if (!flipping) return;
+    // Fallback in case transitionend never fires (tab hidden, interrupted).
+    const id = window.setTimeout(() => setSettled(true), flipDelayMs + 1000);
+    return () => window.clearTimeout(id);
+  }, [flipping, flipDelayMs]);
 
   if (!resolved) {
     return blocked ? <FrontFace b={blocked} /> : null;
@@ -220,13 +238,24 @@ export function BlockedJobCard({
     />
   );
   if (!blocked) return back;
+  // Already resolved when first seen, reduced motion, or the flip finished:
+  // show the green face alone so the card is only as tall as its content.
+  if (flipped && !flipping) {
+    return (
+      <div id={`job-${resolved.job_id}`} data-face="resolved">
+        {back}
+      </div>
+    );
+  }
 
   // Both faces known: a 3D flip card. The faces share one grid cell so the
-  // card is as tall as the taller face.
-  const flipped = showResolved;
+  // card is as tall as the taller face while it turns.
   return (
-    <div style={{ perspective: "1600px" }} id={`job-${resolved.job_id}`}>
+    <div style={{ perspective: "1600px" }} id={`job-${resolved.job_id}`} data-face={flipped ? "flipping" : "blocked"}>
       <div
+        onTransitionEnd={(e) => {
+          if (e.target === e.currentTarget && flipped) setSettled(true);
+        }}
         className={cn(
           "grid transition-transform duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)]",
           reducedMotion && "transition-none",

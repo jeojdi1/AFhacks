@@ -61,6 +61,7 @@ A certification **counts** for the rules if its status is `verified`, `declared`
 }
 ```
 `label` is `"Synthetic"` for synthetic shops and `"Public data — unverified — not affiliated"` for public ones. `max_envelope_mm` and `envelope_mm` are `[x, y, z]`; a job fits if its sorted dimensions are each ≤ the shop's sorted dimensions. `cert_summary` appears in list views.
+*(Additive.)* `"onboarding": "onboarded" | "discovered"` (absent means onboarded). Public shops (`pub-XXX`, from `data/processed/shops_public.json`) are `"discovered"`: `GET /shops` lists them **after** the synthetic shops (also `?source=public`) and `GET /shops/pub-XXX` returns their certifications (self-reported, with `source_url`), `provenance`, `notes` and a `notice`, with `offers`, `readiness` and `training` always `[]`. They are **listed but never routed**: never candidates, assignments, gaps, readiness or ledger entries. They carry no contact data (`contact_role_email` is `null`, many capability fields are `null`), and their `cert_summary` items also carry `source_url`, `verified_at` (date the source was read), `expires_at` and `note`. Fixtures: `shops_public.json` (`GET /shops?source=public`) and `shop_pub-001.json`, from `scripts/build_public_fixtures.py`; `shops.json` stays synthetic-only.
 
 ### Certification
 ```json

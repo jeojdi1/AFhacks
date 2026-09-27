@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Check, LoaderCircle } from "lucide-react"
+import { ArrowLeft, Check, LoaderCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { fmtMoney, fmtPct } from "@/lib/format"
 import { useDemo } from "@/lib/data/store"
@@ -28,7 +28,8 @@ type Step = { key: string; label: string; href: string | null; done: boolean; ma
 export function ProgramContextBar() {
   const pathname = usePathname() ?? "/"
   const { program, stage, demoShopId, offerStatus, busy, ready } = useDemo()
-  const onShop = pathname.startsWith("/shops/")
+  // Discovered public shops (/shops/pub-*) are real companies that are not onboarded: never frame them as a shop receiving offers.
+  const onShop = pathname.startsWith("/shops/") && !pathname.startsWith("/shops/pub-")
   const viewedShop = useViewedShop(onShop ? decodeURIComponent(pathname.split("/")[2] ?? "") : null)
 
   const prime = program?.prime_name ?? "Northgate Land Systems"
@@ -58,32 +59,62 @@ export function ProgramContextBar() {
   ]
   const currentIdx = steps.findIndex((s) => !s.done)
 
-  return (
-    <div className="border-b border-border bg-muted">
-      <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-2.5">
-        {onShop ? (
-          <p className="min-w-0 text-sm text-muted-foreground">
-            <span className="mr-2 rounded border border-slate-800 bg-background px-1.5 py-px text-xs font-semibold tracking-wide text-slate-800 uppercase">
+  const busyChip =
+    busy && ready ? (
+      <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground" role="status" aria-live="polite">
+        <LoaderCircle className="size-4 animate-spin text-brand" aria-hidden />
+        {busy}
+      </span>
+    ) : null
+
+  // The shop side gets its own tint and no prime stepper: it must read as "the other side".
+  if (onShop) {
+    return (
+      <div className="border-b border-teal-200 bg-teal-50" data-side="shop">
+        <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-2.5">
+          <p className="min-w-0 text-sm text-teal-900">
+            <span className="mr-2 rounded bg-teal-700 px-1.5 py-px text-xs font-semibold tracking-wide whitespace-nowrap text-white uppercase">
               Shop side
             </span>
-            Viewing as{" "}
-            <span className="font-semibold text-foreground">{viewedShop?.name ?? "a supplier shop"}</span>
+            Viewing as <span className="font-semibold text-teal-950">{viewedShop?.name ?? "a supplier shop"}</span>
             {viewedShop?.synthetic ? (
-              <span className="ml-1.5 rounded border border-slate-300 bg-background px-1.5 py-px text-xs font-medium text-slate-600">
+              <span className="ml-1.5 rounded border border-teal-300 bg-white px-1.5 py-px text-xs font-medium whitespace-nowrap text-teal-800">
                 Synthetic shop
               </span>
             ) : null}
             <Sep />
-            Offers from <span className="font-medium text-foreground">{prime}</span>
+            shop side (free for shops)
+            <Sep />
+            Offers from <span className="font-medium text-teal-950">{prime}</span>{" "}
+            <span className="text-xs whitespace-nowrap text-teal-800">({primeLabel.toLowerCase()})</span>
           </p>
-        ) : (
+          <div className="flex items-center gap-3">
+            {busyChip}
+            <Link
+              href="/gaps"
+              className="inline-flex h-7 items-center gap-1.5 rounded-full border border-teal-300 bg-white px-3 text-xs font-medium whitespace-nowrap text-teal-900 outline-none hover:bg-teal-100 focus-visible:ring-2 focus-visible:ring-teal-700"
+            >
+              <ArrowLeft className="size-3.5" aria-hidden />
+              Back to prime view
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="border-b border-border bg-muted" data-side="prime">
+      <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-6 py-2.5">
         <p className="min-w-0 text-sm text-muted-foreground">
-          <span className="mr-2 rounded bg-slate-800 px-1.5 py-px text-xs font-semibold tracking-wide text-white uppercase">
+          <span className="mr-2 rounded bg-slate-800 px-1.5 py-px text-xs font-semibold tracking-wide whitespace-nowrap text-white uppercase">
             Prime side
           </span>
           <span className="font-semibold text-foreground">{prime}</span>
           <Sep />
-          <span className="rounded border border-slate-300 bg-background px-1.5 py-px text-xs font-medium text-slate-600">{primeLabel}</span>
+          <span className="rounded border border-slate-300 bg-background px-1.5 py-px text-xs font-medium whitespace-nowrap text-slate-700">
+            {primeLabel}
+          </span>
           <Sep />
           Contract <span className="font-medium text-foreground tabular-nums">{fmtMoney(contract, { compact: true })}</span>
           <Sep />
@@ -94,60 +125,57 @@ export function ProgramContextBar() {
           <Sep />
           SMB target <span className="font-medium text-foreground tabular-nums">{fmtPct(smb, 0)}</span>
         </p>
-        )}
 
-        <div className="flex items-center gap-3">
-          {busy && ready ? (
-            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground" role="status" aria-live="polite">
-              <LoaderCircle className="size-4 animate-spin text-brand" aria-hidden />
-              {busy}
-            </span>
-          ) : null}
-          <ol className="flex items-center gap-1" aria-label="Demo path">
-            {steps.map((s, i) => {
-              const here = s.match(pathname)
-              const isCurrent = i === currentIdx
-              const inner = (
-                <span
-                  className={cn(
-                    "inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium whitespace-nowrap transition-colors",
-                    s.done
-                      ? "border-assigned/30 bg-assigned-soft text-assigned"
-                      : isCurrent
-                        ? "border-brand/40 bg-background text-brand"
-                        : "border-border bg-background text-muted-foreground",
-                    here && "ring-2 ring-foreground/15 ring-offset-1 ring-offset-muted"
-                  )}
-                >
-                  {s.done ? (
-                    <Check className="size-3.5" aria-hidden />
-                  ) : (
-                    <span
-                      className={cn(
-                        "flex size-4 items-center justify-center rounded-full text-[10px] font-semibold tabular-nums",
-                        isCurrent ? "bg-brand text-white" : "bg-slate-200 text-slate-600"
-                      )}
-                    >
-                      {i + 1}
-                    </span>
-                  )}
-                  {s.label}
-                </span>
-              )
-              return (
-                <li key={s.key} className="flex items-center gap-1">
-                  {i > 0 ? <span className={cn("h-px w-3", steps[i - 1].done ? "bg-assigned/50" : "bg-border")} aria-hidden /> : null}
-                  {s.href ? (
-                    <Link href={s.href} aria-current={here ? "step" : undefined} className="rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
-                      {inner}
-                    </Link>
-                  ) : (
-                    inner
-                  )}
-                </li>
-              )
-            })}
-          </ol>
+        <div className="flex max-w-full min-w-0 items-center gap-3">
+          {busyChip}
+          <div className="min-w-0 overflow-x-auto">
+            <ol className="flex items-center gap-1 py-1" aria-label="Demo path">
+              {steps.map((s, i) => {
+                const here = s.match(pathname)
+                const isCurrent = i === currentIdx
+                const inner = (
+                  <span
+                    className={cn(
+                      "inline-flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium whitespace-nowrap transition-colors",
+                      s.done
+                        ? "border-assigned/30 bg-assigned-soft text-assigned"
+                        : isCurrent
+                          ? "border-brand/40 bg-background text-brand"
+                          : "border-border bg-background text-slate-700",
+                      here && "ring-2 ring-foreground/15 ring-offset-1 ring-offset-muted"
+                    )}
+                  >
+                    {s.done ? (
+                      <Check className="size-3.5" aria-hidden />
+                    ) : (
+                      <span
+                        className={cn(
+                          "flex size-4 items-center justify-center rounded-full text-[10px] font-semibold tabular-nums",
+                          isCurrent ? "bg-brand text-white" : "bg-slate-200 text-slate-700"
+                        )}
+                      >
+                        {i + 1}
+                      </span>
+                    )}
+                    {s.done ? <span className="sr-only">completed: </span> : null}
+                    {s.label}
+                  </span>
+                )
+                return (
+                  <li key={s.key} className="flex items-center gap-1">
+                    {i > 0 ? <span className={cn("h-px w-3", steps[i - 1].done ? "bg-assigned/50" : "bg-border")} aria-hidden /> : null}
+                    {s.href ? (
+                      <Link href={s.href} aria-current={here ? "step" : undefined} className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                        {inner}
+                      </Link>
+                    ) : (
+                      inner
+                    )}
+                  </li>
+                )
+              })}
+            </ol>
+          </div>
         </div>
       </div>
     </div>

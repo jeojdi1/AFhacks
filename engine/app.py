@@ -320,9 +320,12 @@ def list_shops(source: str | None = Query(None)) -> Response:
 @app.get("/shops/{shop_id}")
 def get_shop(shop_id: str) -> Response:
     def view(state: State) -> dict:
-        if shop_id not in state.shops:
+        if shop_id not in state.shops and not shop_id.startswith("pub-"):
             raise HTTPException(status_code=404, detail=f"Unknown shop '{shop_id}'")
-        return pipeline.shop_detail(state, shop_id)
+        try:
+            return pipeline.shop_detail(state, shop_id)
+        except KeyError:
+            raise HTTPException(status_code=404, detail=f"Unknown shop '{shop_id}'") from None
 
     return _read(DEFAULT_PROGRAM_ID, ("shop", shop_id), view)
 

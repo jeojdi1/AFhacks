@@ -1,7 +1,9 @@
 "use client";
 
+import { useRef } from "react";
 import { Check, Info } from "lucide-react";
 
+import { StatusBadge } from "@/components/muster/status-badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Popover,
@@ -59,18 +61,52 @@ const triggerClass = cn(
   "h-7 gap-1 px-2 text-[13px]",
 );
 
+/** Height the Why? popover needs below its row (content + offset). */
+const WHY_NEEDS_PX = 500;
+/** Sticky app header plus a little air. */
+const HEADER_PX = 76;
+
+/**
+ * The popover opens below its row so the row's Shop cell stays visible. When the
+ * row sits too low for that (e.g. 1280x720), scroll it up first; the popover
+ * follows and stays on the bottom side.
+ */
+function makeRoomBelow(trigger: HTMLElement | null) {
+  const row = trigger?.closest("tr") ?? trigger;
+  if (!row) return;
+  const r = row.getBoundingClientRect();
+  const short = r.bottom + WHY_NEEDS_PX - window.innerHeight;
+  if (short <= 0) return;
+  const delta = Math.min(short, r.top - HEADER_PX);
+  if (delta > 0) window.scrollBy({ top: delta, behavior: "smooth" });
+}
+
 export function WhyPopover({ assignment }: { assignment: Assignment }) {
   const a = assignment;
+  const triggerRef = useRef<HTMLButtonElement>(null);
   return (
-    <Popover>
-      <PopoverTrigger className={triggerClass} aria-label={`Why ${a.shop_name}?`}>
+    <Popover
+      onOpenChange={(open) => {
+        if (open) makeRoomBelow(triggerRef.current);
+      }}
+    >
+      <PopoverTrigger ref={triggerRef} className={triggerClass} aria-label={`Why ${a.shop_name}?`}>
         <Info className="size-3.5" /> Why?
       </PopoverTrigger>
-      <PopoverContent side="left" align="start" className="w-80 gap-3 p-4">
+      <PopoverContent side="bottom" align="end" className="w-80 gap-3 p-4">
         <PopoverHeader>
           <PopoverTitle className="text-sm">
             Why {a.shop_name} for {a.part_no}
           </PopoverTitle>
+          <div className="flex flex-wrap items-center gap-1.5" data-testid="why-badges">
+            {a.controlled ? <StatusBadge kind="controlled" /> : null}
+            <StatusBadge kind={a.shop_source === "public" ? "public" : "synthetic"} />
+            {a.controlled ? <StatusBadge kind="cgp" /> : null}
+          </div>
+          <div className="text-xs text-slate-600">
+            {a.shop_name}
+            {a.shop_city ? ` · ${a.shop_city}` : ""}
+          </div>
           <PopoverDescription className="text-xs">
             Passed every hard filter; highest score after capacity limits.
           </PopoverDescription>

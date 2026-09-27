@@ -180,3 +180,26 @@ def test_top_reason_ignores_certs_of_jobs_not_blocked_on_certs(user_routed):
 def test_top_reason_demo_still_welder_shortage(routed):
     g = pipeline.gaps(routed)
     assert g["summary"]["top_reason"] == "CWB W47.1 welder shortage (certification + capacity)"
+
+
+def test_hull_reason_counts_only_shops_that_fit_the_part():
+    """NG-034 (3200 mm hull section): CWB shops too small for the part are not 'at capacity'.
+
+    The reason must agree with eligible_shop_count == 1 before and after funding TP-01.
+    """
+    st = build_state()
+    pipeline.route(st)
+    b = {x["job_id"]: x for x in pipeline.gaps(st)["blocked"]}
+    hull = b[HULL_JOB]
+    assert hull["eligible_shop_count"] == 1
+    assert hull["reason"].startswith("The only CWB W47.1 welding shop that fits is at capacity (")
+    assert "Both" not in hull["reason"] and "of 3" not in hull["reason"]
+    for jid in set(b) - {HULL_JOB}:
+        assert b[jid]["reason"].startswith("Both CWB W47.1 welding shops are at capacity (")
+    pipeline.fund(st, "TP-01")
+    after = {x["job_id"]: x for x in pipeline.gaps(st)["blocked"]}
+    assert list(after) == [HULL_JOB]
+    assert after[HULL_JOB]["eligible_shop_count"] == 1
+    assert after[HULL_JOB]["reason"].startswith(
+        "The only CWB W47.1 welding shop that fits is at capacity ("
+    )

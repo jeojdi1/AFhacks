@@ -113,15 +113,15 @@ export function ReadinessCard({
   const totalValue = items.reduce((s, i) => s + (i.value_cad ?? 0), 0)
   return (
     <section className="rounded-xl border border-zinc-200 bg-white">
-      <header className="flex flex-wrap items-end justify-between gap-3 border-b border-zinc-100 px-6 py-5">
-        <div>
+      <header className="flex items-end justify-between gap-6 border-b border-zinc-100 px-6 py-5">
+        <div className="min-w-0 flex-1">
           <h2 className="text-lg font-semibold tracking-tight text-zinc-900">What would unlock more work</h2>
           <p className="mt-0.5 text-sm text-zinc-500">
             Jobs this shop misses on exactly one requirement, grouped by that requirement.
           </p>
         </div>
         {items.length > 0 && (
-          <div className="text-right">
+          <div className="shrink-0 text-right">
             <div className="text-2xl font-semibold tabular-nums text-zinc-900">
               {fmtMoney(totalValue, { compact: true })}
             </div>

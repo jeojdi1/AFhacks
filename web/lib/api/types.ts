@@ -183,6 +183,8 @@ export interface Job {
   required_certs: CertType[];
   controlled: boolean;
   tag_source: TagSource;
+  /** Present only when the tagger fell back to a default process. */
+  tag_warning?: string;
   status: JobStatus;
 }
 
@@ -505,6 +507,8 @@ export interface FundResponse {
   credit_added: number;
   credit_added_breakdown: { training_cad: number; jobs_cad: number };
   headline: string;
+  /** Client only: rebuilt from engine state after a reload (never animated). */
+  synthetic?: boolean;
 }
 
 /** GET /shops (optional ?source=public|synthetic) */

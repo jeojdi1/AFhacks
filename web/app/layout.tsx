@@ -5,8 +5,7 @@ import "./globals.css"
 import { DemoProvider } from "@/lib/data/store"
 import { AppActionsProvider } from "@/lib/app/actions-store"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { Toaster } from "@/components/ui/sonner"
-import { ChromeGate } from "@/components/shell/chrome-gate"
+import { AppToaster, ChromeGate } from "@/components/shell/chrome-gate"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,25 +41,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             <TooltipProvider delay={150}>
               {/* Desktop header, program bar and footer; skipped under /m (phone chrome in app/m/layout.tsx). */}
               <ChromeGate>{children}</ChromeGate>
-              {/*
-                Under 600 px (the /m phone app) toasts sit below the 56 px sticky header, so
-                Back and the status badge stay tappable while an Undo toast is up. Undo is the
-                safety net that replaces a confirm dialog, so it gets a 44 px target; the close
-                button is 32 px with an invisible 44 px hit area.
-              */}
-              <Toaster
-                theme="light"
-                position="top-right"
-                closeButton
-                mobileOffset={{ top: "calc(env(safe-area-inset-top) + 64px)" }}
-                toastOptions={{
-                  classNames: {
-                    toast: "cn-toast",
-                    actionButton: "!h-11 !min-w-11 !rounded-lg !px-4 !text-base !font-semibold",
-                    closeButton: "!size-8 after:absolute after:-inset-1.5 after:content-['']",
-                  },
-                }}
-              />
+              {/* Desktop toasts bottom-right; phone-app (/m) toasts below the sticky header. See AppToaster. */}
+              <AppToaster />
             </TooltipProvider>
           </AppActionsProvider>
         </DemoProvider>

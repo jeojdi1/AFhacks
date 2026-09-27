@@ -27,7 +27,7 @@ import type {
   Snapshot,
   TrainingPackage,
 } from "@/lib/api/types"
-import { CERT_LABEL } from "@/lib/format"
+import { CERT_LABEL, fmtMoney } from "@/lib/format"
 import { demoIds, fx } from "./fixture-source"
 
 // ---------------------------------------------------------------------------
@@ -299,6 +299,23 @@ async function probeLive(): Promise<boolean> {
 
 // ---------------------------------------------------------------------------
 // Pure helpers
+
+/** "Claude (cached) 40 · keyword rules 0 · 1 line needs review" from an upload response. */
+function taggerSummary(res: PartsUploadResponse): string {
+  const t = (res.tagger ?? {}) as Record<string, number>
+  const counts = res.jobs.reduce<Record<string, number>>((m, j) => {
+    m[j.tag_source] = (m[j.tag_source] ?? 0) + 1
+    return m
+  }, {})
+  const src = (k: string) => (typeof t[k] === "number" ? t[k] : (counts[k] ?? 0))
+  const parts: string[] = []
+  if (src("llm") > 0) parts.push(`Claude ${src("llm")}`)
+  if (src("cache") > 0 || src("llm") === 0) parts.push(`Claude (cached) ${src("cache")}`)
+  parts.push(`keyword rules ${src("rules")}`)
+  const review = res.jobs.filter((j) => j.tag_warning).length
+  if (review > 0) parts.push(`${review} line${review === 1 ? "" : "s"} need${review === 1 ? "s" : ""} review`)
+  return parts.join(" · ")
+}
 
 const round2 = (n: number) => Math.round(n * 100) / 100
 const sum = (xs: number[]) => xs.reduce((a, b) => a + b, 0)
@@ -689,6 +706,79 @@ async function liveRoutedState(jobsHint: Job[] | null): Promise<Omit<FlowData, "
   }
 }
 
+/**
+ * Rebuild FundResponses the browser never saw (fresh context, or a package funded
+ * elsewhere) from engine data, so /gaps, the scorecard and the shop page show the
+ * funded state. The ledger is ordered: each training txn is followed by the
+ * assignment txns of the jobs it unblocked. Walks packages newest-first so each
+ * "before" is the previous package's "after". Marked synthetic (no animation).
+ */
+function synthesizeFunds(
+  routed: Pick<FlowData, "assignments" | "blocked" | "ledger" | "gaps">,
+  fundedIds: string[],
+  known: Record<string, FundResponse>
+): Record<string, FundResponse> {
+  const { ledger, gaps } = routed
+  if (!ledger || !gaps || fundedIds.every((id) => known[id])) return known
+  const txns = ledger.transactions
+  const byJob = new Map(routed.assignments.map((a) => [a.job_id, a]))
+  const out: Record<string, FundResponse> = { ...known }
+
+  let after: Snapshot = snapshot(ledger, routed.assignments.length, routed.blocked.length)
+  for (const id of [...fundedIds].reverse()) {
+    const pkg = gaps.suggestions.find((x) => x.id === id)
+    const ti = txns.findIndex((t) => t.origin === "training" && t.ref_id === id)
+    const existing = out[id]
+    if (existing) {
+      after = existing.before
+      continue
+    }
+    if (!pkg || ti < 0) continue
+    const trainingTxn = txns[ti]
+    const unblocked: Assignment[] = []
+    for (let i = ti + 1; i < txns.length && txns[i].origin !== "training"; i++) {
+      const a = txns[i].origin === "assignment" ? byJob.get(txns[i].ref_id) : undefined
+      if (a) unblocked.push(a)
+    }
+    const jobsCad = round2(sum(unblocked.map((a) => a.credit_cad)))
+    const trainingCad = round2(trainingTxn.credit_cad)
+    const added = round2(trainingCad + jobsCad)
+    const smbLess = sum(unblocked.filter((a) => a.category === "sme_direct").map((a) => a.value_cad * a.ccv_pct))
+    const creditBefore = round2(after.credit_total_cad - added)
+    const smbBefore = round2(after.smb_achieved_cad - smbLess)
+    const before: Snapshot = {
+      assigned: after.assigned - unblocked.length,
+      blocked: after.blocked + unblocked.length,
+      credit_total_cad: creditBefore,
+      obligation_met_pct: ledger.obligation_cad > 0 ? creditBefore / ledger.obligation_cad : 0,
+      direct_credit_cad: round2(after.direct_credit_cad - jobsCad),
+      indirect_credit_cad: round2(after.indirect_credit_cad - trainingCad),
+      smb_achieved_cad: smbBefore,
+      smb_progress_pct: ledger.smb.target_cad > 0 ? smbBefore / ledger.smb.target_cad : 0,
+    } as Snapshot
+    const n = unblocked.length
+    const res = {
+      program_id: PID,
+      package_id: id,
+      package: pkg,
+      before,
+      after,
+      unblocked_jobs: unblocked,
+      still_blocked: routed.blocked.map((b) => b.job_id),
+      training_txn: trainingTxn,
+      credit_added: added,
+      credit_added_breakdown: { training_cad: trainingCad, jobs_cad: jobsCad },
+      headline:
+        `${fmtMoney(pkg.est_cost_cad, { compact: true })} training → ${fmtMoney(pkg.est_credit_cad, { compact: true })} credit ` +
+        `(${pkg.multiplier}x) + ${n} job${n === 1 ? "" : "s"} unblocked (+${fmtMoney(jobsCad, { compact: true })} credit)`,
+      synthetic: true,
+    } as FundResponse
+    out[id] = res
+    after = before
+  }
+  return out
+}
+
 async function loadLive(): Promise<FlowData> {
   const prog = await http<ProgramResponse>("GET", `/programs/${PID}`)
   const flow = emptyFlow(prog.program)
@@ -708,8 +798,9 @@ async function loadLive(): Promise<FlowData> {
     ...cache.order.filter((id) => engineFunded.has(id)),
     ...routed.fundedIds.filter((id) => !cache.order.includes(id)),
   ]
-  const fundResults: Record<string, FundResponse> = {}
-  for (const id of fundedIds) if (cache.fundResults[id]) fundResults[id] = cache.fundResults[id]
+  const cached: Record<string, FundResponse> = {}
+  for (const id of fundedIds) if (cache.fundResults[id]) cached[id] = cache.fundResults[id]
+  const fundResults = synthesizeFunds(routed, fundedIds, cached)
   const lastId = [...fundedIds].reverse().find((id) => fundResults[id])
   return {
     ...flow,
@@ -814,6 +905,36 @@ function fxShopDetail(id: string, flow: FlowData): ShopDetailResponse {
   return deriveShopDetail(id, shops, flow)
 }
 
+/**
+ * Fixtures /shops is the pre-fund snapshot. Apply each funded package's unlocks
+ * (extra weekly hours, the certification now in training) so the Network page
+ * agrees with the shop page and with live mode.
+ */
+function withFundedUnlocks(list: ShopsResponse, flow: FlowData): ShopsResponse {
+  const pkgs = (flow.gaps?.suggestions ?? []).filter((p) => flow.fundedIds.includes(p.id))
+  if (pkgs.length === 0) return list
+  return {
+    ...list,
+    shops: list.shops.map((shop) => {
+      const mine = pkgs.filter((p) => p.shop_id === shop.id)
+      if (mine.length === 0) return shop
+      let hours = shop.capacity_hours_week
+      let certs = [...(shop.cert_summary ?? [])]
+      for (const p of mine) {
+        hours += sum(Object.values(p.capacity_unlock ?? {}).map((h) => Number(h) || 0))
+        if (p.cert_unlock) {
+          const cert = p.cert_unlock
+          const has = certs.find((c) => c.type === cert)
+          if (!has) certs = [...certs, { type: cert, status: "pending_training" } as (typeof certs)[number]]
+          else if (has.status === "unknown")
+            certs = certs.map((c) => (c.type === cert ? ({ ...c, status: "pending_training" } as typeof c) : c))
+        }
+      }
+      return { ...shop, capacity_hours_week: hours, cert_summary: certs }
+    }),
+  }
+}
+
 function applyOfferStatus(d: ShopDetailResponse, status: Record<string, OfferDecision>): ShopDetailResponse {
   const sid = d.shop.id
   return {
@@ -882,14 +1003,18 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
   }, [])
 
   const handleError = React.useCallback(
-    (e: unknown, context: string) => {
+    (e: unknown, context: string, extra?: string) => {
       const err = e instanceof ApiError ? e : new ApiError(0, e instanceof Error ? e.message : String(e))
       const offline = err.network || err.status >= 500
       const message = `${context}: ${err.message}`
       patch({ error: message, busy: null })
       const inLive = stateRef.current.mode === "live"
       toast.error(context, {
-        description: offline && inLive ? `${err.message}. You can keep going in demo mode.` : err.message,
+        description: extra
+          ? `${err.message.replace(/[.\s]*$/, "")}. ${extra}`
+          : offline && inLive
+            ? `${err.message}. You can keep going in demo mode.`
+            : err.message,
         action:
           offline && inLive
             ? { label: "Switch to demo mode", onClick: () => setModeRef.current("fixtures") }
@@ -898,6 +1023,35 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
       })
     },
     [patch]
+  )
+
+  /**
+   * Live mode: a 409 (already funded) or 400 (not routed yet) means the engine
+   * changed under the page (another tab, a script, make reset-demo). Reload the
+   * flow from the engine so the page stops contradicting it. Returns true when it did.
+   */
+  const resyncIfStale = React.useCallback(
+    async (e: unknown, context: string, gen: number): Promise<boolean> => {
+      if (stateRef.current.mode !== "live" || !(e instanceof ApiError) || (e.status !== 409 && e.status !== 400)) {
+        return false
+      }
+      handleError(e, context, "The engine changed elsewhere. Page refreshed.")
+      try {
+        const flow = await loadLive()
+        if (gen !== genRef.current) return true
+        patch((cur) => ({
+          ...flow,
+          busy: null,
+          error: null,
+          offerStatus: flow.stage === "empty" ? {} : cur.offerStatus,
+          fileName: flow.stage === "empty" ? null : cur.fileName,
+        }))
+      } catch {
+        /* engine unreachable now: the error toast above already offers demo mode */
+      }
+      return true
+    },
+    [patch, handleError]
   )
 
   // Detect mode and restore the flow once on mount.
@@ -936,23 +1090,22 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
         const flow = await loadLive()
         if (cancelled) return
         patch({ ...flow, ...restored, mode, apiUrl: apiBase, ready: true, busy: null, error: null })
-      } catch (e) {
+      } catch {
         if (cancelled) return
-        if (envMode === "live") {
-          patch({ ...emptyFlow(fxProgram()), mode, apiUrl: apiBase, ready: true, busy: null })
-          handleError(e, "Could not load the program from the engine")
-          return
-        }
-        // Engine answered the probe but failed to load: keep going on fixtures.
+        // Engine down or failing (also when live is forced by ?mode=live or the env):
+        // replay the saved step on fixtures so the presenter keeps their place and the
+        // persisted stage is never overwritten with "empty".
         modeOverrideRef.current = null
         patch({ ...replayFixtures(p), ...restored, mode: "fixtures", apiUrl: apiBase, ready: true, busy: null, error: null })
-        toast.message("Live engine not responding", { description: "Continuing in demo mode with the same steps." })
+        toast.message(envMode === "live" ? "Live engine not reachable" : "Live engine not responding", {
+          description: "Continuing in demo mode with the same steps.",
+        })
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [patch, handleError])
+  }, [patch])
 
   // Persist the replayable parts of the session.
   React.useEffect(() => {
@@ -1015,9 +1168,9 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
           if (file) {
             const fd = new FormData()
             fd.append("file", file)
-            res = await http<PartsUploadResponse>("POST", `/programs/${PID}/parts`, { body: fd })
+            res = await http<PartsUploadResponse>("POST", `/programs/${PID}/parts`, { body: fd, timeoutMs: 20000 })
           } else {
-            res = await http<PartsUploadResponse>("POST", `/programs/${PID}/parts?use_demo=true`)
+            res = await http<PartsUploadResponse>("POST", `/programs/${PID}/parts?use_demo=true`, { timeoutMs: 15000 })
           }
           if (gen !== genRef.current) return
           patch((cur) => ({
@@ -1028,9 +1181,12 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
             offerStatus: {},
             busy: null,
           }))
-          toast.success(`Tagged ${res.count} parts lines`, { description: fileName ?? "Northgate demo parts list" })
+          toast.success(`Tagged ${res.count} parts lines`, {
+            description: `${fileName ?? "Northgate demo parts list"} · ${taggerSummary(res)}`,
+          })
         } else {
-          const count = fx<PartsUploadResponse>("POST", `/programs/${PID}/parts`)?.count
+          const up = fx<PartsUploadResponse>("POST", `/programs/${PID}/parts`)
+          const count = up?.count
           patch({ busy: BUSY.upload(count), error: null })
           await latency()
           await latency()
@@ -1038,15 +1194,18 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
           const flow = fxUpload(flowOf(stateRef.current))
           patch({ ...flow, fileName, offerStatus: {}, busy: null })
           toast.success(`Tagged ${flow.jobs.length} parts lines`, {
-            description: fileName ? `${fileName} (demo mode uses the Northgate list)` : "Northgate demo parts list",
+            description: `${fileName ? `${fileName} (demo mode uses the Northgate list)` : "Northgate demo parts list"}${
+              up ? ` · ${taggerSummary(up)}` : ""
+            }`,
           })
         }
       } catch (e) {
         if (gen !== genRef.current) return
+        if (await resyncIfStale(e, "Upload failed", gen)) return
         handleError(e, "Upload failed")
       }
     },
-    [patch, handleError]
+    [patch, handleError, resyncIfStale]
   )
 
   const route = React.useCallback(async () => {
@@ -1055,7 +1214,7 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
     patch({ busy: s.jobs.length ? `Routing ${s.jobs.length} jobs…` : BUSY.route, error: null })
     try {
       if (s.mode === "live") {
-        const r = await http<RouteResponse>("POST", `/programs/${PID}/route`)
+        const r = await http<RouteResponse>("POST", `/programs/${PID}/route`, { timeoutMs: 10000 })
         const [ledger, gaps] = await Promise.all([
           http<LedgerResponse>("GET", `/programs/${PID}/ledger`),
           http<GapsResponse>("GET", `/programs/${PID}/gaps`),
@@ -1087,9 +1246,10 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
       }
     } catch (e) {
       if (gen !== genRef.current) return
+      if (await resyncIfStale(e, "Routing failed", gen)) return
       handleError(e, "Routing failed")
     }
-  }, [patch, handleError])
+  }, [patch, handleError, resyncIfStale])
 
   const fund = React.useCallback(
     async (packageId: string): Promise<FundResponse | undefined> => {
@@ -1098,7 +1258,11 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
       patch({ busy: BUSY.fund, error: null })
       try {
         if (s.mode === "live") {
-          const res = await http<FundResponse>("POST", `/programs/${PID}/training/${encodeURIComponent(packageId)}/fund`)
+          const res = await http<FundResponse>(
+            "POST",
+            `/programs/${PID}/training/${encodeURIComponent(packageId)}/fund`,
+            { timeoutMs: 10000 }
+          )
           const routed = await liveRoutedState(s.jobs.length ? s.jobs : null)
           if (gen !== genRef.current) return undefined
           patch((cur) => ({
@@ -1119,11 +1283,12 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
         return res
       } catch (e) {
         if (gen !== genRef.current) return undefined
+        if (await resyncIfStale(e, "Funding failed", gen)) return undefined
         handleError(e, "Funding failed")
         return undefined
       }
     },
-    [patch, handleError]
+    [patch, handleError, resyncIfStale]
   )
 
   const getShops = React.useCallback(async (): Promise<ShopsResponse> => {
@@ -1136,7 +1301,8 @@ export function DemoProvider({ children }: { children: React.ReactNode }): React
     } else {
       await sleep(250)
     }
-    return fx<ShopsResponse>("GET", "/shops") ?? ({ shops: [] } as unknown as ShopsResponse)
+    const list = fx<ShopsResponse>("GET", "/shops") ?? ({ shops: [] } as unknown as ShopsResponse)
+    return withFundedUnlocks(list, flowOf(stateRef.current))
   }, [handleError])
 
   const getShop = React.useCallback(

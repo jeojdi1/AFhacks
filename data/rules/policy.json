@@ -5,7 +5,7 @@
   "obligation": {
     "value": 1.0,
     "unit": "fraction of contract value",
-    "description": "A prime must do business activity in Canada equal to 100% of the contract value.",
+    "description": "A prime must do business in Canada equal to the value of the contract awarded over the life of the contract.",
     "source": "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb"
   },
   "thresholds": {
@@ -14,19 +14,19 @@
       25000000,
       100000000
     ],
-    "description": "The policy applies automatically above $100M; contracts of $25M-$100M are reviewed.",
+    "description": "Applies to defence and Coast Guard procurements over $100M not subject to trade agreements or where the national security exception is invoked; $25M–$100M are reviewed for possible application (raised from $20M).",
     "source": "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb"
   },
   "credit_measure": {
     "value": "CCV",
     "description": "Credit is measured in Canadian Content Value (CCV).",
-    "source": "https://ised-isde.canada.ca/site/industrial-technological-benefits/en/itb-policy"
+    "source": "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb/industrial-and-technological-benefits-policy"
   },
   "smb_requirement_example": {
     "value": 0.15,
-    "unit": "fraction of contract price",
-    "description": "A contract may carry a mandatory SMB requirement, e.g. 15% of the contract price.",
-    "source": "https://ised-isde.canada.ca/site/industrial-technological-benefits/en/itb-policy"
+    "unit": "fraction of ITB obligation",
+    "description": "Generally 15% of the ITB obligation must involve SMBs.",
+    "source": "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb/industrial-and-technological-benefits-policy"
   },
   "direct_indirect": {
     "direct": "Work on the contract itself.",
@@ -37,21 +37,33 @@
   "value_proposition": {
     "min_bid_weight": 0.1,
     "unit": "fraction of bid score",
-    "description": "The Value Proposition is generally weighted at least 10% of the bid score.",
+    "description": "Set per procurement; generally at least 10% of the bid score (Gowling WLG, secondary).",
     "source": "https://gowlingwlg.com/en/insights-resources/articles/2026/industrial-and-technological-benefits-policy"
   },
   "banking": {
     "max_years": 10,
-    "description": "Credits can be banked for up to 10 years.",
-    "source": "https://gowlingwlg.com/en/insights-resources/articles/2026/industrial-and-technological-benefits-policy"
+    "description": "Banked activity may generally be kept up to 10 years (Gowling, secondary); banked credit may cover at most 50% of the obligation (model terms §12.1).",
+    "source": "https://gowlingwlg.com/en/insights-resources/articles/2026/industrial-and-technological-benefits-policy",
+    "max_share_of_obligation": 0.5,
+    "sources": [
+      "https://gowlingwlg.com/en/insights-resources/articles/2026/industrial-and-technological-benefits-policy",
+      "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb/itb-toolkit/itb-model-terms-and-conditions"
+    ]
   },
   "multipliers": {
     "regular": 1,
     "sme_direct": 2,
     "training": 5,
     "indigenous_training": 10,
-    "description": "Regular work 1x, SME direct work 2x, eligible skills and training 5x, Indigenous workforce development 10x.",
-    "source": "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb"
+    "description": "Regular work 1x, SME direct work 2x, eligible skills and training 5x, Indigenous workforce development 10x. The overview says the policy 'will provide' / 'may receive'; other multipliers exist (4x/5x Strategic Investment, Canadian Company Boost).",
+    "source": "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb",
+    "training_cap_share_of_obligation": 0.25,
+    "training_cash_only": true,
+    "note": "Model terms §7.5.3 (cash) and §7.5.4.1 (25% cap). The cap is informational: the demo ledger does not enforce it yet.",
+    "sources": [
+      "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb",
+      "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb/itb-toolkit/itb-model-terms-and-conditions"
+    ]
   },
   "training_categories": {
     "values": [
@@ -84,11 +96,15 @@
   },
   "compliance_gates": {
     "controlled_goods": {
-      "description": "Technical data counts as a controlled good. Muster never stores drawings. A controlled job may only go to a CGP-registered shop.",
-      "source": "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/find-individuals-organizations-registered-program.html"
+      "description": "Controlled technical data is itself a controlled good. `controlled=true` means the job involves controlled goods or controlled technical data. Muster never stores drawings. A controlled job may only go to a CGP-registered shop.",
+      "source": "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/find-individuals-organizations-registered-program.html",
+      "sources": [
+        "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/find-individuals-organizations-registered-program.html",
+        "https://www.canada.ca/en/public-services-procurement/services/industrial-security/controlled-goods/about-program/register/when-subcontractors-must-register.html"
+      ]
     },
     "cpcsc_level_1": {
-      "description": "13 controls, self-assessed, no public registry. Always a shop-declared field.",
+      "description": "13 controls, self-assessed, no public registry. Always a shop-declared field. In select defence contracts from summer 2026; Level 2 from spring 2027.",
       "source": "https://www.canada.ca/en/public-services-procurement/news/2026/04/canadian-program-for-cyber-security-certification-level-1.html"
     },
     "quality_and_process_certs": {
@@ -113,8 +129,43 @@
     },
     {
       "id": "sme_definition",
-      "description": "SME = fewer than 500 employees (demo simplification).",
+      "description": "Demo simplification: SME = under 500 employees. Official: SMB ≤250 FTE (≤500 with affiliates); Small Mid-Cap within 5 years of exceeding 250 FTE (model terms §1.1.41–1.1.42).",
       "flag": "assumption"
     }
-  ]
+  ],
+  "why_now": {
+    "note": "Informational: sourced figures for a UI panel; not read by the engine.",
+    "items": [
+      {
+        "id": "budget_2025",
+        "label": "$81.8B more for defence over five years",
+        "as_of": "2025-11-04",
+        "source": "https://budget.canada.ca/2025/report-rapport/chap4-en.html"
+      },
+      {
+        "id": "dis_70pct",
+        "label": "Target: 70% of defence acquisitions to Canadian firms by 2035",
+        "as_of": "2026-02-17",
+        "source": "https://www.canada.ca/en/department-national-defence/corporate/reports-publications/industrial-strategy/security-sovereignty-prosperity.html"
+      },
+      {
+        "id": "dia_effective",
+        "label": "ITB authority moved to the Defence Investment Agency",
+        "as_of": "2026-07-16",
+        "source": "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb"
+      },
+      {
+        "id": "gdls_london",
+        "label": "~$2B armoured-vehicle deal built in London, ON: 190 vehicles, 600+ Canadian suppliers",
+        "as_of": "2026-07-16",
+        "source": "https://www.pm.gc.ca/en/news/news-releases/2026/07/16/prime-minister-carney-announces-landmark-partnership-general-dynamics"
+      },
+      {
+        "id": "itb_not_identified",
+        "label": "$23.4B of $83.8B in outstanding ITB obligations not yet identified",
+        "as_of": "2025-04-21",
+        "source": "https://ised-isde.canada.ca/site/ised/en/procurement-services/defence-and-marine-procurement/industrial-and-technological-benefits-itb/projects-and-obligations/contractor-progress"
+      }
+    ]
+  }
 }

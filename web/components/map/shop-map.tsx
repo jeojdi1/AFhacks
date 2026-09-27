@@ -64,7 +64,14 @@ function FitBounds({ pointsKey }: { pointsKey: string }) {
       pts.length >= 2
         ? L.latLngBounds(pts)
         : L.latLngBounds(SW_ONTARIO as L.LatLngBoundsLiteral);
-    map.fitBounds(b.pad(0.06), { paddingTopLeft: [150, 36], paddingBottomRight: [250, 36], maxZoom: 11 });
+    // Narrow maps (phones) cannot spare the desktop side padding: it would exceed the map width.
+    const w = map.getSize().x;
+    const pad: L.FitBoundsOptions =
+      w < 640 ? { padding: [16, 16] } : { paddingTopLeft: [150, 36], paddingBottomRight: [250, 36] };
+    // No animation: an animated zoom that outlives the page (leaving /program mid-fit)
+    // fires _onZoomTransitionEnd on a removed map and throws "_leaflet_pos".
+    // (No map.stop() cleanup: on unmount it would run after map.remove() and throw the same error.)
+    map.fitBounds(b.pad(0.06), { ...pad, maxZoom: 11, animate: false });
   }, [map, pointsKey]);
   return null;
 }
@@ -100,6 +107,7 @@ export default function ShopMap({
       boundsOptions={{ padding: [24, 24] }}
       scrollWheelZoom={false}
       zoomSnap={0.25}
+      zoomAnimation={false}
       zoomDelta={0.5}
       className={className}
       style={{ background: "#eef2f6", height: "100%", width: "100%" }}
@@ -156,7 +164,7 @@ export default function ShopMap({
         );
       })}
 
-      <Marker position={[site.lat, site.lon]} icon={siteIcon} zIndexOffset={1000}>
+      <Marker position={[site.lat, site.lon]} icon={siteIcon} zIndexOffset={1000} keyboard={false} title={site.label} alt={site.label}>
         <Tooltip permanent direction="left" offset={[-8, 0]} className="muster-site-tooltip">
           <span style={{ fontWeight: 600 }}>{site.label}</span>
         </Tooltip>

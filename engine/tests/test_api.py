@@ -402,13 +402,15 @@ def test_shops_list_and_filter(client):
     r = client.get("/shops")
     assert r.status_code == 200
     shops = r.json()["shops"]
-    assert len(shops) == 30
+    # 30 synthetic (routable) shops, then the discovered public shops (listed, never routed).
+    assert [s["source"] for s in shops[:30]] == ["synthetic"] * 30
+    assert all(s["source"] == "public" and s["onboarding"] == "discovered" for s in shops[30:])
     for s in shops:
         has(s, SHOP_KEYS | {"cert_summary"}, f"shop {s.get('id')}")
         for c in s["cert_summary"]:
             assert set(c) >= {"type", "status"}
-    assert len(client.get("/shops?source=synthetic").json()["shops"]) == 30
-    assert client.get("/shops?source=public").json()["shops"] == []
+    assert client.get("/shops?source=synthetic").json()["shops"] == shops[:30]
+    assert client.get("/shops?source=public").json()["shops"] == shops[30:]
 
 
 def test_shop_detail_before_routing(client):

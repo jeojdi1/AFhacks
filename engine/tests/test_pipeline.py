@@ -290,8 +290,10 @@ def test_shop_detail_unknown_and_unrouted():
         pipeline.shop_detail(st, "nope")
     d = pipeline.shop_detail(st, DEMO_SHOP)
     assert d["offers"] == [] and d["training"] == []
-    assert pipeline.shops_list(st) == fixture("shops.json")
-    assert pipeline.shops_list(st, source="public") == {"shops": []}
+    # Synthetic entries unchanged; discovered public shops (never routed) are appended after them.
+    assert pipeline.shops_list(st)["shops"][:30] == fixture("shops.json")["shops"]
+    assert pipeline.shops_list(st, source="synthetic") == fixture("shops.json")
+    assert pipeline.shops_list(st, source="public") == fixture("shops_public.json")
 
 
 # --------------------------------------------------------------------------- 6. reference parity

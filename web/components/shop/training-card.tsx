@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { ArrowRight, GraduationCap, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { AssumptionTag } from "@/components/muster/assumption-tag"
 import { CATEGORY_LABEL, PROCESS_LABEL } from "@/lib/format"
 import { TrainingStatusBadge, certLabel } from "./badges"
 import type { TrainingT } from "./types"
@@ -26,6 +27,10 @@ export function TrainingCard({ training }: { training: TrainingT[] }) {
         <p className="mt-0.5 text-sm text-zinc-500">
           Training the prime can fund for this shop&apos;s workers. It counts toward the prime&apos;s ITB
           obligation at 5x (10x for Indigenous workforce development).
+        </p>
+        <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[13px] text-zinc-600" data-testid="training-caveat">
+          <AssumptionTag note="Training cost is an estimate for the demo, not a quote" />
+          Training cost is an assumption · 10x Indigenous workforce credit needs Defence Investment Agency confirmation
         </p>
       </header>
       {training.length === 0 ? (

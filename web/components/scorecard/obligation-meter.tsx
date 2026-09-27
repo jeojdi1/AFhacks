@@ -1,3 +1,4 @@
+import { AssumptionTag } from "@/components/muster/assumption-tag";
 import { ArrowUpRight } from "lucide-react";
 
 import type { LedgerResponse } from "@/lib/api/types";
@@ -104,6 +105,13 @@ function FundingChips({ funding }: { funding: FundingSummary }) {
           from {funding.unblockedJobs} unblocked {funding.unblockedJobs === 1 ? "job" : "jobs"}
         </span>
       ) : null}
+      <p className="flex w-full flex-wrap items-center gap-1.5 text-[13px] text-slate-600" data-testid="training-caveat">
+        <AssumptionTag note="Training cost is an estimate for the demo, not a quote" />
+        Training cost is an assumption
+        {funding.training.some((t) => t.multiplier === 10)
+          ? " · 10x Indigenous workforce credit needs Defence Investment Agency confirmation"
+          : ""}
+      </p>
     </div>
   );
 }

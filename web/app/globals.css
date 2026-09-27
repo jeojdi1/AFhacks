@@ -85,10 +85,10 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.929 0.013 255.508); /* slate-200 */
   --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788); /* slate-400 */
+  --ring: oklch(0.446 0.043 257.281); /* slate-600: focus ring >= 3:1 on white */
 
   /* Status colours */
-  --status-assigned: oklch(0.596 0.145 163.225); /* emerald-600 */
+  --status-assigned: oklch(0.508 0.118 165.612); /* emerald-700: ~5.5:1 on emerald-50 */
   --status-assigned-soft: oklch(0.979 0.021 166.113); /* emerald-50 */
   --status-blocked: oklch(0.555 0.163 48.998); /* amber-700 (readable text) */
   --status-blocked-soft: oklch(0.987 0.022 95.277); /* amber-50 */
@@ -154,7 +154,7 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring;
   }
   body {
     @apply bg-background text-foreground;

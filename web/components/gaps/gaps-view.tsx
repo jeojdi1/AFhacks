@@ -151,15 +151,14 @@ export function GapsView() {
 
   return (
     <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-8 px-6 py-8">
-      <div>
-        {header}
-        {demo.error ? (
-          <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-            <TriangleAlert className="mt-0.5 size-4 shrink-0" />
-            {demo.error}
-          </div>
-        ) : null}
-      </div>
+      {/* Header sits directly in the gap-8 column so its own margin is not added on top. */}
+      <SectionHeader size="page" title={PAGE_TITLE} subtitle={PAGE_SUBTITLE} className="-mb-2" />
+      {demo.error ? (
+        <div className="-mt-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+          {demo.error}
+        </div>
+      ) : null}
 
       {/* Summary strip */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -218,10 +217,17 @@ export function GapsView() {
       ) : (
         <div className="grid items-start gap-8 lg:grid-cols-12">
           <section className="lg:col-span-5">
-            <SectionHeader
-              title="Blocked jobs"
-              subtitle="No qualified shop with free capacity. Each card shows why, and how many shops fail each check."
-            />
+            {unblockedCount > 0 ? (
+              <SectionHeader
+                title="Blocked and unblocked jobs"
+                subtitle={`${unblockedCount} unblocked by training · ${stillBlocked.length} still blocked`}
+              />
+            ) : (
+              <SectionHeader
+                title="Blocked jobs"
+                subtitle="No qualified shop with free capacity. Each card shows why, and how many shops fail each check."
+              />
+            )}
             <div className="flex flex-col gap-4">
               {rows.map((r) => {
                 const job = jobsById.get(r.id);

@@ -212,8 +212,14 @@ def blocked_job(ctx, job_id: str, packages: list[dict]) -> dict:
     proc = process_label(tags[0]) if tags else "capable"
     holder_fails = [(sid, fails) for sid, fails in process_shops if "certs" not in fails]
     holders = [sid for sid, _ in holder_fails]
-    full = [sid for sid in holders if "capacity" in ctx.failing(sid, job)]
     lacking = [sid for sid, fails in process_shops if "certs" in fails]
+    # The certified-capacity story only counts shops that could take the job if they had
+    # the cert and the hours: a shop whose envelope (or CGP/CPCSC) rules it out is not
+    # "at capacity" and is not one training would help.
+    fits = [(sid, fails) for sid, fails in process_shops if not (set(fails) - {"certs", "capacity"})]
+    fit_holders = [sid for sid, fails in fits if "certs" not in fails]
+    full = [sid for sid, fails in fits if "certs" not in fails and "capacity" in fails]
+    fit_lacking = [sid for sid, fails in fits if "certs" in fails]
     if not process_shops:
         procs = " + ".join(process_label(t) for t in tags) or "the required process"
         reason = f"No shop in the network offers {procs}"
@@ -222,21 +228,24 @@ def blocked_job(ctx, job_id: str, packages: list[dict]) -> dict:
         label = cert_label(cert)
         free = sorted({_fmt_h(ctx.remaining(s)) for s in full}, key=float, reverse=True)
         free_txt = " and ".join(free)
-        if len(full) == len(holders) and len(full) == 2:
+        need = _fmt_h(job["hours_week"])
+        if len(full) == len(fit_holders) == 1:
             head = (
-                f"Both {label} {proc} shops are at capacity ({free_txt} h/week free vs "
-                f"{_fmt_h(job['hours_week'])} needed)"
+                f"The only {label} {proc} shop that fits is at capacity ({free_txt} h/week "
+                f"free vs {need} needed)"
             )
+        elif len(full) == len(fit_holders) == 2:
+            head = f"Both {label} {proc} shops are at capacity ({free_txt} h/week free vs {need} needed)"
         else:
-            head = f"{len(full)} of {len(holders)} {label} {proc} shops are at capacity"
+            head = f"{len(full)} of {len(fit_holders)} {label} {proc} shops are at capacity"
         other = (
             f"1 other {proc} shop lacks"
-            if len(lacking) == 1
-            else f"{len(lacking)} other {proc} shops lack"
+            if len(fit_lacking) == 1
+            else f"{len(fit_lacking)} other {proc} shops lack"
         )
-        reason = f"{head}; {other} {label} (certified-welder shortage)"
-        if cert not in training_costs(ctx).get("trainable_certs", ["CWB_W47.1"]):
-            reason = f"{head}; {other} {label}"
+        reason = f"{head}; {other} {label}" if fit_lacking else head
+        if cert in training_costs(ctx).get("trainable_certs", ["CWB_W47.1"]):
+            reason += " (certified-welder shortage)"
     elif cert and holders:
         # Cert holders exist and have room: name the filter they actually fail.
         label = cert_label(cert)

@@ -1,4 +1,4 @@
-import type { Assignment, BlockedJob, Job, Shop } from "@/lib/api/types";
+import type { Assignment, BlockedJob, Job, Shop, TagSource } from "@/lib/api/types";
 
 export type RowStatus = "assigned" | "blocked" | "unrouted";
 export type JobFilter = "all" | "assigned" | "blocked" | "controlled";
@@ -8,6 +8,9 @@ export interface JobRow {
   partNo: string;
   description: string;
   processTags: string[];
+  /** How the tagger produced the tags (null when rebuilt from routing results only). */
+  tagSource: TagSource | null;
+  tagWarning: string | null;
   controlled: boolean;
   valueCad: number;
   status: RowStatus;
@@ -38,6 +41,8 @@ export function buildRows(
         partNo: j.part_no,
         description: j.description,
         processTags: j.process_tags,
+        tagSource: j.tag_source ?? null,
+        tagWarning: j.tag_warning ?? null,
         controlled: j.controlled,
         valueCad: a?.value_cad ?? b?.value_cad ?? j.est_value_cad,
         status,
@@ -53,6 +58,8 @@ export function buildRows(
       partNo: a.part_no,
       description: a.description,
       processTags: [],
+      tagSource: null,
+      tagWarning: null,
       controlled: a.controlled,
       valueCad: a.value_cad,
       status: "assigned",
@@ -64,6 +71,8 @@ export function buildRows(
       partNo: b.part_no,
       description: b.description,
       processTags: b.process_tags,
+      tagSource: null,
+      tagWarning: null,
       controlled: false,
       valueCad: b.value_cad,
       status: "blocked",
