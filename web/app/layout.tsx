@@ -8,6 +8,7 @@ import { StoryModeProvider } from "@/lib/ui/story-mode"
 import { COPY } from "@/lib/ui/copy"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { AppToaster, ChromeGate } from "@/components/shell/chrome-gate"
+import { DemoNotice } from "@/components/shell/demo-notice"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,6 +47,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
                 <ChromeGate>{children}</ChromeGate>
                 {/* Desktop toasts bottom-right; phone-app (/m) toasts below the sticky header. See AppToaster. */}
                 <AppToaster />
+                {/* "This is a demo" + production security layer, once per session (?notice=1 to show again). */}
+                <DemoNotice />
               </TooltipProvider>
             </AppActionsProvider>
           </StoryModeProvider>

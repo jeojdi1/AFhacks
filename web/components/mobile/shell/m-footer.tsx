@@ -17,6 +17,12 @@ export function MFooter() {
       <p className="mt-1">{t("footer.fiction")}</p>
       <p className="mt-1">{t("footer.drawings")}</p>
       <Link
+        href="/security"
+        className="mt-1 inline-flex min-h-12 items-center font-medium text-foreground underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+        Security and demo notice
+      </Link>
+      <Link
         href={desktopHref(pathname, fromPrime)}
         className="mt-2 inline-flex min-h-12 items-center font-medium text-foreground underline underline-offset-4 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         data-testid="m-desktop-link"

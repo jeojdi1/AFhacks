@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { c } from "@/lib/ui/copy"
 
 /** Desktop footer (docs/ux-simplification.md §5.7): the short sentence, then the unchanged credits. */
@@ -10,6 +11,11 @@ export function AppFooter() {
         </p>
         <p className="font-medium text-slate-700">{c("footer.credits")}</p>
         <p>{c("footer.fine")}</p>
+        <p className="mt-1">
+          <Link href="/security" className="font-medium text-foreground underline underline-offset-4">
+            Security and demo notice
+          </Link>
+        </p>
       </div>
     </footer>
   )

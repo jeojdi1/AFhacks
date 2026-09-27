@@ -3,8 +3,11 @@
 - **Nov 2025:** Budget 2025 commits **$81.8B to defence over five years**.
 - **Feb 2026:** The Defence Industrial Strategy sets a goal of **70% of defence buying going to Canadian firms by 2035**. Small and medium businesses make up **92% of defence firms**.
 - **2026:** Under the updated ITB policy, a prime must do business in Canada equal to **100% of its contract value**. It can earn **2x credit** for direct small-business work and **5x** for cash spent training workers.
-- **July 2026:** Ottawa announces a **~$2B armoured-vehicle deal built in London, Ontario**, drawing on **600+ Canadian suppliers**.
+- **June 2026:** Marconi Technologies becomes the **first Canadian firm to win a contract under the EU's €150B SAFE** defence program (radios for Poland).
+- **July 2026:** Germany's **TKMS** is picked to build **up to 12 submarines**, and the deal *"will be subject to Canada's modernised Industrial and Technological Benefits Policy."* Ottawa also announces a **~$2B armoured-vehicle deal built in London, Ontario**, drawing on **600+ Canadian suppliers**.
 - **Sept 23, 2026:** CME says manufacturers are *"still struggling to find people… everything from welders to mechatronics to electrical technicians."*
+
+Canada is going international by selling into Europe and buying from allies, but the rule doesn't change. **A German submarine builder will still owe Canada 100% of its contract value in Canadian business**, and so will every other prime. That work has to land in Canadian shops.
 
 The money is there, the rules reward small shops and training, and the shops exist. But BDC says it plainly: *"We do not expressly match businesses with defence contractors."* Nobody connects the two sides.
 
