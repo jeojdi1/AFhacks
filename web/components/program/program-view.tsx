@@ -46,7 +46,8 @@ export function ProgramView() {
     getShopsRef
       .current()
       .then((r) => {
-        if (alive) setShops(r.shops ?? []);
+        // Discovered public shops (onboarding "discovered") are listed on /network only, never routed: keep them off the prime's map.
+        if (alive) setShops((r.shops ?? []).filter((s) => s.source !== "public"));
       })
       .catch(() => {
         /* map still shows assigned shops from the routing result */

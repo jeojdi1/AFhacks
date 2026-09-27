@@ -28,7 +28,8 @@ type Step = { key: string; label: string; href: string | null; done: boolean; ma
 export function ProgramContextBar() {
   const pathname = usePathname() ?? "/"
   const { program, stage, demoShopId, offerStatus, busy, ready } = useDemo()
-  const onShop = pathname.startsWith("/shops/")
+  // Discovered public shops (/shops/pub-*) are real companies that are not onboarded: never frame them as a shop receiving offers.
+  const onShop = pathname.startsWith("/shops/") && !pathname.startsWith("/shops/pub-")
   const viewedShop = useViewedShop(onShop ? decodeURIComponent(pathname.split("/")[2] ?? "") : null)
 
   const prime = program?.prime_name ?? "Northgate Land Systems"

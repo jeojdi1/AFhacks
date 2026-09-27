@@ -21,6 +21,7 @@ from engine import assign as assign_mod
 from engine import gaps as gaps_mod
 from engine import graph as graph_mod
 from engine import ledger as ledger_mod
+from engine import public as public_mod
 from engine import rules as rules_mod
 from engine import scoring as scoring_mod
 
@@ -406,18 +407,30 @@ def fund(state: Any, package_id: str) -> dict:
 
 
 def shops_list(state: Any, source: str | None = None) -> dict:
-    """ShopsResponse: every shop (optionally one source) with cert_summary."""
+    """ShopsResponse: every shop (optionally one source) with cert_summary.
+
+    The routable (State) shops come first, unchanged; the discovered public shops
+    (engine.public, ``onboarding: "discovered"``) are appended after them. Those are
+    listed only: they are not in State.shops, so they are never routed."""
     out = []
     for sid in state.shops:
         shop = effective_shop(state, sid)
         if source and shop.get("source") != source:
             continue
         out.append(_public_shop(shop))
+    if source in (None, "public"):
+        seen = set(state.shops)
+        out.extend(s for s in public_mod.shops() if s["id"] not in seen)
     return {"shops": out}
 
 
 def shop_detail(state: Any, shop_id: str) -> dict:
-    """ShopDetailResponse. KeyError if the shop is unknown."""
+    """ShopDetailResponse. KeyError if the shop is unknown.
+
+    A discovered public shop (``pub-XXX``) gets its certifications (with source URLs),
+    provenance and notes, and empty offers / readiness / training: it is never routed."""
+    if shop_id not in state.shops and public_mod.is_public_id(shop_id):
+        return public_mod.detail(shop_id)
     if shop_id not in state.shops:
         raise KeyError(shop_id)
     ctx = Context(state, shop_ids=(shop_id,))  # readiness only looks at this shop

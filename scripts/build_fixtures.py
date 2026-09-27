@@ -1392,10 +1392,16 @@ def main() -> int:
             "controlled": j["controlled"],
         }
     write_json(CACHE / "tags_northgate.json", tags)
-    write_json(RULES / "policy.json", POLICY)
+    # Once data/rules/{policy,training_costs}.json exist they are the source of truth (research
+    # corrections are edited there); the constants above only seed a fresh checkout.
+    for name, key in (("policy.json", "POLICY"), ("training_costs.json", "TRAINING_COSTS")):
+        if (RULES / name).exists():
+            with open(RULES / name, encoding="utf-8") as fh:
+                globals()[key] = json.load(fh)
+    write_json(RULES / "policy.json", globals()["POLICY"])
     write_json(RULES / "filters.json", FILTERS_RULES)
     write_json(RULES / "weights.json", WEIGHTS)
-    write_json(RULES / "training_costs.json", TRAINING_COSTS)
+    write_json(RULES / "training_costs.json", globals()["TRAINING_COSTS"])
 
     # ---- simulate --------------------------------------------------------------------------
     st = State(shops_with_certs, jobs)

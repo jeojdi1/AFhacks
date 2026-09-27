@@ -1,0 +1,194 @@
+{
+  "shop": {
+    "id": "pub-001",
+    "name": "Iron North Machining Ltd.",
+    "source": "public",
+    "label": "Public data — unverified — not affiliated",
+    "city": "Ancaster",
+    "lat": 43.19358,
+    "lon": -80.02763,
+    "naics": "332710",
+    "employee_band": null,
+    "is_sme": true,
+    "processes": [
+      "cnc_milling",
+      "cnc_turning"
+    ],
+    "machines": [],
+    "materials": [],
+    "max_envelope_mm": null,
+    "tolerance_class": null,
+    "capacity_hours_week": null,
+    "lead_time_days": null,
+    "website": "https://www.ironnorthcan.ca/",
+    "contact_role_email": null,
+    "provenance": [
+      {
+        "field": "name",
+        "source_url": "https://www.ironnorthcan.ca/",
+        "confidence": "website-self-reported"
+      },
+      {
+        "field": "lat_lon",
+        "source_url": "https://nominatim.openstreetmap.org/",
+        "confidence": "search"
+      },
+      {
+        "field": "processes",
+        "source_url": "https://www.ironnorthcan.ca/",
+        "confidence": "website-self-reported"
+      },
+      {
+        "field": "naics",
+        "source_url": null,
+        "confidence": "search"
+      }
+    ],
+    "onboarding": "discovered",
+    "notes": "approximate location (street-level match); NAICS is a guess from described activities",
+    "cert_summary": [
+      {
+        "type": "CGP",
+        "status": "unknown",
+        "source_url": null,
+        "verified_at": null,
+        "expires_at": null,
+        "note": "No public statement found"
+      },
+      {
+        "type": "CPCSC_L1",
+        "status": "unknown",
+        "source_url": null,
+        "verified_at": null,
+        "expires_at": null,
+        "note": "Self-assessed, no public registry; shop must declare"
+      },
+      {
+        "type": "ISO9001",
+        "status": "unknown",
+        "source_url": null,
+        "verified_at": null,
+        "expires_at": null,
+        "note": "No public statement found"
+      },
+      {
+        "type": "AS9100",
+        "status": "unknown",
+        "source_url": null,
+        "verified_at": null,
+        "expires_at": null,
+        "note": "No public statement found"
+      },
+      {
+        "type": "NADCAP:HEAT_TREAT",
+        "status": "unknown",
+        "source_url": null,
+        "verified_at": null,
+        "expires_at": null,
+        "note": "No public statement found"
+      },
+      {
+        "type": "NADCAP:CHEM_PROCESSING",
+        "status": "unknown",
+        "source_url": null,
+        "verified_at": null,
+        "expires_at": null,
+        "note": "No public statement found"
+      },
+      {
+        "type": "NADCAP:COATINGS",
+        "status": "unknown",
+        "source_url": null,
+        "verified_at": null,
+        "expires_at": null,
+        "note": "No public statement found"
+      },
+      {
+        "type": "CWB_W47.1",
+        "status": "unknown",
+        "source_url": null,
+        "verified_at": null,
+        "expires_at": null,
+        "note": "No public statement found"
+      }
+    ]
+  },
+  "certifications": [
+    {
+      "shop_id": "pub-001",
+      "type": "CGP",
+      "status": "unknown",
+      "source_url": null,
+      "verified_at": null,
+      "expires_at": null,
+      "note": "No public statement found"
+    },
+    {
+      "shop_id": "pub-001",
+      "type": "CPCSC_L1",
+      "status": "unknown",
+      "source_url": null,
+      "verified_at": null,
+      "expires_at": null,
+      "note": "Self-assessed, no public registry; shop must declare"
+    },
+    {
+      "shop_id": "pub-001",
+      "type": "ISO9001",
+      "status": "unknown",
+      "source_url": null,
+      "verified_at": null,
+      "expires_at": null,
+      "note": "No public statement found"
+    },
+    {
+      "shop_id": "pub-001",
+      "type": "AS9100",
+      "status": "unknown",
+      "source_url": null,
+      "verified_at": null,
+      "expires_at": null,
+      "note": "No public statement found"
+    },
+    {
+      "shop_id": "pub-001",
+      "type": "NADCAP:HEAT_TREAT",
+      "status": "unknown",
+      "source_url": null,
+      "verified_at": null,
+      "expires_at": null,
+      "note": "No public statement found"
+    },
+    {
+      "shop_id": "pub-001",
+      "type": "NADCAP:CHEM_PROCESSING",
+      "status": "unknown",
+      "source_url": null,
+      "verified_at": null,
+      "expires_at": null,
+      "note": "No public statement found"
+    },
+    {
+      "shop_id": "pub-001",
+      "type": "NADCAP:COATINGS",
+      "status": "unknown",
+      "source_url": null,
+      "verified_at": null,
+      "expires_at": null,
+      "note": "No public statement found"
+    },
+    {
+      "shop_id": "pub-001",
+      "type": "CWB_W47.1",
+      "status": "unknown",
+      "source_url": null,
+      "verified_at": null,
+      "expires_at": null,
+      "note": "No public statement found"
+    }
+  ],
+  "offers": [],
+  "readiness": [],
+  "training": [],
+  "notice": "Discovered from public data (Statistics Canada ODBus, OGL, and the company's own website). Unverified, not affiliated, not onboarded: this shop is not offered work until it claims and verifies its profile."
+}

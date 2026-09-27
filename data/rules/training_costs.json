@@ -5,16 +5,39 @@
     "personal_certification": {
       "cwb_w47_1_welder_cad": 24000,
       "unit": "per trainee",
-      "includes": "Welder certification to CWB W47.1 / CSA W59 tests, course fees, shop time",
+      "includes": "New-entrant welder seat, all-in: college welding certificate tuition (domestic $3.3K–$4.6K), CWB W47.1 welder tests, PPE/tools and a living stipend",
       "flag": "assumption",
-      "note": "Illustrative per-welder cost; not a quote."
+      "note": "Upper end of an estimated $10K–$25K range. Re-qualifying an experienced welder costs ~$2K–$6K (tests $299–$499, Okanagan College; median wage $28/hr, Job Bank 2025-11-19). Sources: conestogac.on.ca, fanshawec.ca, mohawkcollege.ca, okanagancollege.ca. Assumption."
     },
     "apprentice_sponsorship": {
       "welding_apprentice_cad": 20000,
       "unit": "per apprentice (first-year sponsorship)",
-      "includes": "Sponsorship costs for a registered welding apprentice",
+      "includes": "First-year sponsorship costs excluding wages (supervision, in-school fees, tools); wage-inclusive gross ~$50K–$60K",
       "flag": "assumption",
-      "note": "Illustrative per-apprentice cost; not a quote."
+      "note": "Illustrative per-apprentice cost; not a quote. Offsets exist but may not stack with ITB credit: Build Canada Apprenticeship Service up to $10K (fall 2026), Ontario Achievement Incentive up to $17K. Source: CAF 2009 https://www.nist.gov/system/files/documents/2024/01/03/CAF-pays.pdf ; https://www.ontario.ca/page/financial-supports-apprentices-and-sponsors"
+    },
+    "welder_upgrade": {
+      "experienced_welder_to_w47_1_cad": 5000,
+      "unit": "per welder",
+      "range_cad": [
+        2000,
+        6000
+      ],
+      "duration": "1–2 weeks",
+      "flag": "assumption",
+      "note": "Informational (display only); the engine does not use this key yet.",
+      "source": "https://www.okanagancollege.ca/trades-and-apprenticeship/welding/weld-testing-and-upgrading ; https://www.jobbank.gc.ca/marketreport/wages-occupation/23242/ON"
+    },
+    "company_w47_1": {
+      "one_time_cad_range": [
+        5000,
+        20000
+      ],
+      "annual_fee_cad": 1796,
+      "unit": "per shop",
+      "flag": "assumption",
+      "note": "Company certification; welder tickets are only valid at a CWB-certified company. Informational (display only); the engine does not use this key yet.",
+      "source": "https://www.cwbgroup.org/about/news/cwb-certification-price-increase-2026"
     }
   },
   "capacity_per_trainee_hours_week": {
@@ -50,7 +73,8 @@
       "credit_category": "indigenous_training",
       "multiplier": 10,
       "flag": "assumption",
-      "note": "Demo assumption: capacity gaps are filled by sponsoring apprentices through an Indigenous-governed training institution (10x per the ITB overview)."
+      "note": "Demo assumption: capacity gaps are filled by sponsoring apprentices through an Indigenous-governed training institution (10x per the ITB overview).",
+      "real_example": "Six Nations Polytechnic: tuition-free 26-week welder pre-apprenticeship (example, not affiliated; informational)"
     }
   },
   "trainable_certs": [
