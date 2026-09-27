@@ -161,11 +161,11 @@ GET  /programs/{id}/training/{pkg}/seats/{n}  pseudonymous trainee seat card
 
 These are simplified for the demo. Label them "Simplified ITB rules for demo" in the UI. Store the values in `data/rules/policy.json` with a `source` key for each.
 
-- A prime must do business activity in Canada equal to **100% of the contract value**. The policy applies automatically above $100M; contracts of $25M–$100M are reviewed. *(ITB overview)*
-- Credit is measured in **Canadian Content Value (CCV)**. A contract may carry a **mandatory SMB requirement**, e.g. 15% of the contract price. *(ITB policy)*
+- A prime must do business in Canada equal to **100% of the contract value** (do business equal to it, not spend it). The policy applies automatically above $100M; contracts of $25M–$100M are reviewed. *(ITB overview)*
+- Credit is measured in **Canadian Content Value (CCV)**. A contract may carry a **mandatory SMB requirement**: generally **15% of the ITB obligation** must involve SMBs. *(ITB policy)*
 - **Direct** = work on the contract itself. **Indirect** = any other eligible activity. Excess credit can be applied elsewhere. *(Model terms)*
-- The **Value Proposition** is generally weighted at **least 10%** of the bid score. Credits can be **banked for up to 10 years**. *(Gowling WLG)*
-- **Multipliers:** regular work 1x, SME direct work 2x, eligible skills and training 5x, Indigenous workforce development 10x. *(ITB overview)*
+- The **Value Proposition** is set per procurement and generally weighted at **least 10%** of the bid score. Banked activity can generally be kept **up to 10 years** *(Gowling WLG, secondary)*; banked credit may cover **at most 50% of the obligation** *(model terms §12.1)*.
+- **Multipliers:** regular work 1x, SMB direct work 2x, eligible skills and training 5x, Indigenous workforce development 10x. *(ITB overview; it says the policy "will provide" / "may receive", so never say "Canada now gives")* Training credit applies to the prime's **cash** and is **capped at 25% of the obligation** *(model terms §7.5.3, §7.5.4.1)*. Demo simplification: SME = under 500 employees; the official SMB line is ≤250 FTE (≤500 with affiliates) *(model terms §1.1.41–1.1.42)*.
 - **Eligible training categories** (model terms §7.5.1):
   - `apprentice_sponsorship`: sponsorship costs for apprentices in a recognized apprenticeship program
   - `personal_certification`: certification for a **Canadian citizen or permanent resident** by a recognized trade body
@@ -173,7 +173,7 @@ These are simplified for the demo. Label them "Simplified ITB rules for demo" in
   - `education_costs`: tuition, course fees and travel incurred in Canada
 - ITB authority moved to the **Defence Investment Agency** on July 16, 2026. Contact: ITB-RIT@dia-aid.gc.ca.
 - **Compliance gates:**
-  - **Controlled Goods:** technical data counts as a controlled good. **Muster never stores drawings.** A job with `controlled=true` may only go to a CGP-registered shop.
+  - **Controlled Goods:** controlled technical data is itself a controlled good. **Muster never stores drawings.** A job with `controlled=true` may only go to a CGP-registered shop.
   - **CPCSC Level 1:** 13 controls, self-assessed, no public registry. Always a shop-declared field.
   - **ISO, AS9100, Nadcap, CWB:** record source, verified_at and status.
 - **Never invent a policy number.** Anything not in this section or Section 11 must be labelled `assumption`.
@@ -337,31 +337,35 @@ Format: `ID [lane] [priority] (depends on) — time box — acceptance criteria 
 
 ### 8.1 Video script (≤ 5:00)
 
-- **0:00–0:45 Purpose.** Canada is spending $81.8B on defence and targets 70% of acquisitions going to Canadian firms. Every major contractor owes Canada 100% of its contract value in business activity, with up to double credit for small-business work. Yet primes can't find small shops, and shops lack welders.
-- **0:45–1:30 Value (both sides).** Primes win bids (the Value Proposition is at least 10% of the bid score) and meet their obligations. Shops get work they'd never have seen. Workers get trained. Canada builds its industrial base.
+- **0:00–0:45 Purpose.** Budget 2025 adds $81.8B for defence over five years; the Defence Industrial Strategy (Feb 2026) targets 70% of defence acquisitions going to Canadian firms by 2035. On July 16, 2026, Ottawa announced a nearly $2B armoured-vehicle deal built in London, ON, drawing on 600+ Canadian suppliers. Every major contractor must do business in Canada equal to 100% of its contract value, with double credit for direct small-business work. Yet primes can't find small shops, and those shops lack CWB-qualified welders.
+- **0:45–1:30 Value (both sides).** Primes win bids (the Value Proposition is generally at least 10% of the bid score, set per procurement) and meet their obligations. Shops get work they'd never have seen. Workers get trained. Canada builds its industrial base.
 - **1:30–4:30 Walkthrough:**
   1. Upload Northgate's parts list.
   2. Routing and map: show a controlled job going only to a CGP-registered shop.
   3. ITB Scorecard: SME 2x credit.
-  4. Gaps: jobs blocked by the welder shortage.
-  5. Fund training: credit jumps 5x and the jobs unblock.
-  6. **Shop view:** the Elmira/Cambridge shop accepts Northgate's offer, sees "Get CWB W47.1 → 3 more jobs", sees its welders in training, and shows certification badges with source and date.
-- **4:30–5:00 Next steps.** One prime, 20 shops in southwestern Ontario, and a college training partner. Australia's ICN Gateway proved the matching model; Canada needs its own, with the workforce built in.
+  4. Gaps: jobs blocked because no available shop has CWB-qualified welders.
+  5. Fund training: the prime's cash for eligible training earns 5x credit and the jobs unblock ($96K = 4 new-welder training seats, assumption).
+  6. **Shop view (desktop, then phone at `/m`):** the Woolwich shop accepts or declines Northgate's offers on its phone (the prime sees it live), sees "Get CWB W47.1 → 3 more jobs", asks Northgate to fund it, sees its welders in training, and shows certification badges with source and date.
+  7. Optional: `/network` lists 78 real southwestern Ontario shops (public data, unverified, not affiliated; never routed).
+- **4:30–5:00 Next steps.** Fifteen shop interviews, a pilot with one prime, and a regional college training partner. Australia's ICN Gateway proved suppliers will register; Canada needs the next step, with the workforce built in.
 
 ### 8.2 One-paragraph pitch
 
-"Canada is spending $81.8 billion on defence and wants 70% of it to go to Canadian firms. Every major contractor must spend the full contract value in Canada, and earns up to double credit for small-business work and five times the credit for training workers. But primes can't find small shops, and small shops don't have the welders to take the work. Muster fixes both. We route defence jobs to qualified local factories, and when a shop is short on workers, we set up training the prime funds for 5x credit. Primes win bids and meet obligations, shops get work and workers, and Canada gets its industrial base."
+"Canada is adding $81.8 billion to defence over five years and wants 70% of defence acquisitions to go to Canadian firms by 2035. Every major contractor must do business in Canada equal to its full contract value, and earns double credit for small-business work and five times the credit for cash spent training workers (capped at 25% of the obligation). But primes can't find small shops, and those shops don't have the CWB-qualified welders to take the work. Muster fixes both. We route defence jobs to qualified local factories, shops answer offers on their phone, and when a shop is short on qualified welders, the prime funds training for 5x credit. Primes win bids and meet obligations, shops get work and workers, and Canada gets its industrial base."
 
 ### 8.3 Judge Q&A
 
-- **"Isn't this ICN Gateway, OMX, or Goverly?"** ICN connects suppliers to projects in Australia. OMX and consultant tools *tracked* obligations. Goverly scores suppliers. We're the only one we found that routes the work, calculates credit per job, and fixes the worker gap in one loop.
-- **"Why hasn't it worked before?"** Primes could meet ITB through indirect activity. Now there's 2x credit for direct SME work and 5x for training, plus $81.8B in new spending.
+- **"Isn't this ICN Gateway, OMX, or Goverly?"** ICN lets suppliers raise their hand, but doesn't select them. OMX and consultants track obligations. Goverly builds supplier readiness files and prime search, paid by suppliers. As of this weekend, we found no one assigning each job, crediting it, and funding the training that unblocks it.
+- **"Why hasn't it worked before?"** Primes could meet ITB through indirect activity. Now the updated policy gives 2x credit for direct SMB work and 5x for training, on top of $81.8B more for defence over five years.
 - **"Security?"** We never store drawings; matching uses metadata only. Controlled jobs go only to CGP-registered shops. We'll register with the CGP before we handle any technical data.
-- **"Why would a prime pay?"** The credit is worth far more than our fee, and a stronger Value Proposition helps them win the bid.
-- **"Is training credit guaranteed?"** Only eligible categories under the ITB model terms count, and we confirm with the Defence Investment Agency.
-- **"What happens Monday?"** Meetings with the DIA ITB team, a local prime, CME and Conestoga, then a one-prime pilot.
+- **"Why would a prime pay?"** The credit is worth far more than our fee, and a stronger Value Proposition, generally at least 10% of the bid score and set per procurement, helps them win the bid.
+- **"Is training credit guaranteed?"** No. Only the prime's cash in the §7.5.1 categories counts, training credit is capped at 25% of the obligation (§7.5.4.1), and the Defence Investment Agency decides. We produce the evidence.
+- **"What happens Monday?"** We incorporate and request a concept review from the DIA's ITB team; CME Defence and Waterloo EDC introduce us to shops. That means 15 shop interviews in 30 days and one prime pilot LOI in 90.
 - **"Why would a shop trust a platform the prime pays for?"** *(draft)* It's free for shops, they see exactly why they were or weren't matched, and they can decline any offer. The prime's credit depends on the shop doing the work, so the prime needs the shop to succeed.
 - **"What if the welder you trained leaves?"** *(draft)* The welder stays in Canada's workforce, which is the point of the 5x multiplier. An apprenticeship is registered with a sponsoring employer, so the training happens at the shop that needs the worker. How credit is counted for trainees who leave is something we confirm with the DIA (assumption).
+- **"Isn't the welder shortage overstated?"** Job Bank rates the general welder outlook in Ontario "very limited". The gap is welders qualified to CSA W47.1 at CWB-certified shops. Re-qualifying an experienced welder costs a few thousand dollars and takes weeks (our estimate).
+- **"Who holds the training money?"** No one in the middle. The prime pays the college or apprenticeship sponsor directly, the DIA decides eligibility, and Muster keeps the per-job audit trail.
+- **"Your data only covers a few cities?"** We already have 78 public shops across 12 southwestern Ontario cities, 39 of which list welding, from company sites plus StatCan ODBus (public, unverified, not affiliated). Next, shops claim their profiles, and CME Defence and Waterloo EDC bring members in.
 
 ---
 
