@@ -11,6 +11,13 @@ const nextConfig: NextConfig = {
     root: repoRoot,
   },
   outputFileTracingRoot: repoRoot,
+  // Same-origin engine proxy: the browser calls /engine/* on the web server, which forwards to the
+  // FastAPI engine on this machine. Lets a phone on the same Wi-Fi use the live engine with no CORS
+  // or localhost problems (build with NEXT_PUBLIC_API_URL=/engine).
+  async rewrites() {
+    const engine = (process.env.MUSTER_ENGINE_URL || "http://127.0.0.1:8000").replace(/\/+$/, "");
+    return [{ source: "/engine/:path*", destination: `${engine}/:path*` }];
+  },
 };
 
 export default nextConfig;
