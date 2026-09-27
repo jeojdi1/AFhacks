@@ -290,23 +290,23 @@ Format: `ID [lane] [priority] (depends on) — time box — acceptance criteria 
 
 ### H2: Engine (target: 9:30 PM–3:30 AM)
 
-- [ ] **H2.1** [E] [P0] (H1.4, H1.5) — 40m — Models and `seed.py`. AC: `make seed` builds SQLite.
+- [x] **H2.1** [E] [P0] (H1.4, H1.5) — 40m — Models and `seed.py`. AC: `make seed` builds SQLite.
 - [x] **H2.2** [E] [P0] (H2.1) — 45m — `tagger.py` with cache and rule fallback. AC: 40 lines tagged; fallback tests pass.
-- [ ] **H2.3** [E] [P0] (H2.2) — 45m — `rules.py`. AC: the test "controlled job is never eligible for a non-CGP shop" passes; `pending_training` certs count; every rejection has a reason.
-- [ ] **H2.4** [E] [P0] (H2.3) — 60m — `scoring.py` + `assign.py` (OR-Tools plus greedy fallback). AC: under 2 seconds; capacity tests pass; each assignment carries its top 3 reasons.
+- [x] **H2.3** [E] [P0] (H2.2) — 45m — `rules.py`. AC: the test "controlled job is never eligible for a non-CGP shop" passes; `pending_training` certs count; every rejection has a reason.
+- [x] **H2.4** [E] [P0] (H2.3) — 60m — `scoring.py` + `assign.py` (OR-Tools plus greedy fallback). AC: under 2 seconds; capacity tests pass; each assignment carries its top 3 reasons.
 - [x] **H2.5** [E] [P0] (H2.4) — 40m — `ledger.py`. AC: 5 hand-calculated pytest cases pass (including SME 2x and a mix of direct and indirect).
-- [ ] **H2.6** [E] [P0] (H2.4) — 50m — `gaps.py`. AC: 4 blocked jobs, each with a category, recipient type, cost (assumption), multiplier and capacity unlock.
-- [ ] **H2.7** [E] [P0] (H2.5, H2.6) — 40m — `training.py` fund simulation. AC: the diff shows unblocked jobs, credit added (training + jobs) and a headline.
-- [ ] **H2.8** [E] [P0] (H2.1–H2.7) — 45m — FastAPI endpoints with CORS. AC: `make demo-check` passes steps 1–7.
-- [ ] **H2.9** [E] [P0] (H2.6, H2.7) — 30m — Shop readiness (§3 algorithm 8) + offers + training in `GET /shops/{id}`. AC: `make demo-check` passes all 8 steps.
+- [x] **H2.6** [E] [P0] (H2.4) — 50m — `gaps.py`. AC: 4 blocked jobs, each with a category, recipient type, cost (assumption), multiplier and capacity unlock.
+- [x] **H2.7** [E] [P0] (H2.5, H2.6) — 40m — `training.py` fund simulation. AC: the diff shows unblocked jobs, credit added (training + jobs) and a headline.
+- [x] **H2.8** [E] [P0] (H2.1–H2.7) — 45m — FastAPI endpoints with CORS. AC: `make demo-check` passes steps 1–7.
+- [x] **H2.9** [E] [P0] (H2.6, H2.7) — 30m — Shop readiness (§3 algorithm 8) + offers + training in `GET /shops/{id}`. AC: `make demo-check` passes all 8 steps.
 
 ### H3: Frontend (target: 6:45 PM–3:30 AM, in parallel against fixtures)
 
-- [ ] **H3.1** [F] [P0] (H0.3) — 45m — App shell and nav: Program, ITB Scorecard, Gaps & Training, Network, Shop. Always-visible footer: "Simplified ITB rules for demo · Public data unverified · Not affiliated · Data: Statistics Canada ODBus (OGL)".
-- [ ] **H3.2** [F] [P0] (H3.1) — 90m — Program page: CSV upload, jobs table (part, process, shop, score, reasons popover, controlled badge) and Leaflet map with pins and job lines.
-- [ ] **H3.3** [F] [P0] (H3.1) — 60m — ITB Scorecard: obligation meter, direct/indirect split, SMB % vs target, multiplier breakdown chart, "rules_version" tag.
-- [ ] **H3.4** [F] [P0] (H3.1) — 90m — Gaps & Training (the hero screen): blocked jobs with reasons, suggestion cards, and a **Fund training** button with an animated before/after (credit counter jump, jobs turning green, the `headline` in big type with the multiplier).
-- [ ] **H3.5** [F] [P0] (H3.1) — 60m — Shop view and Network: the shop's **offer inbox** (accept/decline, local state), **readiness card** ("Get CWB W47.1 → qualify for N more jobs worth $X"), **training status** after funding ("2 welders in training"), and certification badges (status, source, date). Network page lists shops with public/synthetic labels.
+- [x] **H3.1** [F] [P0] (H0.3) — 45m — App shell and nav: Program, ITB Scorecard, Gaps & Training, Network, Shop. Always-visible footer: "Simplified ITB rules for demo · Public data unverified · Not affiliated · Data: Statistics Canada ODBus (OGL)".
+- [x] **H3.2** [F] [P0] (H3.1) — 90m — Program page: CSV upload, jobs table (part, process, shop, score, reasons popover, controlled badge) and Leaflet map with pins and job lines.
+- [x] **H3.3** [F] [P0] (H3.1) — 60m — ITB Scorecard: obligation meter, direct/indirect split, SMB % vs target, multiplier breakdown chart, "rules_version" tag.
+- [x] **H3.4** [F] [P0] (H3.1) — 90m — Gaps & Training (the hero screen): blocked jobs with reasons, suggestion cards, and a **Fund training** button with an animated before/after (credit counter jump, jobs turning green, the `headline` in big type with the multiplier).
+- [x] **H3.5** [F] [P0] (H3.1) — 60m — Shop view and Network: the shop's **offer inbox** (accept/decline, local state), **readiness card** ("Get CWB W47.1 → qualify for N more jobs worth $X"), **training status** after funding ("2 welders in training"), and certification badges (status, source, date). Network page lists shops with public/synthetic labels.
 - [ ] **H3.6** [F] [P0] (H2.8) — 45m — Wire to the live API with fixture fallback and a "demo mode" badge.
 
 ### H4: Optional (only in BUILD mode, and only if H2.9 and H3.6 are both done by 8:00 AM)
@@ -529,8 +529,8 @@ blockers: [..] | hours left: [..] | question: [..]
 
 | Lane | Mode | Current task | Demo-check reached | Blockers | Updated |
 | --- | --- | --- | --- | --- | --- |
-| E | BUILD | H2.1/H2.3/H2.4/H2.6–H2.9 (engine wave B) + data/outreach research | fixtures 8/8; live pending wave B | teammate offline → Lane E runs Lane F too | Sat 20:30 |
-| F | BUILD (run by E's session) | H3.1–H3.5 integrate/review | fixtures mode | teammate's laptop dead | Sat 20:30 |
+| E | INTEGRATE | public shops + outreach call list; convergence | live 8/8, fixtures 8/8 | teammate offline → Lane E runs Lane F too | Sat 20:40 |
+| F | INTEGRATE (run by E's session) | H3.6 live wiring check | fixtures 8/8 (UI walkthrough screenshots OK) | teammate's laptop dead | Sat 20:40 |
 
 **Last integration:** —
 
@@ -546,4 +546,7 @@ HH:MM [lane] TASK-ID — result (demo-check: step)
 20:25 [E] H0.4 — demo_check.py 8 steps, live + --fixtures, catches 20/20 fixture mutations (demo-check: fixtures 8/8)
 20:25 [E] H2.2/H2.4(solver)/H2.5 — tagger, CP-SAT + greedy, ledger; 130 tests pass on clean main (demo-check: fixtures 8/8)
 20:25 [E] CONTRACT: GET /programs/{id}/jobs added (api.md §3, jobs.json fixtures) (demo-check: fixtures 8/8)
+20:14 [F] H3.1–H3.5 — shell, store (live/fixtures), Program+map, Scorecard, Gaps hero, Shop+Network; review fixes; build+lint pass; headless walkthrough no console errors (demo-check: fixtures 8/8)
+20:38 [E] H2.1/H2.3/H2.4/H2.6–H2.9 — engine + API; 255 tests; live demo-check 8/8 (demo-check: live 8/8)
+20:38 [E] H5.5 prep — pitch.md, demo-script.md (shop view before+after funding), devpost.md with final numbers (demo-check: live 8/8)
 ```

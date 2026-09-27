@@ -91,7 +91,7 @@ A certification **counts** for the rules if its status is `verified`, `declared`
   "status": "blocked"
 }
 ```
-`qty` is the **fleet-lifetime quantity** (all vehicles plus spares over the program). `est_value_cad = qty × unit_price_cad`. `hours_week` is the weekly shop load during production and is what counts against `capacity_hours_week`. `tag_source` is `llm | cache | rules`. `status` is `unrouted | assigned | blocked`.
+`tag_warning` (optional string) appears only when the tagger could not recognise a process and fell back to a default. `unit_price_cad` is kept as given (sub-cent prices allowed); `est_value_cad` is rounded to cents. `qty` is the **fleet-lifetime quantity** (all vehicles plus spares over the program). `est_value_cad = qty × unit_price_cad`. `hours_week` is the weekly shop load during production and is what counts against `capacity_hours_week`. `tag_source` is `llm | cache | rules`. `status` is `unrouted | assigned | blocked`.
 
 ### Assignment
 ```json
@@ -125,7 +125,7 @@ A certification **counts** for the rules if its status is `verified`, `declared`
   "suggestion_ids": ["TP-01"]
 }
 ```
-`eligible_shop_count` counts shops that pass every filter **except** capacity. `failing_filters` counts shops failing each filter (a shop can fail more than one).
+`eligible_shop_count` counts shops that pass every filter **except** capacity. `suggestion_ids` may be empty when no trainable near-miss shop exists (or its only package is already funded); the web must handle `[]`. `failing_filters` counts shops failing each filter (a shop can fail more than one).
 
 ### CreditTxn
 ```json
