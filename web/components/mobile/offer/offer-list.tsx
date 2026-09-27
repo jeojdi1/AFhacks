@@ -2,12 +2,12 @@
 
 import * as React from "react"
 import { toast } from "sonner"
-import { ShieldCheck } from "lucide-react"
+import { Clock, ShieldCheck, Wallet } from "lucide-react"
 import { useDemo } from "@/lib/data/store"
 import { fmtMoney } from "@/lib/format"
 import { useShopBundle } from "@/lib/app/shop-bundle"
 import { fmtWeekday } from "@/lib/app/today"
-import { t } from "@/lib/app/strings"
+import { extendStrings, t } from "@/lib/app/strings"
 import { UnreachableNotice } from "@/components/mobile/shell/unreachable-notice"
 import { useConnection } from "@/lib/app/connection"
 import { Button } from "@/components/ui/button"
@@ -158,11 +158,31 @@ export function OfferList({ shopId }: { shopId: string }) {
             <AssumptionTag note={t("o.replyBy.assumption")} />
           </p>
         ) : null}
-        <p className="text-base text-muted-foreground">
+        <p className="sr-only">
           {open.length
             ? t("o.list.total", { value: fmtMoney(total, { compact: true }), hours })
             : t("o.list.totalNoneOpen", { value: fmtMoney(total, { compact: true }) })}
         </p>
+        <div aria-hidden className="mt-1 grid grid-cols-2 gap-2">
+          <span className="flex items-center gap-2.5 rounded-xl border border-border bg-card p-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
+              <Wallet className="size-5" />
+            </span>
+            <span className="flex min-w-0 flex-col">
+              <span className="text-xl leading-tight font-bold tabular-nums">{fmtMoney(total, { compact: true })}</span>
+              <span className="text-[13px] leading-tight text-muted-foreground">{t("o.list.bigValue")}</span>
+            </span>
+          </span>
+          <span className="flex items-center gap-2.5 rounded-xl border border-border bg-card p-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
+              <Clock className="size-5" />
+            </span>
+            <span className="flex min-w-0 flex-col">
+              <span className="text-xl leading-tight font-bold tabular-nums">{open.length ? hours : 0}</span>
+              <span className="text-[13px] leading-tight text-muted-foreground">{t("o.list.bigHours")}</span>
+            </span>
+          </span>
+        </div>
         <p className="mt-1 flex items-start gap-2 rounded-lg border border-assigned/25 bg-assigned-soft px-3 py-2 text-sm font-medium text-assigned">
           <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden />
           {t("o.list.noBidding")}
@@ -217,6 +237,11 @@ export function OfferList({ shopId }: { shopId: string }) {
 }
 
 const UNDO_MS = 10_000
+
+extendStrings("en", {
+  "o.list.bigValue": "of work offered",
+  "o.list.bigHours": "hrs/wk still open",
+})
 
 function ListSkeleton() {
   return (

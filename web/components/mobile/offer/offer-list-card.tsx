@@ -10,6 +10,7 @@ import { SimulatedChip } from "@/components/mobile/shell/simulation"
 import { isSimulatedRecord } from "@/lib/app/sim-flag"
 import { DecisionChip, NewChip, ReplyByChip, WillSendChip, needsReply, type OfferView } from "./shared"
 import "./strings"
+import { ProcessArt } from "@/components/mobile/art/process-art"
 
 extendStrings("en", {
   "o.list.details": "Details",
@@ -53,10 +54,11 @@ export function OfferListCard({
       <Link
         href={href}
         className={cn(
-          "group flex min-h-16 items-stretch gap-2 p-4 outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset",
+          "group flex min-h-16 items-stretch gap-3 p-4 outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset",
           open ? "hover:bg-muted/60" : "hover:bg-muted/80"
         )}
       >
+        <ProcessArt tags={job?.process_tags} className={cn("self-start", !open && "opacity-60")} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
             <span className="font-medium text-foreground">{offer.job_id}</span>
@@ -69,7 +71,7 @@ export function OfferListCard({
               </span>
             ) : null}
           </div>
-          <p className={cn("mt-1 line-clamp-2 text-base leading-snug", open ? "text-foreground" : "text-muted-foreground")}>{offer.description}</p>
+          <p className={cn("mt-1 line-clamp-1 text-base leading-snug font-medium", open ? "text-foreground" : "text-muted-foreground")}>{offer.description}</p>
           <div className="mt-2 flex items-baseline gap-3">
             <span className={cn("text-2xl leading-none font-semibold tabular-nums", open ? "text-foreground" : "text-muted-foreground")}>
               <span className="sr-only">{t("o.list.valueLabel")}: </span>

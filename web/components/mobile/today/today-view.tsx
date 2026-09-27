@@ -6,7 +6,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ArrowRight, CircleCheck, Inbox, RotateCw } from "lucide-react"
+import { ArrowRight, BadgeCheck, CircleCheck, Clock, Inbox, RotateCw, Wallet } from "lucide-react"
 import { certDisplay, fmtMoney } from "@/lib/format"
 import { useDemo } from "@/lib/data/store"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
@@ -25,6 +25,7 @@ import { appToday, fmtWeekday } from "@/lib/app/today"
 import type { Assignment, Renewal } from "@/lib/app/types"
 import { AttentionCard } from "./attention-card"
 import { CapacitySheet } from "./capacity-sheet"
+import { InfoTip, PartStack } from "@/components/mobile/art/process-art"
 
 extendStrings("en", {
   "today.heading": "What needs you",
@@ -49,6 +50,9 @@ extendStrings("en", {
   "today.hero.title": "{count} offers waiting for your answer",
   "today.hero.title_one": "1 offer waiting for your answer",
   "today.hero.body": "{value} of work · no bidding, each offer went only to you",
+  "today.hero.value": "of work",
+  "today.hero.why": "No bidding: each offer went only to you.",
+  "today.stat.why": "More about {label}",
   "today.hero.cta": "Review offers",
   "today.error": "Couldn't load this shop",
   "today.retry": "Try again",
@@ -109,13 +113,34 @@ function Skeleton() {
   )
 }
 
-function Stat({ value, label, detail, tag }: { value: string; label: string; detail?: string; tag?: React.ReactNode }) {
+function Stat({
+  value,
+  label,
+  detail,
+  tag,
+  Icon,
+}: {
+  value: string
+  label: string
+  detail?: string
+  tag?: React.ReactNode
+  Icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>
+}) {
   return (
-    <div className="flex min-w-0 flex-col gap-0.5 rounded-xl border border-border bg-card p-3">
-      <span className="text-xl leading-tight font-bold tabular-nums tracking-tight">{value}</span>
-      <span className="text-sm leading-snug text-muted-foreground">{label}</span>
-      {detail ? <span className="text-sm leading-snug text-muted-foreground">{detail}</span> : null}
-      {tag ? <span className="mt-1">{tag}</span> : null}
+    <div className="relative flex min-w-0 flex-col items-center gap-1 rounded-xl border border-border bg-card px-2 pt-3 pb-2.5 text-center">
+      <span className="flex size-10 items-center justify-center rounded-full bg-brand/10 text-brand">
+        <Icon className="size-5" aria-hidden />
+      </span>
+      <span className="text-2xl leading-tight font-bold tabular-nums tracking-tight">{value}</span>
+      <span className="text-[13px] leading-tight text-muted-foreground">{label}</span>
+      {tag ? <span className="scale-90">{tag}</span> : null}
+      {detail ? (
+        <span className="absolute top-0 right-0">
+          <InfoTip label={t("today.stat.why", { label })} className="m-0">
+            {detail}
+          </InfoTip>
+        </span>
+      ) : null}
     </div>
   )
 }
@@ -283,12 +308,24 @@ export function TodayView({ shopId }: { shopId: string }) {
             ) : null}
             {replyCount > 0 ? (
               <div className="flex flex-col gap-3 rounded-2xl border-2 border-brand/40 bg-brand/5 p-4" data-testid="offers-hero">
-                <div>
-                  <p className="text-sm font-semibold text-brand">{t("today.hero.kicker")}</p>
-                  <h2 className="mt-0.5 text-xl leading-tight font-bold">{t("today.hero.title", { count: replyCount })}</h2>
-                  <p className="mt-1 text-base leading-snug text-muted-foreground">
-                    {t("today.hero.body", { value: fmtMoney(openValue, { compact: true }) })}
-                  </p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-brand">{t("today.hero.kicker")}</p>
+                    <h2 className="mt-0.5 text-xl leading-tight font-bold">{t("today.hero.title", { count: replyCount })}</h2>
+                  </div>
+                  <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand text-lg font-bold text-white tabular-nums" aria-hidden>
+                    {replyCount}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <PartStack tagsList={open.map((o) => jobsById[o.job_id]?.process_tags)} />
+                  <span className="flex min-w-0 flex-col">
+                    <span className="text-2xl leading-none font-bold tabular-nums tracking-tight whitespace-nowrap">{fmtMoney(openValue, { compact: true })}</span>
+                    <span className="mt-0.5 text-sm whitespace-nowrap text-muted-foreground">{t("today.hero.value")}</span>
+                  </span>
+                  <InfoTip label={t("today.hero.why")} className="ml-auto">
+                    {t("today.hero.why")}
+                  </InfoTip>
                 </div>
                 <Link href={`/m/shops/${encodeURIComponent(shopId)}/offers`} className={cn(buttonVariants({ size: "touch-lg" }), "w-full")}>
                   {t("today.hero.cta")}
@@ -323,11 +360,13 @@ export function TodayView({ shopId }: { shopId: string }) {
           <Stat
             value={fmtMoney(stats.offers_value_cad, { compact: true })}
             label={t("today.stat.offers")}
+            Icon={Wallet}
             detail={t("today.stat.offers.detail", { count: stats.offers_count })}
           />
           <Stat
             value={`${stats.accepted_hours}`}
             label={t("today.stat.hours")}
+            Icon={Clock}
             detail={
               stats.confirmed_free_hours !== null
                 ? t("today.stat.hoursConfirmed", { free: stats.confirmed_free_hours })
@@ -340,6 +379,7 @@ export function TodayView({ shopId }: { shopId: string }) {
           <Stat
             value={`${certCount.held}`}
             label={t("today.stat.certs", { count: certCount.held })}
+            Icon={BadgeCheck}
             detail={
               certCount.needed === 0
                 ? certCount.inTraining > 0

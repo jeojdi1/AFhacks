@@ -20,7 +20,6 @@ import {
   TriangleAlert,
   Wrench,
   XCircle,
-  type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/lib/data/store"
@@ -35,7 +34,7 @@ import { fmtMoney } from "@/lib/format"
 import { SimulatedChip } from "@/components/mobile/shell/simulation"
 import { Button } from "@/components/ui/button"
 import { PortalPage, Panel, BigAction } from "./portal-page"
-import { PromiseMeter } from "./promise-meter"
+import { InfoTip, JobDots, PromiseRing, ReplyTile, WeldArt } from "./desk-art"
 import { StartDemo, useRouted } from "./start-demo"
 import { useWithParams } from "@/lib/ui/use-with-params"
 import { AwardsDeskList } from "@/components/mobile/prime/awards"
@@ -61,18 +60,6 @@ const TONE_DOT: Record<FeedTone, string> = {
   danger: "bg-destructive",
   info: "bg-slate-400",
   action: "bg-public",
-}
-
-function Count({ n, label, tone, Icon }: { n: number; label: string; tone: string; Icon?: LucideIcon }) {
-  return (
-    <div className="flex min-w-0 flex-col rounded-lg bg-muted/60 px-3 py-2">
-      <span className={cn("flex items-center gap-1.5 text-2xl font-semibold tabular-nums", tone)}>
-        {Icon ? <Icon className="size-5" aria-hidden /> : null}
-        {n}
-      </span>
-      <span className="text-sm text-muted-foreground">{label}</span>
-    </div>
-  )
 }
 
 export function PrimeDesk() {
@@ -186,15 +173,18 @@ export function PrimeDesk() {
       eyebrow="Northgate Land Systems (fictional defence company) · supplier development"
       title="Northgate's desk"
       lede={
-        <>
-          Northgate won a {fmtMoney(program?.obligation_cad ?? OBLIGATION_FALLBACK, { compact: true })} defence contract and
-          promised Canada the same amount of business. This desk shows how much is covered, which jobs are stuck, and
-          what the small shops said.
-        </>
+        <span className="inline-flex items-center gap-1">
+          A {fmtMoney(program?.obligation_cad ?? OBLIGATION_FALLBACK, { compact: true })} promise to Canada, at a glance.
+          <InfoTip label="What is this desk?">
+            Northgate won a {fmtMoney(program?.obligation_cad ?? OBLIGATION_FALLBACK, { compact: true })} defence contract
+            and promised Canada the same amount of business. This desk shows how much is covered, which jobs are stuck,
+            and what the small shops said.
+          </InfoTip>
+        </span>
       }
     >
       <Panel title="The promise" icon={Gauge} action={{ label: "Credit earned", href: "/scorecard" }} testId="panel-promise">
-        <PromiseMeter ledger={routed ? ledger : null} obligation={program?.obligation_cad ?? OBLIGATION_FALLBACK} />
+        <PromiseRing ledger={routed ? ledger : null} obligation={program?.obligation_cad ?? OBLIGATION_FALLBACK} />
       </Panel>
 
       {!routed ? (
@@ -209,19 +199,36 @@ export function PrimeDesk() {
           testId="panel-stuck"
         >
           {routed ? (
-            <div className="flex flex-col gap-2">
-              <p className="text-[0.95rem] text-slate-700">
-                <strong className="text-2xl font-semibold text-blocked tabular-nums" data-testid="stuck-count">
-                  {blocked.length}
-                </strong>{" "}
-                {blocked.length === 1 ? "job is" : "jobs are"} stuck
-                {blocked.length ? <> · {fmtMoney(stuckValue, { compact: true })} of work</> : null}
-                {blocked.length ? ": no qualified shop has welders free." : "."}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {assignments.length} of {jobs.length || assignments.length + blocked.length} jobs matched to {shops} Canadian
-                shops ({smeShops} small {smeShops === 1 ? "business" : "businesses"}). No bidding: each job goes to one qualified shop.
-              </p>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4">
+                <WeldArt className={blocked.length ? undefined : "opacity-40"} />
+                <div className="flex min-w-0 flex-col gap-1">
+                  <p className="flex items-baseline gap-2">
+                    <strong
+                      className={cn("text-5xl leading-none font-semibold tabular-nums", blocked.length ? "text-blocked" : "text-assigned")}
+                      data-testid="stuck-count"
+                    >
+                      {blocked.length}
+                    </strong>
+                    <span className="text-lg text-slate-700">{blocked.length === 1 ? "job is" : "jobs are"} stuck</span>
+                  </p>
+                  {blocked.length ? (
+                    <p className="text-[0.95rem] text-slate-700">
+                      {fmtMoney(stuckValue, { compact: true })} of work · no welders free
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5 rounded-lg bg-muted/50 px-3 py-2.5">
+                <JobDots matched={assignments.length} total={jobs.length || assignments.length + blocked.length} />
+                <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                  {assignments.length} of {jobs.length || assignments.length + blocked.length} matched · {shops} Canadian shops (
+                  {smeShops} small {smeShops === 1 ? "business" : "businesses"})
+                  <InfoTip label="How jobs are matched">
+                    No bidding: each job goes to one qualified shop. A job is stuck when no qualified shop has welders free.
+                  </InfoTip>
+                </p>
+              </div>
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">Nothing stuck yet: no parts list has been matched.</p>
@@ -232,9 +239,9 @@ export function PrimeDesk() {
           {routed ? (
             <div ref={repliesRef} tabIndex={-1} className="flex flex-col gap-3 outline-none">
               <div className="grid grid-cols-3 gap-2">
-                <Count n={replies.accepted} label="accepted" tone="text-assigned" />
-                <Count n={replies.waiting} label="waiting" tone="text-foreground" />
-                <Count n={replies.declined} label="declined" tone={replies.declined ? "text-destructive" : "text-muted-foreground"} />
+                <ReplyTile kind="accepted" n={replies.accepted} />
+                <ReplyTile kind="waiting" n={replies.waiting} />
+                <ReplyTile kind="declined" n={replies.declined} />
               </div>
               {needsAttention.length ? (
                 <ul className="flex flex-col gap-2" aria-label="Needs your attention" data-testid="replies-attention">
@@ -335,11 +342,19 @@ export function PrimeDesk() {
       </div>
 
       {routed ? (
-        <Panel title="Awards in progress" icon={FilePen} testId="panel-awards">
-          <p className="-mt-1 text-sm text-muted-foreground">
-            When a shop accepts, it signs the job&apos;s paperwork and books a kickoff call with Northgate. Nothing here changes
-            the credit numbers.
-          </p>
+        <Panel
+          title={
+            <>
+              Awards in progress
+              <InfoTip label="About awards">
+                When a shop accepts, it signs the job&apos;s paperwork and books a kickoff call with Northgate. Nothing here
+                changes the credit numbers.
+              </InfoTip>
+            </>
+          }
+          icon={FilePen}
+          testId="panel-awards"
+        >
           <AwardsDeskList withParams={wp} />
         </Panel>
       ) : null}

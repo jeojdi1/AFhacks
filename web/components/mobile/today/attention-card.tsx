@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils"
 import { t } from "@/lib/app/strings"
 import type { TodayItem } from "@/lib/app/attention"
 import type { AttentionKind, AttentionTone, RenewalStage } from "@/lib/app/types"
+import { SeatDots, WelderArt } from "@/components/mobile/art/process-art"
 
 const KIND_ICON: Record<AttentionKind, React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>> = {
   offers: Inbox,
@@ -83,11 +84,15 @@ export function AttentionCard({ item, onSelect, className }: { item: TodayItem; 
     <>
       <span aria-hidden className={cn("absolute inset-y-3 left-0 w-1 rounded-r-full", tone.bar)} />
       <span className="flex w-[72px] shrink-0 flex-col items-center gap-1 text-center">
-        <span className={cn("flex size-7 items-center justify-center rounded-full", tone.icon)}>
-          <Icon className="size-4" aria-hidden />
-        </span>
+        {item.kind === "training" ? (
+          <WelderArt />
+        ) : (
+          <span className={cn("flex size-12 items-center justify-center rounded-full", tone.icon)}>
+            <Icon className="size-6" aria-hidden />
+          </span>
+        )}
         <span className={cn("text-[28px] leading-none font-bold tabular-nums tracking-tight", tone.big)}>{item.big}</span>
-        <span className="text-sm leading-tight text-muted-foreground">{item.big_label}</span>
+        <span className="text-[13px] leading-tight text-muted-foreground">{item.big_label}</span>
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
         {item.stage || item.basis ? (
@@ -97,8 +102,11 @@ export function AttentionCard({ item, onSelect, className }: { item: TodayItem; 
             {item.basis === "shop-declared" ? <InlineTag text={t("label.shopDeclared")} note="Entered by the shop; not verified" /> : null}
           </span>
         ) : null}
-        <span className="text-base leading-snug font-semibold text-foreground">{item.title}</span>
-        <span className="text-base leading-snug text-muted-foreground">{item.detail}</span>
+        <span className="text-base leading-snug font-semibold text-foreground" title={item.detail}>
+          {item.title}
+        </span>
+        {item.kind === "training" ? <SeatDots count={Number(item.big) || 0} className="mt-0.5" /> : null}
+        <span className="sr-only">{item.detail}</span>
         {item.assumption ? (
           <span>
             <InlineTag text={t("label.assumption")} note={item.assumption} />

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { CalendarPlus, GraduationCap, Hourglass, Inbox, ShieldCheck } from "lucide-react"
+import { CalendarDays, CalendarPlus, GraduationCap, Hourglass, Inbox, Lock, ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/lib/data/store"
 import { buttonVariants } from "@/components/ui/button"
@@ -17,6 +17,7 @@ import { isFunded, packageJobs, seatDemo, seatStages } from "@/lib/app/readiness
 import { SeatStepper } from "./seat-stepper"
 import { TicketPreview } from "./ticket-preview"
 import { PathToWork } from "./path-to-work"
+import { InfoTip, WelderArt } from "./seat-art"
 
 function Notice({ icon, title, body }: { icon?: React.ReactNode; title: string; body: string }) {
   return (
@@ -58,31 +59,42 @@ export function SeatCard({ packageId, seat }: { packageId: string; seat: number 
   }, [events, packageId])
 
   const header = (
-    <section className="rounded-xl border border-border bg-card p-4 shadow-xs">
-      <div className="flex items-center gap-3">
-        <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-secondary">
-          <GraduationCap className="size-6" aria-hidden />
-        </span>
-        <div className="min-w-0">
-          <h2 className="text-xl leading-snug font-semibold tracking-tight">
-            {total && !badSeat
-              ? t("seat.header", { seat: seatNo, total, pkg: packageId })
-              : `${t("title.trainee")} · ${packageId}`}
-          </h2>
-          {pkg ? (
-            <p className="mt-0.5 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-              <span>
-                {shortShopName(pkg.shop_name)} ({pkg.shop_source === "synthetic" ? "synthetic" : "public data"})
-              </span>
-              <StatusBadge kind={pkg.shop_source === "public" ? "public" : "synthetic"} />
-            </p>
-          ) : null}
-        </div>
+    <section className="overflow-hidden rounded-xl border border-border bg-card shadow-xs">
+      <div className="flex justify-center bg-brand/5 px-4 pt-3">
+        <WelderArt className="h-28 w-auto max-w-full" />
       </div>
-      <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-        <ShieldCheck className="size-4 shrink-0" aria-hidden />
-        {t("seat.private")}
-      </p>
+      <div className="p-4">
+        <h2 className="text-2xl leading-snug font-semibold tracking-tight tabular-nums">
+          {total && !badSeat
+            ? t("seat.header", { seat: seatNo, total, pkg: packageId })
+            : `${t("title.trainee")} · ${packageId}`}
+        </h2>
+        {total && !badSeat ? (
+          <div className="mt-2 flex gap-1.5" aria-hidden>
+            {Array.from({ length: total }, (_, i) => (
+              <span
+                key={i}
+                className={cn(
+                  "h-2 flex-1 rounded-full",
+                  i + 1 === seatNo ? "bg-brand" : "bg-muted"
+                )}
+              />
+            ))}
+          </div>
+        ) : null}
+        {pkg ? (
+          <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+            <span>
+              {shortShopName(pkg.shop_name)} ({pkg.shop_source === "synthetic" ? "synthetic" : "public data"})
+            </span>
+            <StatusBadge kind={pkg.shop_source === "public" ? "public" : "synthetic"} />
+          </p>
+        ) : null}
+        <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Lock className="size-3.5 shrink-0" aria-hidden />
+          {t("seat.private")}
+        </p>
+      </div>
     </section>
   )
 
@@ -159,28 +171,39 @@ export function SeatCard({ packageId, seat }: { packageId: string; seat: number 
       {header}
 
       <section aria-labelledby="stage-title">
-        <h3 id="stage-title" className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+        <h3 id="stage-title" className="mb-3 flex items-center gap-2 text-lg font-semibold tracking-tight">
           {t("seat.stage")}
           <AssumptionTag note={seatDemo.note} />
+          <InfoTip label="About this stage">
+            <span>{t("seat.stageNote")}</span>
+          </InfoTip>
         </h3>
-        <p className="mt-1 mb-4 text-sm text-muted-foreground">{t("seat.stageNote")}</p>
         <SeatStepper stages={seatStages} currentId={seatDemo.stage_after_funding} />
       </section>
 
-      {pkg ? (
-        <section className="rounded-xl border border-border bg-card p-4">
-          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{t("seat.provider")}</p>
-          <p className="mt-1 text-base font-medium">{pkg.recipient_example}</p>
-        </section>
-      ) : null}
-
       <section className="rounded-xl border border-border bg-card p-4">
-        <p className="flex items-center gap-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-          {t("seat.testDate")}
-          <AssumptionTag note="Funding date plus 6 weeks; the provider sets the real date" />
-        </p>
-        <p className="mt-1 text-2xl font-semibold tabular-nums">{fmtLongDate(testDate)}</p>
-        <p className="mt-1 text-sm text-muted-foreground">{t("seat.testDateNote")}</p>
+        <div className="flex items-center gap-3">
+          <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
+            <CalendarDays className="size-6" aria-hidden />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              {t("seat.testDate")}
+              <AssumptionTag note="Funding date plus 6 weeks; the provider sets the real date" />
+              <InfoTip label="About the test date" className="normal-case">
+                <span className="normal-case">{t("seat.testDateNote")}</span>
+              </InfoTip>
+            </div>
+            <p className="text-2xl font-semibold tabular-nums">{fmtLongDate(testDate)}</p>
+          </div>
+        </div>
+        {pkg ? (
+          <p className="mt-3 flex items-center gap-2 text-sm">
+            <GraduationCap className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+            <span className="sr-only">{t("seat.provider")}: </span>
+            <span className="font-medium">{pkg.recipient_example}</span>
+          </p>
+        ) : null}
         <a
           href={icsDataUrl(ics)}
           download={`muster-${packageId}-test-date.ics`}
@@ -195,7 +218,13 @@ export function SeatCard({ packageId, seat }: { packageId: string; seat: number 
 
       <PathToWork jobs={unlocked} value={value} jobsById={jobsById} />
 
-      {eligibility}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <ShieldCheck className="size-4 shrink-0" aria-hidden />
+        Who qualifies (ITB §7.5.1)
+        <InfoTip label="Who qualifies for certification credit">
+          <span>{t("seat.eligibility")}</span>
+        </InfoTip>
+      </div>
     </div>
   )
 }
