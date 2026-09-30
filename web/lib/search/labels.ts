@@ -3,6 +3,7 @@
 
 import { PROCESS_LABEL, fmtMoney } from "@/lib/format"
 import { certPlain } from "@/lib/ui/plain"
+import { isWeldingTrade, tradeForCert } from "@/lib/trades"
 import type { ShopSearchParams } from "./types"
 
 /** Process order (matches engine.rules.PROCESS_LABEL). */
@@ -21,7 +22,7 @@ export const PROCESS_KEYS = [
   "fasteners",
 ] as const
 
-/** Certificate order (matches engine.rules.CERT_LABEL). */
+/** Certificate order (matches engine.rules.CERT_LABEL, then the IPC operator certifications). */
 export const CERT_KEYS = [
   "CGP",
   "CPCSC_L1",
@@ -31,7 +32,17 @@ export const CERT_KEYS = [
   "NADCAP:CHEM_PROCESSING",
   "NADCAP:COATINGS",
   "CWB_W47.1",
+  "IPC_J_STD_001",
+  "IPC_A_610",
+  "IPC_WHMA_A_620",
 ] as const
+
+/** Who is in training for a certificate: "welders" (CWB W47.1), the trade's workers, or "staff". */
+export function trainingWorkers(cert: string): string {
+  const trade = tradeForCert(cert)
+  if (cert.startsWith("CWB") || isWeldingTrade(trade)) return "welders"
+  return trade ? trade.workers : "staff"
+}
 
 export const COUNTING_STATUSES = ["verified", "declared", "pending_training"] as const
 
@@ -73,6 +84,7 @@ export const QUICK_CHIPS: QuickChip[] = [
   { key: "five-axis", label: "5-axis machining", process: ["five_axis_milling"], cert: [] },
   { key: "cwb-welding", label: "Certified welding (CWB)", process: ["welding"], cert: ["CWB_W47.1"] },
   { key: "harness", label: "Wire harness", process: ["wire_harness"], cert: [] },
+  { key: "electronics", label: "Electronics and box builds", process: ["electronics_assembly"], cert: [] },
   { key: "heat-treat", label: "Heat treat", process: ["heat_treat"], cert: [] },
   { key: "cgp", label: "Security-cleared (CGP)", process: [], cert: ["CGP"] },
 ]
@@ -162,11 +174,12 @@ const PROCESS_WORDS: [RegExp, string][] = [
   [/\banodi[sz]/, "anodizing"],
   [/\bplat(ing|ed)\b/, "plating"],
   [/\bpaint|\bpowder[\s-]?coat|\bcoating/, "painting"],
-  [/\bharness|\bcable\s+assembl/, "wire_harness"],
-  [/\belectronic|\bpcb\b|\bcircuit/, "electronics_assembly"],
+  [/\bharness|\bcable\s+assembl|\bcabling\b|\bwiring\b/, "wire_harness"],
+  // Electronics subassemblies, PCBAs and box builds are electronics assembly work.
+  [/\belectronic|\bpcba?s?\b|\bcircuit|\bbox[\s-]?builds?\b|\bsmt\b|\bsurface[\s-]mount/, "electronics_assembly"],
   [/\bfasteners?\b|\bbolts?\b/, "fasteners"],
 ]
-const MILLING = /\bcnc\b|\bmill(ing|ed)?\b|\bmachin(ing|ed|e shop)\b/
+const MILLING = /\bcnc\b|\bmill(ing|ed)?\b|\bmachin(ing|ed|e shop|ists?)\b/
 
 const CERT_WORDS: [RegExp, string][] = [
   [/\bcwb\b|\bw47(\.1)?\b|\bcertified weld/, "CWB_W47.1"],
@@ -174,6 +187,10 @@ const CERT_WORDS: [RegExp, string][] = [
   [/\bcpcsc\b|\bcyber/, "CPCSC_L1"],
   [/\biso(\s?9001)?\b/, "ISO9001"],
   [/\bas\s?9100\b|\baerospace\b/, "AS9100"],
+  // IPC operator certifications (electronics and harness shops).
+  [/\bj[\s-]?std[\s-]?001\b/, "IPC_J_STD_001"],
+  [/\bipc[\s-]?a[\s-]?610\b/, "IPC_A_610"],
+  [/\bwhma\b|\bipc[\s-]?a[\s-]?620\b/, "IPC_WHMA_A_620"],
 ]
 
 // ---------------------------------------------------------------------------- shop names

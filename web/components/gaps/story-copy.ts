@@ -31,6 +31,13 @@ const EXTRA: Record<string, string> = {
     "Northgate funded {what}. **{k} stuck {jobsWord} ({jobsValue} of work) can go ahead;** {left} {isAre} still stuck.",
   "gaps.b.funded.seats": "{seats} welder training seats",
   "gaps.b.funded.training": "welder training",
+  // Every trade: other trades (or mixed / none) instead of the welding keys above.
+  "gaps.b.funded.seats.trade": "{seats} {worker} training seats",
+  "gaps.b.funded.seats.generic": "{seats} training seats",
+  "gaps.b.funded.training.trade": "{worker} training",
+  "gaps.b.funded.training.generic": "training",
+  "program.b2.sme.trade":
+    "**{assigned} of {jobs} jobs** are matched to **{shops} Canadian shops** ({smeShops} of them small businesses): {value} of work, {smePct} of it to small businesses. **{blocked} {jobsNoun} {isAre} stuck.**",
   "gaps.eq.unstick.one": "Unsticks 1 job",
   "gaps.eq.credit.sub.m": "training counts {m}×",
   "gaps.list.title.one": "1 stuck welding job",

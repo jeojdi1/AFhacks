@@ -1,7 +1,7 @@
 "use client"
 
 // /m/prime "What you can do now": the defence company's real actions on a phone.
-//   1. Fund welder training (each unfunded suggestion) → confirm sheet → useDemo().fund()
+//   1. Fund training (each unfunded suggestion, any trade) → confirm sheet → useDemo().fund()
 //   2. Shop questions → template replies (engine route if it exists, else recorded here: "Reply sent (demo)")
 //   3. Funding requests from shops ("Ask Northgate") → Approve & fund → useDemo().fund()
 //   4. Declined jobs → Find another shop (desktop supplier search, which can re-offer the job)
@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils"
 import { CERT_LABEL, fmtMoney } from "@/lib/format"
 import { useDemo } from "@/lib/data/store"
 import type { TrainingPackage } from "@/lib/api/types"
+import { isWeldingTrade, tradeForPackage, workersText } from "@/lib/trades"
 import { shopInfo, useAppActions } from "@/lib/app/actions-store"
 import { declineResolved, useReoffers } from "@/lib/search/reoffers"
 import { fmtTime } from "@/lib/app/today"
@@ -54,11 +55,17 @@ extendStrings("en", {
   "pa.notRouted.cta": "Send parts list to shops",
   "pa.notRouted.busy": "Sending…",
 
-  "pa.fund.title": "Fund welder training",
-  "pa.fund.subtitle": "Jobs are stuck because shops lack qualified welders. Training fixes that and earns Canada work credit (ITB).",
+  "pa.fund.title": "Fund worker training",
+  "pa.fund.subtitle": "Jobs are stuck because shops lack qualified workers. Training fixes that and earns Canada work credit (ITB).",
   "pa.fund.none": "Every suggested training plan is funded.",
   "pa.fund.cert": "Qualify {count} welders under {cert}",
   "pa.fund.apprentice": "Sponsor {count} welding apprentices",
+  // Every other trade (CNC machinists, electronics and harness assemblers, coatings operators).
+  "pa.fund.certTrade": "Certify {who} to {cert}",
+  "pa.fund.apprenticeTrade": "Sponsor {count} {worker} apprentices",
+  "pa.fund.apprenticeTrade_one": "Sponsor 1 {worker} apprentice",
+  "pa.fund.trainTrade": "Train {who}",
+  "pa.fund.ctaTrade": "Fund {worker} training",
   "pa.fund.costCredit": "{cost} training → {credit} credit ({mult}x)",
   "pa.fund.unblocks": "Unblocks {count} jobs · {value} of work",
   "pa.fund.unblocks_one": "Unblocks 1 job · {value} of work",
@@ -114,10 +121,33 @@ function requestSimulated(r: FundingRequestRec | undefined, events: { kind: stri
 
 const questionId = (d: OfferDecisionRec) => `q-${d.shop_id}-${d.job_id}`.replace(/[^A-Za-z0-9_-]/g, "_")
 
+/** The package's trade when it is not welding (welding keeps the original wording). */
+function otherTradeOf(p: TrainingPackage) {
+  const trade = tradeForPackage(p)
+  return trade && !isWeldingTrade(trade) ? trade : null
+}
+
 function pkgTitle(p: TrainingPackage): string {
-  if (p.category === "apprentice_sponsorship") return t("pa.fund.apprentice", { count: p.trainees })
-  if (p.cert_unlock) return t("pa.fund.cert", { count: p.trainees, cert: p.cert_unlock === "CWB_W47.1" ? "CSA W47.1" : (CERT_LABEL[p.cert_unlock] ?? p.cert_unlock) })
+  // Every trade, not just welders: "Sponsor 2 CNC machinist apprentices", "Certify 4
+  // electronics assemblers to IPC-A-610", "Train 2 harness assemblers".
+  const other = otherTradeOf(p)
+  if (p.category === "apprentice_sponsorship") {
+    return other ? t("pa.fund.apprenticeTrade", { count: p.trainees, worker: other.worker }) : t("pa.fund.apprentice", { count: p.trainees })
+  }
+  if (p.cert_unlock) {
+    const cert = p.cert_unlock === "CWB_W47.1" ? "CSA W47.1" : (CERT_LABEL[p.cert_unlock] ?? p.cert_unlock)
+    return other
+      ? t("pa.fund.certTrade", { count: p.trainees, who: workersText(other, p.trainees), cert })
+      : t("pa.fund.cert", { count: p.trainees, cert })
+  }
+  if (other) return t("pa.fund.trainTrade", { who: workersText(other, p.trainees) })
   return p.title
+}
+
+function fundCta(p: TrainingPackage): string {
+  const other = otherTradeOf(p)
+  if (p.category === "apprentice_sponsorship") return t("pa.fund.ctaApprentice")
+  return other ? t("pa.fund.ctaTrade", { worker: other.worker }) : t("pa.fund.cta")
 }
 
 function shopName(id: string, fallback?: string | null): string {
@@ -282,7 +312,7 @@ export function PrimeActions() {
         </div>
       ) : (
         <>
-          {/* 1. Fund welder training */}
+          {/* 1. Fund training */}
           <div className="flex flex-col gap-2" data-testid="pa-fund">
             <SubHeading Icon={GraduationCap} title={t("pa.fund.title")} count={unfunded.length} />
             <p className="text-sm text-muted-foreground">{t("pa.fund.subtitle")}</p>
@@ -319,7 +349,7 @@ export function PrimeActions() {
                   </p>
                   <Button size="touch-lg" className="w-full" onClick={() => setConfirm(p)} data-testid="fund-open">
                     <Wrench className="size-5" aria-hidden />
-                    {p.category === "apprentice_sponsorship" ? t("pa.fund.ctaApprentice") : t("pa.fund.cta")}
+                    {fundCta(p)}
                   </Button>
                 </div>
               )

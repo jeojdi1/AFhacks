@@ -26,6 +26,8 @@ import { InfoTip } from "./desk-art"
 import { usePackageFunded } from "./use-funded"
 import { StageTrack } from "./trainee-desk/stage-track"
 import { PathGrid } from "./trainee-desk/path-grid"
+import { isWeldingTrade, tradeForPackage, type Trade } from "@/lib/trades"
+import { capFirst } from "@/lib/ui/trade-copy"
 
 /** The demo trainee's seat, read from TRAINEE_SEAT_HREF ("/m/trainee/TP-01?seat=3"). */
 function seatFromHref(href: string): { packageId: string; seat: number } {
@@ -37,6 +39,20 @@ function seatFromHref(href: string): { packageId: string; seat: number } {
 
 const { packageId: SEAT_PACKAGE, seat: SEAT_NO } = seatFromHref(TRAINEE_SEAT_HREF)
 
+/** A non-welding seat's credential (from the trade catalog), in place of the welding ticket. */
+function CredentialCard({ trade }: { trade: Trade | null }) {
+  return (
+    <section aria-labelledby="desk-credential-title" className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5 sm:p-6">
+      <h2 id="desk-credential-title" className="flex items-center gap-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        What you earn
+        <AssumptionTag note="From the demo's training catalog; your provider confirms the course" />
+      </h2>
+      <p className="text-xl font-semibold tracking-tight">{trade ? `${capFirst(trade.worker)} training` : "Trade training"}</p>
+      {trade?.credential ? <p className="text-base text-slate-700">{trade.credential}</p> : null}
+    </section>
+  )
+}
+
 export function TraineeHome() {
   const { ready, stage, gaps, fundResults, jobs } = useDemo()
   const { fundingRequests, events } = useAppActions()
@@ -45,6 +61,10 @@ export function TraineeHome() {
 
   const pkg = gaps?.suggestions.find((p) => p.id === SEAT_PACKAGE) ?? fundResults[SEAT_PACKAGE]?.package ?? null
   const total = pkg?.trainees ?? null
+  // Every trade: the welding picture and CWB ticket are for a welding seat (the demo's TP-01);
+  // a seat in any other trade shows that trade's credential instead.
+  const trade = pkg ? tradeForPackage(pkg) : null
+  const weldingSeat = !pkg || isWeldingTrade(trade)
   const request = fundingRequests[SEAT_PACKAGE] ?? null
   const jobsById = React.useMemo(() => Object.fromEntries(jobs.map((j) => [j.id, j])), [jobs])
   const fundedAt = React.useMemo(() => {
@@ -87,7 +107,11 @@ export function TraineeHome() {
           </p>
         </div>
         <div className="flex h-full items-center justify-center bg-brand/5 px-6 py-6">
-          <WelderArt className="h-40 w-auto max-w-full sm:h-48" />
+          {weldingSeat ? (
+            <WelderArt className="h-40 w-auto max-w-full sm:h-48" />
+          ) : (
+            <GraduationCap className="size-32 text-brand/70 sm:size-40" aria-hidden />
+          )}
         </div>
       </div>
     </section>
@@ -151,7 +175,9 @@ export function TraineeHome() {
     const testDate = addDays(base, seatDemo.test_date_weeks_after_funding * 7)
     const ics = buildIcs({
       uid: `muster-${SEAT_PACKAGE}-seat-${SEAT_NO}-${toISODate(testDate)}@muster.demo`,
-      title: t("seat.icsTitle", { pkg: SEAT_PACKAGE }),
+      title: weldingSeat
+        ? t("seat.icsTitle", { pkg: SEAT_PACKAGE })
+        : `${capFirst(trade ? trade.worker : "trainee")} certification test (example date) · ${SEAT_PACKAGE}`,
       description: t("seat.icsBody"),
       date: testDate,
     })
@@ -206,7 +232,7 @@ export function TraineeHome() {
             </a>
           </section>
 
-          <TicketPreview />
+          {weldingSeat ? <TicketPreview /> : <CredentialCard trade={trade} />}
         </div>
 
         <PathGrid jobs={unlocked} value={value} jobsById={jobsById} />

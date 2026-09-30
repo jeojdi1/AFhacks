@@ -59,7 +59,7 @@ export function WalletView({ shopId }: { shopId: string }) {
   }, [certs, today, shopId, jobsById, assignments])
 
   const heldRows = rows.filter((r) => r.held)
-  // pending_training counts for matching but is not held yet: welders are still in training (Q7).
+  // pending_training counts for matching but is not held yet: workers are still in training (Q7).
   const trainingCount = heldRows.filter((r) => r.cert.status === "pending_training").length
   const inPlaceCount = heldRows.length - trainingCount
   const notHeld = rows.filter((r) => !r.held)

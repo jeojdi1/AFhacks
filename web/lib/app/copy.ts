@@ -7,9 +7,39 @@
 // so the UI rewrites them here.
 
 import type { ShopTraining, TrainingPackage } from "@/lib/api/types"
-import { CERT_LABEL, PROCESS_LABEL } from "@/lib/format"
+import { CERT_LABEL, PROCESS_LABEL, lowerLabel } from "@/lib/format"
 import { certPlain } from "@/lib/ui/plain"
+import { isWeldingTrade, tradeForPackage, tradeForRequirement, workersText, type Trade } from "@/lib/trades"
 import { extendStrings, t } from "./strings"
+
+// ---------------------------------------------------------------------------
+// Every trade, not just welders (docs/decisions.md #9). The trade comes from the package's
+// cert_unlock / capacity_unlock or the requirement (web/lib/trades.ts). Welding keeps every
+// original string, so the Northgate demo (TP-01, TP-02) reads exactly as before; another
+// trade gets the trade's own nouns ("electronics assemblers", "CNC machinists").
+
+type PackageLike = { cert_unlock?: string | null; capacity_unlock?: Partial<Record<string, number>> | null }
+
+/**
+ * The trade to name for a package and/or requirement, or null when it is welding (keep the
+ * original welding copy) or unknown (keep the generic copy).
+ */
+export function otherTrade(pkg?: PackageLike | null, requirement?: string | null): Trade | null {
+  const trade = tradeForPackage(pkg) ?? tradeForRequirement(requirement)
+  return trade && !isWeldingTrade(trade) ? trade : null
+}
+
+const upperFirstWord = (x: string) => (x ? x.charAt(0).toUpperCase() + x.slice(1) : x)
+
+/** Plural workers for a package / requirement: "welders", "electronics assemblers", or "qualified workers". */
+export function workersFor(pkg?: PackageLike | null, requirement?: string | null): string {
+  return workersText(tradeForPackage(pkg) ?? tradeForRequirement(requirement))
+}
+
+/** Same, capitalised: "Welders", "Electronics assemblers", "Qualified workers". */
+export function workersCap(pkg?: PackageLike | null, requirement?: string | null): string {
+  return upperFirstWord(workersFor(pkg, requirement))
+}
 
 /** "Tallowfield Fabricating Ltd." → "Tallowfield Fabricating" */
 export function shortShopName(name: string): string {
@@ -46,6 +76,12 @@ export function packageTitle(pkg: TrainingPackage): string {
   })
 }
 
+/** Calendar title for a seat's example test date: the CWB welder test, or the package's trade. */
+export function seatIcsTitle(pkgId: string, pkg?: PackageLike | null): string {
+  const trade = otherTrade(pkg)
+  return trade ? t("seat.icsTitleTrade", { trade: trade.label, pkg: pkgId }) : t("seat.icsTitle", { pkg: pkgId })
+}
+
 /** One-line caveat under the title (W47.1 only), or null. */
 export function packageCaveat(pkg: TrainingPackage): string | null {
   return isW471(pkg) ? t("copy.pkg.w471Caveat") : null
@@ -78,8 +114,8 @@ export function certGrowTitle(req: string): string {
  * "Add wire harness work" (process). A raw key ("wire_harness") never reaches the screen.
  */
 export function growTitle(req: string, kind?: string | null): string {
-  if (kind === "capacity") return t("grow.itemTitleCapacity", { req: requirementName(req).toLowerCase() })
-  if (kind === "process" || (!kind && PROCESS_LABEL[req])) return t("grow.itemTitleProcess", { req: requirementName(req).toLowerCase() })
+  if (kind === "capacity") return t("grow.itemTitleCapacity", { req: lowerLabel(requirementName(req)) })
+  if (kind === "process" || (!kind && PROCESS_LABEL[req])) return t("grow.itemTitleProcess", { req: lowerLabel(requirementName(req)) })
   return certGrowTitle(req)
 }
 
@@ -90,7 +126,22 @@ export function growTitle(req: string, kind?: string | null): string {
 export function trainingUnderwayTitle(req: string, trainees: number): string {
   if (req === "CWB_W47.1") return t("copy.training.w471Funded", { count: trainees })
   const p = certPlain(req)
-  return t("grow.underway.itemGeneric", { count: trainees, req: p.first !== p.label ? lowerFirst(p.first) : requirementName(req) })
+  const name = p.first !== p.label ? lowerFirst(p.first) : requirementName(req)
+  // Another trade names its workers: "4 electronics assemblers in training for …".
+  const trade = otherTrade(null, req)
+  if (trade) return t("grow.underway.itemTrade", { who: workersText(trade, trainees), req: name })
+  return t("grow.underway.itemGeneric", { count: trainees, req: name })
+}
+
+/**
+ * Funded chip text: "Funded · 4 welders in training" (W47.1), "Funded · 2 CNC machinists in
+ * training" (another trade), "Funded · 2 in training" (welding capacity or unknown).
+ */
+export function fundedChipText(requirement: string, trainees: number, pkg?: PackageLike | null): string {
+  if (requirement === "CWB_W47.1") return t("ready.funded", { count: trainees })
+  const trade = otherTrade(pkg, requirement)
+  if (trade) return t("ready.fundedTrade", { who: workersText(trade, trainees) })
+  return t("ready.fundedGeneric", { count: trainees })
 }
 
 /** { welding: 80 } → "+80 welding h/wk" (null when empty). */
@@ -98,7 +149,7 @@ export function capacityUnlockShort(cu: Partial<Record<string, number>> | null |
   if (!cu) return null
   const parts = Object.entries(cu)
     .filter(([, h]) => typeof h === "number" && h > 0)
-    .map(([p, h]) => `+${h} ${(PROCESS_LABEL[p] ?? p).toLowerCase()} h/wk`)
+    .map(([p, h]) => `+${h} ${lowerLabel(PROCESS_LABEL[p] ?? p)} h/wk`)
   return parts.length ? parts.join(" · ") : null
 }
 
@@ -150,6 +201,8 @@ extendStrings("en", {
   "ready.whoPays": "Who pays",
   "ready.primeFunds": "Northgate can fund the welder qualifications: {cost} → {credit} ITB credit ({mult}x)",
   "ready.primeFundsGeneric": "Northgate can fund this: {cost} → {credit} ITB credit ({mult}x)",
+  "ready.primeFundsTrade": "Northgate can fund training for {workers}: {cost} → {credit} ITB credit ({mult}x)",
+  "ready.credential": "Training: {credential}",
   "ready.primeFundsBody": "{trainees} trainees with {provider}. Costs are demo estimates.",
   "ready.noPackage": "No prime-funded package for this yet",
   "ready.noPackageBody": "Northgate funds the training packages Shieldworks proposes. This requirement doesn't have one.",
@@ -160,6 +213,7 @@ extendStrings("en", {
   "ready.requested": "Requested {date} · awaiting Northgate",
   "ready.funded": "Funded · {count} welders in training",
   "ready.fundedGeneric": "Funded · {count} in training",
+  "ready.fundedTrade": "Funded · {who} in training",
   "ready.seeSeat": "See the seats",
   "ready.requestedToast": "Request sent to Northgate",
   "ready.requestedToastBody": "Northgate sees your request right away.",
@@ -168,11 +222,14 @@ extendStrings("en", {
   "ready.primeFunded_one": "Northgate paid {cost} for 1 welder seat ({pkg})",
   "ready.primeFundedGeneric": "Northgate paid {cost} for {count} training seats ({pkg})",
   "ready.primeFundedGeneric_one": "Northgate paid {cost} for 1 training seat ({pkg})",
+  "ready.primeFundedTrade": "Northgate paid {cost} for {count} {worker} training seats ({pkg})",
+  "ready.primeFundedTrade_one": "Northgate paid {cost} for 1 {worker} training seat ({pkg})",
   "ready.primeFundedCredit": "Earns Northgate {credit} ITB credit ({mult}x).",
   "ready.primeFundedBody": "Training with {provider}. Costs are demo estimates.",
   "ready.unlockedFunded": "Opened up by this training",
   "grow.underway.title": "Training under way",
   "grow.underway.itemGeneric": "{count} in training for {req}",
+  "grow.underway.itemTrade": "{who} in training for {req}",
   "grow.underway.paidBy": "Paid by Northgate · {pkg}",
   "grow.underway.paidByNoPkg": "Paid by Northgate",
   "ready.notRouted": "Northgate hasn't sent offers yet",
@@ -208,9 +265,20 @@ extendStrings("en", {
   "seat.eligibility": "Personal certification credit applies to Canadian citizens and permanent residents. Your shop records a yes/no attestation only; Shieldworks stores no ID documents (ITB model terms §7.5.1).",
   "seat.notFunded": "This seat isn't funded yet.",
   "seat.notFundedAsked": "This seat isn't funded yet. Your shop has asked Northgate.",
-  "seat.notFundedBody": "When Northgate funds package {pkg}, this card shows your stage, test date and the jobs your ticket helps unlock.",
+  "seat.notFundedBody": "When Northgate funds package {pkg}, this card shows your stage, test date and the jobs your training helps unlock.",
   "seat.unknownPkg": "No training package {pkg}",
   "seat.unknownPkgBody": "The link may be old, or Northgate hasn't routed its parts list yet.",
   "seat.icsTitle": "CWB welder test (example date) · {pkg}",
+  // Another trade's seat (electronics, harness, CNC, coatings): no welding ticket fields.
+  "seat.icsTitleTrade": "{trade} test or course (example date) · {pkg}",
+  "seat.ticketTrade": "Your certificate",
+  "seat.ticket.trade": "Trade",
+  "seat.ticket.credential": "Certificate",
+  "seat.ticket.details": "Details",
+  "seat.ticket.detailsValue": "Your training provider confirms the course, the test and what it covers",
+  "seat.ticket.credentialFallback": "Set by your training provider",
+  "seat.ticket.tradeNote": "Example fields; your training provider sets the real ones",
+  "seat.pathLineTrade": "Your training helps unlock {count} jobs at your shop: {jobs} ({value})",
+  "seat.pathLineTrade_one": "Your training helps unlock 1 job at your shop: {jobs} ({value})",
   "seat.icsBody": "Example date from Shieldworks: funding date plus 6 weeks (assumption). Your training provider confirms the real date.",
 })

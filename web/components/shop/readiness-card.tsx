@@ -13,6 +13,8 @@ import { useWithParams } from "@/lib/ui/use-with-params"
 import { growHref } from "@/lib/app/readiness"
 import { TermText, certShortLabel } from "./badges"
 import type { JobInfo, ReadinessT, TrainingT } from "./types"
+import { isWeldingTrade, tradeForRequirement, workerNoun } from "@/lib/trades"
+import { commonPackageTrade } from "@/lib/ui/trade-copy"
 
 /**
  * Engine readiness messages ("Get CWB W47.1 → qualify for 3 more jobs worth $5.1M") are kept
@@ -98,7 +100,11 @@ export function ReadinessCard({
   const shown = funded ? items.filter((i) => !(i.kind === "cert" && i.requirement === "CWB_W47.1")) : items
   const top = shown[0]
   const rest = shown.slice(1)
-  const fundedSeats = training.filter((t) => t.status === "funded").reduce((s, t) => s + (t.trainees ?? 0), 0)
+  const fundedEntries = training.filter((t) => t.status === "funded")
+  const fundedSeats = fundedEntries.reduce((s, t) => s + (t.trainees ?? 0), 0)
+  // Every trade: "welder training seats" only when the funded training trains welders.
+  const fundedTrade = commonPackageTrade(fundedEntries)
+  const fundedWelding = isWeldingTrade(fundedTrade)
 
   let body: ReactNode
   if (!routed) {
@@ -147,7 +153,7 @@ export function ReadinessCard({
             {!funded && top.requirement && fundingRequested.includes(top.requirement) ? (
               <span
                 className="inline-flex min-h-8 items-center gap-1.5 font-semibold text-teal-800"
-                title={c("shop.ready.fundRequested.sub")}
+                title={isWeldingTrade(tradeForRequirement(top.requirement)) ? c("shop.ready.fundRequested.sub") : c("shop.ready.fundRequested.sub.trade")}
                 data-testid="shop-funding-requested"
               >
                 <Send className="size-3.5" aria-hidden />
@@ -177,7 +183,9 @@ export function ReadinessCard({
       {funded && fundedSeats > 0 && (
         <p className="mt-4 flex items-start gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
           <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-700" aria-hidden />
-          {ce("shop.ready.trainingFunded", { seats: fundedSeats })}
+          {fundedWelding
+            ? ce("shop.ready.trainingFunded", { seats: fundedSeats })
+            : ce("shop.ready.trainingFunded.trade", { seats: fundedSeats, worker: workerNoun(fundedTrade) })}
         </p>
       )}
       {rest.length > 0 && (

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils"
 import { t } from "@/lib/app/strings"
 import { fmtDay } from "@/lib/app/today"
 import type { GrowItem } from "@/lib/app/readiness"
+import { fundedChipText } from "@/lib/app/copy"
 
 const CHIP = "inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-sm leading-tight font-medium"
 
@@ -31,15 +32,14 @@ function trainees(item: GrowItem): number {
 }
 
 /**
- * Funding request status chip ("Requested Sep 26 · awaiting Northgate" / "Funded · 4 welders in training").
+ * Funding request status chip ("Requested Sep 26 · awaiting Northgate" / "Funded · 4 welders in training" / "Funded · 2 CNC machinists in training").
  * With `link`, a funded chip jumps to the seats summary on the same Grow item page (#seats): the
  * shop sees each seat's stage there, never the trainee's private seat card.
  */
 export function FundingChip({ item, link = false, className }: { item: GrowItem; link?: boolean; className?: string }) {
   if (item.funding === "funded") {
     const n = trainees(item)
-    const text =
-      item.requirement === "CWB_W47.1" ? t("ready.funded", { count: n }) : t("ready.fundedGeneric", { count: n })
+    const text = fundedChipText(item.requirement, n, item.pkg ?? item.training)
     const body = (
       <>
         <GraduationCap className="size-4 shrink-0" aria-hidden />

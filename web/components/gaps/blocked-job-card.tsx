@@ -34,7 +34,7 @@ export interface BlockedJobCardProps {
  */
 function FrontFace({ b, heroId }: { b: BlockedJob; heroId?: string }) {
   const fixes = heroId && b.suggestion_ids.includes(heroId);
-  const why = whyNoShop(b.failing_filters);
+  const why = whyNoShop(b.failing_filters, b.process_tags?.[0]);
   return (
     <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3" data-job-row={b.job_id} data-face-kind="stuck">
       <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1.5">

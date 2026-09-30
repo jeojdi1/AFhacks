@@ -35,6 +35,22 @@ const CERTS: Record<string, PlainCert> = {
     abbr: "CPCSC L1",
     tip: "Canadian Program for Cyber Security Certification, level 1: 13 controls, self-assessed, no public registry.",
   },
+  // Operator certifications (every trade, not just welders): the shop holds them through its staff.
+  IPC_J_STD_001: {
+    label: "Soldering certification",
+    abbr: "IPC J-STD-001",
+    tip: "IPC standard for soldered electronic assemblies. Operators earn it on a course (Certified IPC Specialist).",
+  },
+  IPC_A_610: {
+    label: "Electronics workmanship certification",
+    abbr: "IPC-A-610",
+    tip: "IPC standard for what a good electronics assembly looks like. Operators and inspectors earn it on a course.",
+  },
+  IPC_WHMA_A_620: {
+    label: "Cable and harness certification",
+    abbr: "IPC/WHMA-A-620",
+    tip: "IPC/WHMA standard for cable and wire harness assemblies. Operators earn it on a course.",
+  },
 }
 
 const NADCAP: PlainCert = {

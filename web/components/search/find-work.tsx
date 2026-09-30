@@ -33,7 +33,7 @@ import { Details } from "@/components/muster/details"
 import { Term } from "@/components/muster/term"
 import { useJobSearch } from "@/lib/search/client"
 import { fixtureShop, fundedUnlocks } from "@/lib/search/local"
-import { PROCESS_KEYS, canadaBuysSearchUrl, certFirst, fmtDate, processPlain } from "@/lib/search/labels"
+import { PROCESS_KEYS, canadaBuysSearchUrl, certFirst, fmtDate, processPlain, trainingWorkers } from "@/lib/search/labels"
 import type { EligibleJob, MissingReq, NearMissJob, Tender } from "@/lib/search/types"
 import { TermText } from "./term-text"
 import { TENDER_KIND_LABEL, closesChip, fitTenders, type TenderKind } from "./work-tenders"
@@ -171,7 +171,7 @@ function WorkRow({ job, shopId, inTraining }: { job: EligibleJob; shopId: string
                       <span className="inline-flex items-center gap-1 text-amber-800" data-reason-training>
                         <Clock className="size-3.5 shrink-0" aria-hidden />
                         <span>
-                          <TermText text={plainReason(r)} /> ({training.startsWith("CWB") ? "welders" : "staff"} in training,{" "}
+                          <TermText text={plainReason(r)} /> ({trainingWorkers(training)} in training,{" "}
                           not held yet)
                         </span>
                       </span>

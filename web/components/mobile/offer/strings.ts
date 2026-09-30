@@ -54,6 +54,9 @@ extendStrings("en", {
   "o.card.itbGloss": "Credit isn't cash. It's how the government counts Northgate's Canadian business toward what it owes. Small-business work counts double.",
   "o.card.training": "Welders in training: start after they qualify.",
   "o.card.trainingBody": "Northgate is paying to train your welders for {cert}. This job needs it, so work starts once they pass.",
+  // Every other trade (electronics assemblers, harness assemblers, CNC machinists, …).
+  "o.card.trainingTrade": "{Workers} in training: start after they qualify.",
+  "o.card.trainingBodyTrade": "Northgate is paying to train your {workers} for {cert}. This job needs it, so work starts once they pass.",
   "o.card.canWe.show": "Show the {count} checks",
   "o.card.canWe.hide": "Hide the checks",
   "o.card.payment": "Payment terms: set by Northgate. Not in demo data.",
@@ -126,6 +129,8 @@ extendStrings("en", {
   "o.prime.why": "Why {shop}",
   "o.prime.training": "Welders in training: work starts after they qualify.",
   "o.prime.trainingBody": "You are paying to train {shop}'s welders for {cert}. This job needs it, so work starts once they pass.",
+  "o.prime.trainingTrade": "{Workers} in training: work starts after they qualify.",
+  "o.prime.trainingBodyTrade": "You are paying to train {shop}'s {workers} for {cert}. This job needs it, so work starts once they pass.",
   "o.prime.payment": "Payment terms: set in your purchase order. Not in demo data.",
   "o.prime.drawings.controlled":
     "Drawings are never stored in Shieldworks. After {shop} accepts, you release the technical data package through your own controlled channel once its security clearance (Controlled Goods) is confirmed.",

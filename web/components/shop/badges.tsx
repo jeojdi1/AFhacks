@@ -16,7 +16,7 @@ export type CertStatus = "verified" | "declared" | "unknown" | "pending_training
 
 /**
  * `counts` = the matching rules accept it (verified, declared, pending_training; CLAUDE.md §1.1
- * decision 4). `held` = the shop holds it now (verified, declared). `inTraining` = welders are in
+ * decision 4). `held` = the shop holds it now (verified, declared). `inTraining` = workers are in
  * training for it, paid by Northgate (pending_training). Display "held" from `held`, never `counts`.
  */
 export const CERT_STATUS_META: Record<

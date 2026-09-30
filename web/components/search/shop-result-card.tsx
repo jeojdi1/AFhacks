@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 import { CERT_IN_TRAINING_NOTE, certInTraining, fmtMoney } from "@/lib/format"
 import { Term } from "@/components/muster/term"
 import { useWithParams } from "@/lib/ui/use-with-params"
-import { COUNTING_STATUSES, certFirst, certStatusPlain, fmtDate, processPlain } from "@/lib/search/labels"
+import { COUNTING_STATUSES, certFirst, certStatusPlain, fmtDate, processPlain, trainingWorkers } from "@/lib/search/labels"
 import type { ShopResult, ShopSearchQueryEcho } from "@/lib/search/types"
 
 const COUNTING = new Set<string>(COUNTING_STATUSES)
@@ -17,7 +17,7 @@ const COUNTING = new Set<string>(COUNTING_STATUSES)
 function matchLists(shop: ShopResult, query: ShopSearchQueryEcho) {
   const matched: string[] = []
   const missing: string[] = []
-  // Counts for matching, but not held yet: welders still training (paid by Northgate).
+  // Counts for matching, but not held yet: workers still training (paid by Northgate).
   const training: string[] = []
   const stillTraining: string[] = []
   for (const p of query.process) (shop.processes.includes(p) ? matched : missing).push(`Does ${processPlain(p).toLowerCase()}`)
@@ -25,7 +25,7 @@ function matchLists(shop: ShopResult, query: ShopSearchQueryEcho) {
     const held = shop.certs.find((x) => x.type === c && COUNTING.has(x.status))
     if (held && certInTraining(held.status)) {
       training.push(`${certFirst(c)}: counts for matching, training ${CERT_IN_TRAINING_NOTE}`)
-      stillTraining.push(`${certFirst(c)}: ${c.startsWith("CWB") ? "welders" : "staff"} still training, not held yet`)
+      stillTraining.push(`${certFirst(c)}: ${trainingWorkers(c)} still training, not held yet`)
     }
     else if (held) matched.push(`${certFirst(c)}: ${certStatusPlain(held.status, shop.source)}`)
     else missing.push(certFirst(c))

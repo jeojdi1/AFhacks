@@ -10,7 +10,7 @@ import { MATERIAL_LABEL, PROCESS_LABEL, fmtKm, fmtMoney, label } from "@/lib/for
 import { useShopBundle } from "@/lib/app/shop-bundle"
 import { useConnection } from "@/lib/app/connection"
 import { UnreachableNotice } from "@/components/mobile/shell/unreachable-notice"
-import { fitChecklist, plainReason, type AcceptedJobLoad } from "@/lib/app/fit"
+import { fitChecklist, isInTrainingReason, plainReason, type AcceptedJobLoad } from "@/lib/app/fit"
 import { shopInfo } from "@/lib/app/actions-store"
 import { shortShopName } from "@/lib/app/feed"
 import { replyForDecision, usePrimeReplies } from "@/lib/app/prime-replies"
@@ -18,6 +18,7 @@ import { isSimulatedRecord } from "@/lib/app/sim-flag"
 import { useFromPrimeState } from "@/components/mobile/shell/use-from-prime"
 import { SimulatedChip } from "@/components/mobile/shell/simulation"
 import { certPlain } from "@/lib/ui/plain"
+import { GENERIC_TRADE, isWeldingTrade, tradeForCert } from "@/lib/trades"
 import { fmtDateTime, fmtWeekday } from "@/lib/app/today"
 import { t } from "@/lib/app/strings"
 import type { QuestionCode, ReasonCode } from "@/lib/app/types"
@@ -170,7 +171,7 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
   }
 
   const controlled = job?.controlled ?? assignment?.controlled ?? false
-  // A required certificate the shop holds only as pending_training (funded welder training).
+  // A required certificate the shop holds only as pending_training (funded training for its trade).
   const trainingCert = (job?.required_certs ?? []).find((ct) => b.certs.find((c) => c.type === ct)?.status === "pending_training") ?? null
   const multLabel =
     offer.multiplier === 2 ? t("o.card.mult.sme", { mult: offer.multiplier }) : t("o.card.mult.plain", { mult: offer.multiplier })
@@ -267,11 +268,30 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
         <div className="flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-base text-amber-900" data-testid="offer-training">
           <Clock className="mt-0.5 size-5 shrink-0" aria-hidden />
           <span>
-            <strong>{fromPrime ? t("o.prime.training") : t("o.card.training")}</strong>{" "}
-            {t(fromPrime ? "o.prime.trainingBody" : "o.card.trainingBody", {
-              cert: certPlain(trainingCert).first.replace(/^./, (c) => c.toLowerCase()),
-              shop: shopName,
-            })}
+            {(() => {
+              // Welding (CWB W47.1) keeps the original copy; another trade names its workers.
+              const trade = tradeForCert(trainingCert)
+              const other = !trade ? GENERIC_TRADE : isWeldingTrade(trade) ? null : trade
+              const vars = {
+                cert: certPlain(trainingCert).first.replace(/^./, (c) => c.toLowerCase()),
+                shop: shopName,
+                workers: other?.workers ?? "",
+                Workers: other ? other.workers.replace(/^./, (c) => c.toUpperCase()) : "",
+              }
+              const head = fromPrime ? (other ? "o.prime.trainingTrade" : "o.prime.training") : other ? "o.card.trainingTrade" : "o.card.training"
+              const body = fromPrime
+                ? other
+                  ? "o.prime.trainingBodyTrade"
+                  : "o.prime.trainingBody"
+                : other
+                  ? "o.card.trainingBodyTrade"
+                  : "o.card.trainingBody"
+              return (
+                <>
+                  <strong>{t(head, vars)}</strong> {t(body, vars)}
+                </>
+              )
+            })()}
           </span>
         </div>
       ) : null}
@@ -309,7 +329,7 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
           <ul className="mt-2 flex flex-col gap-2">
             {offer.reasons.slice(0, 3).map((r) => {
               const text = plainReason(r, b.certs, prime, fromPrime ? "prime" : "shop")
-              const training = text.includes("welders in training")
+              const training = isInTrainingReason(text)
               return (
                 <li key={r} className="flex items-start gap-2 text-base">
                   {training ? (

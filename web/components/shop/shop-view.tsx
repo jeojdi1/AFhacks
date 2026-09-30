@@ -24,6 +24,8 @@ import { Rich, c } from "@/lib/ui/copy"
 import { ce } from "@/lib/ui/copy-e"
 import { certPlain } from "@/lib/ui/plain"
 import { isDemoShopPath } from "@/lib/ui/steps"
+import { capFirst, commonPackageTrade } from "@/lib/ui/trade-copy"
+import { isWeldingTrade, workersText } from "@/lib/trades"
 import { useStoryMode } from "@/lib/ui/story-mode"
 import { useWithParams } from "@/lib/ui/use-with-params"
 import { useSession } from "@/lib/auth/session"
@@ -262,6 +264,14 @@ function RoutableShopView({ id }: { id: string }) {
   const routed = stage === "routed" || stage === "funded" || offers.length > 0
   const fundedPkgs = training.filter((t) => t.status === "funded")
   const trainees = fundedPkgs.reduce((s, t) => s + (t.trainees ?? 0), 0)
+  // Every trade: "welders" only when this shop's training trains welders (the demo's TP-01).
+  const fundedTrade = commonPackageTrade(fundedPkgs)
+  const statTrade = commonPackageTrade(fundedPkgs.length > 0 ? fundedPkgs : training)
+  const trainingLabel = isWeldingTrade(statTrade)
+    ? c("shop.stat.training")
+    : statTrade
+      ? c("shop.stat.training.trade", { Workers: capFirst(statTrade.workers) })
+      : c("shop.stat.training.generic")
   // Never show the CWB readiness message after funding (docs/demo-script.md rule).
   const funded = stage === "funded" || fundedPkgs.length > 0
   const shownReadiness = funded
@@ -296,8 +306,14 @@ function RoutableShopView({ id }: { id: string }) {
     lookAt = ce("shop.b.empty.look")
   } else if (funded && trainees > 0 && newCount > 0) {
     const k = { seats: trainees, shopShort: shortName(shop.name), k: newCount, jobsValue: money(newValue) }
-    summary = c("shop.b.funded", k)
-    lookAt = c("shop.b.funded.look", k)
+    if (isWeldingTrade(fundedTrade)) {
+      summary = c("shop.b.funded", k)
+      lookAt = c("shop.b.funded.look", k)
+    } else {
+      const who = workersText(fundedTrade, trainees)
+      summary = c("shop.b.funded.trade", { ...k, who })
+      lookAt = c("shop.b.funded.look.trade", { ...k, who })
+    }
   } else if (offers.length === 0) {
     summary = ce("shop.b.noOffers", vars)
     lookAt = c("shop.b.look")
@@ -373,7 +389,7 @@ function RoutableShopView({ id }: { id: string }) {
         tone={readinessValue > 0 ? "warning" : "muted"}
       />
       <StatCard
-        label={c("shop.stat.training")}
+        label={trainingLabel}
         value={String(trainees)}
         sub={fundedPkgs.length > 0 ? c("shop.stat.training.sub") : ce("shop.stat.training.none")}
         tone={trainees > 0 ? "success" : "muted"}

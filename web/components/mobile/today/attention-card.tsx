@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils"
 import { t } from "@/lib/app/strings"
 import type { TodayItem } from "@/lib/app/attention"
 import type { AttentionKind, AttentionTone, RenewalStage } from "@/lib/app/types"
-import { SeatDots, WelderArt } from "@/components/mobile/art/process-art"
+import { SeatDots, TrainingArt } from "@/components/mobile/art/process-art"
 
 const KIND_ICON: Record<AttentionKind, React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>> = {
   offers: Inbox,
@@ -85,7 +85,7 @@ export function AttentionCard({ item, onSelect, className }: { item: TodayItem; 
       <span aria-hidden className={cn("absolute inset-y-3 left-0 w-1 rounded-r-full", tone.bar)} />
       <span className="flex w-[72px] shrink-0 flex-col items-center gap-1 text-center">
         {item.kind === "training" ? (
-          <WelderArt />
+          <TrainingArt trade={item.trade} />
         ) : (
           <span className={cn("flex size-12 items-center justify-center rounded-full", tone.icon)}>
             <Icon className="size-6" aria-hidden />

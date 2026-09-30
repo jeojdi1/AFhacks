@@ -4,6 +4,7 @@ import * as React from "react"
 import { Info } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { ProcessGlyph } from "@/components/mobile/art/process-art"
 
 /** Small (i) button that opens a popover. The hit area is 44 px, the icon stays small. */
 export function InfoTip({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
@@ -20,6 +21,28 @@ export function InfoTip({ label, children, className }: { label: string; childre
       </PopoverTrigger>
       <PopoverContent className="w-72 text-sm leading-snug">{children}</PopoverContent>
     </Popover>
+  )
+}
+
+/**
+ * Hero picture for every trade other than welding: a hard hat and the trade's process
+ * pictogram on a bench (a circuit board, a harness, a milling cutter, …). Decorative.
+ */
+export function TradeHeroArt({ processes, className }: { processes: string[]; className?: string }) {
+  return (
+    <svg viewBox="0 0 240 120" className={className} aria-hidden focusable="false">
+      {/* bench */}
+      <rect x="120" y="96" width="104" height="8" rx="2" className="fill-muted-foreground/25" />
+      {/* the trade's process, drawn big on the bench */}
+      <g transform="translate(134 18) scale(1.95)" className="text-brand">
+        <ProcessGlyph tags={processes} />
+      </g>
+      {/* hard hat */}
+      <path d="M26 78 C26 46 46 28 72 28 C98 28 118 46 118 78 Z" className="fill-brand" />
+      <rect x="16" y="76" width="112" height="12" rx="6" className="fill-brand" />
+      <path d="M64 30 h16 v26 h-16z" className="fill-white/20" />
+      <path d="M36 72 C36 52 50 38 70 36" className="fill-none stroke-white/30" strokeWidth="4" strokeLinecap="round" />
+    </svg>
   )
 }
 

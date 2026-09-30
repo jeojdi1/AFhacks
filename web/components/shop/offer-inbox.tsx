@@ -14,6 +14,7 @@ import { DECISION_NOTE_MAX, REASON_CODES, type ReasonCode } from "@/lib/app/type
 import { SimulatedChip } from "@/components/mobile/shell/simulation"
 import type { CertT, OfferT } from "./types"
 import { AwardLink } from "@/components/award/award-link"
+import { isWeldingTrade, tradeForCert } from "@/lib/trades"
 
 /**
  * Engine routing reasons in plain words (docs/ux-simplification.md §2): "SME: 2x direct credit"
@@ -51,13 +52,23 @@ export interface InboxDecision {
 
 const CERT_IN_REASON: [RegExp, string][] = [
   [/\bCWB W47\.1\b/, "CWB_W47.1"],
+  [/\bIPC J-STD-001\b/, "IPC_J_STD_001"],
+  [/\bIPC-A-610\b/, "IPC_A_610"],
+  [/\bIPC\/WHMA-A-620\b/, "IPC_WHMA_A_620"],
   [/\bCGP\b/, "CGP"],
   [/\bCPCSC Level 1\b/, "CPCSC_L1"],
 ]
 
-/** True when a routing reason names a certificate this shop holds only as pending_training. */
-function reasonInTraining(r: string, certStatus: Map<string, string>): boolean {
-  return CERT_IN_REASON.some(([re, type]) => re.test(r) && certStatus.get(type) === "pending_training")
+/** The certificate a routing reason names that this shop holds only as pending_training, or null. */
+function reasonInTraining(r: string, certStatus: Map<string, string>): string | null {
+  return CERT_IN_REASON.find(([re, type]) => re.test(r) && certStatus.get(type) === "pending_training")?.[1] ?? null
+}
+
+/** "welders in training" (the demo's CWB wording), else the trade's workers, else "staff in training". */
+function inTrainingWords(cert: string): string {
+  const trade = tradeForCert(cert)
+  if (cert === "CWB_W47.1" || isWeldingTrade(trade)) return "welders in training"
+  return trade ? `${trade.workers} in training` : "staff in training"
 }
 
 export function OfferInbox({
@@ -170,7 +181,7 @@ export function OfferInbox({
                         reasonInTraining(r, certStatus) ? (
                           <li key={r} className="flex items-center gap-1.5" data-reason-training>
                             <Clock className="size-3.5 text-amber-700" aria-hidden />
-                            {plainReason(r)} — welders in training
+                            {plainReason(r)} — {inTrainingWords(reasonInTraining(r, certStatus) ?? "")}
                           </li>
                         ) : (
                           <li key={r} className="flex items-center gap-1.5">

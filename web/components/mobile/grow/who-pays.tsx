@@ -4,7 +4,7 @@ import { Building2, HandCoins, HelpCircle } from "lucide-react"
 import type { TrainingPackage } from "@/lib/api/types"
 import { fmtMoney } from "@/lib/format"
 import { t } from "@/lib/app/strings"
-import { packageCaveat, packageTitle } from "@/lib/app/copy"
+import { otherTrade, packageCaveat, packageTitle } from "@/lib/app/copy"
 import { otherFunding } from "@/lib/app/readiness"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
 import { SourceLink } from "./grow-chips"
@@ -21,6 +21,9 @@ export function WhoPays({
   funded?: boolean
 }) {
   const others = funded ? [] : otherFunding()
+  // Another trade (electronics, harness, CNC, coatings) names its workers; welding and
+  // unknown packages keep the original strings.
+  const trade = otherTrade(pkg, requirement)
   const vars = pkg
     ? {
         cost: fmtMoney(pkg.est_cost_cad, { compact: true }),
@@ -28,8 +31,12 @@ export function WhoPays({
         mult: pkg.multiplier,
         count: pkg.trainees,
         pkg: pkg.id,
+        worker: trade?.worker ?? "",
+        workers: trade?.workers ?? "",
       }
     : null
+  const fundedKey = requirement === "CWB_W47.1" ? "ready.primeFunded" : trade ? "ready.primeFundedTrade" : "ready.primeFundedGeneric"
+  const fundsKey = requirement === "CWB_W47.1" ? "ready.primeFunds" : trade ? "ready.primeFundsTrade" : "ready.primeFundsGeneric"
   return (
     <section aria-labelledby="who-pays-title" className="flex flex-col gap-3">
       <h3 id="who-pays-title" className="text-lg font-semibold tracking-tight">
@@ -42,9 +49,7 @@ export function WhoPays({
             <Building2 className="mt-0.5 size-5 shrink-0 text-funded" aria-hidden />
             <div className="min-w-0">
               <p className="text-base leading-snug font-semibold" data-testid="who-pays-prime">
-                {funded
-                  ? t(requirement === "CWB_W47.1" ? "ready.primeFunded" : "ready.primeFundedGeneric", vars ?? {})
-                  : t(requirement === "CWB_W47.1" ? "ready.primeFunds" : "ready.primeFundsGeneric", vars ?? {})}{" "}
+                {funded ? t(fundedKey, vars ?? {}) : t(fundsKey, vars ?? {})}{" "}
                 <AssumptionTag className="align-middle" note="Training cost and credit are demo estimates (data/rules/training_costs.json)" />
               </p>
               {funded ? (
@@ -54,6 +59,9 @@ export function WhoPays({
                 <span className="font-mono text-[13px]">{pkg.id}</span> · {packageTitle(pkg)}
               </p>
               {packageCaveat(pkg) ? <p className="mt-1 text-sm leading-snug text-muted-foreground">{packageCaveat(pkg)}</p> : null}
+              {trade?.credential ? (
+                <p className="mt-1 text-sm leading-snug text-muted-foreground">{t("ready.credential", { credential: trade.credential })}</p>
+              ) : null}
               <p className="mt-1 text-sm leading-snug text-muted-foreground">
                 {funded
                   ? t("ready.primeFundedBody", { provider: pkg.recipient_example })
