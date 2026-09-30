@@ -21,6 +21,8 @@ import {
   Handshake,
   Paperclip,
   PhoneCall,
+  Repeat2,
+  Sparkles,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { fmtMoney } from "@/lib/format"
@@ -31,6 +33,9 @@ import { useFromPrimeState } from "@/components/mobile/shell/use-from-prime"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { BottomSheet } from "@/components/mobile/offer/bottom-sheet"
+import { AssumptionPill } from "@/components/shop/badges"
+import { fmtLongDate } from "@/lib/app/today"
+import type { TimeSaved } from "@/lib/vault/types"
 import {
   AWARD_STATUS_LABEL,
   downloadIcs,
@@ -123,17 +128,21 @@ function AwardBody({
   source: "engine" | "local"
 }) {
   const [signing, setSigning] = React.useState<AwardDocument | null>(null)
+  // Paperwork once: keep a vault-backed document on file for the next award (default on).
+  const [keep, setKeep] = React.useState<Record<string, boolean>>({})
+  const keepOn = (d: AwardDocument) => !!d.vault_key && keep[d.key] !== false
   const shop = shopInfo(award.shop_id)
   const shopName = shop?.name ?? award.shop_id
   const shopLabel = shop?.source === "synthetic" ? "Synthetic" : shop ? "Public data — unverified — not affiliated" : null
   const { done, total } = paperworkCount(award)
 
   const mark = async (doc: AwardDocument) => {
+    const save = keepOn(doc)
     try {
-      await state.signDocument(doc.key)
+      await state.signDocument(doc.key, { saveToProfile: save })
       setSigning(null)
       toast.success(doc.kind === "sign" ? `Signed: ${doc.title}` : `Marked uploaded: ${doc.title}`, {
-        description: "Northgate sees it now (demo).",
+        description: save ? "Northgate sees it now (demo). Kept on file: your next award reuses it." : "Northgate sees it now (demo).",
       })
     } catch {
       toast.error("Could not save that", { description: state.error ?? "Try again." })
@@ -143,8 +152,30 @@ function AwardBody({
   const header = (
     <AwardHeader award={award} shopName={shopName} shopLabel={shopLabel} phone={phone} readOnly={readOnly} />
   )
-  const progress = <ProgressStrip done={done} total={total} status={award.status} phone={phone} call={award.call.booked ? award.call.slot : null} />
-  const paperwork = <Paperwork award={award} phone={phone} readOnly={readOnly} busy={state.busy} onSign={setSigning} onUpload={(d) => void mark(d)} />
+  const progress = (
+    <ProgressStrip
+      done={done}
+      total={total}
+      status={award.status}
+      phone={phone}
+      call={award.call.booked ? award.call.slot : null}
+      automatic={award.automatic_summary ?? null}
+      automaticCount={award.done_automatically ?? 0}
+      saved={award.time_saved ?? null}
+    />
+  )
+  const paperwork = (
+    <Paperwork
+      award={award}
+      phone={phone}
+      readOnly={readOnly}
+      busy={state.busy}
+      onSign={setSigning}
+      onUpload={(d) => void mark(d)}
+      keep={keepOn}
+      onKeep={(d, v) => setKeep((k) => ({ ...k, [d.key]: v }))}
+    />
+  )
   const kickoff = <Kickoff award={award} phone={phone} readOnly={readOnly} busy={state.busy} onBook={state.bookCall} error={state.error} />
   const next = <NextSteps steps={award.next_steps} />
   const footer = (
@@ -274,16 +305,35 @@ function ProgressStrip({
   status,
   phone,
   call,
+  automatic,
+  automaticCount,
+  saved,
 }: {
   done: number
   total: number
   status: AwardStatus
   phone: boolean
   call: string | null
+  /** "4 of 6 done automatically" (engine v0.6 / local build); null from older engines. */
+  automatic: string | null
+  automaticCount: number
+  saved: TimeSaved | null
 }) {
   const pct = total ? Math.round((done / total) * 100) : 0
   return (
     <div className="flex flex-col gap-1.5" data-testid="award-progress">
+      {automatic && automaticCount > 0 ? (
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-foreground" data-testid="award-automatic">
+          <Sparkles className="size-4 shrink-0 text-emerald-700" aria-hidden />
+          <span className="font-semibold">{automatic}</span>
+          {saved && saved.minutes > 0 ? (
+            <>
+              <span className="text-muted-foreground">· saves {saved.label} of paperwork</span>
+              <AssumptionPill />
+            </>
+          ) : null}
+        </p>
+      ) : null}
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-sm">
         <span className="font-semibold text-foreground">
           Paperwork {done} of {total}
@@ -316,6 +366,8 @@ function Paperwork({
   busy,
   onSign,
   onUpload,
+  keep,
+  onKeep,
 }: {
   award: Award
   phone: boolean
@@ -323,6 +375,8 @@ function Paperwork({
   busy: boolean
   onSign: (d: AwardDocument) => void
   onUpload: (d: AwardDocument) => void
+  keep: (d: AwardDocument) => boolean
+  onKeep: (d: AwardDocument, v: boolean) => void
 }) {
   return (
     <section aria-labelledby="award-paperwork" className="rounded-xl border border-border bg-card">
@@ -343,7 +397,17 @@ function Paperwork({
       ) : null}
       <ul className="divide-y divide-border">
         {award.documents.map((d) => (
-          <DocRow key={d.key} doc={d} phone={phone} readOnly={readOnly} busy={busy} onSign={onSign} onUpload={onUpload} />
+          <DocRow
+            key={d.key}
+            doc={d}
+            phone={phone}
+            readOnly={readOnly}
+            busy={busy}
+            onSign={onSign}
+            onUpload={onUpload}
+            keep={keep(d)}
+            onKeep={(v) => onKeep(d, v)}
+          />
         ))}
       </ul>
     </section>
@@ -357,6 +421,8 @@ function DocRow({
   busy,
   onSign,
   onUpload,
+  keep,
+  onKeep,
 }: {
   doc: AwardDocument
   phone: boolean
@@ -364,10 +430,13 @@ function DocRow({
   busy: boolean
   onSign: (d: AwardDocument) => void
   onUpload: (d: AwardDocument) => void
+  keep: boolean
+  onKeep: (v: boolean) => void
 }) {
-  const Icon = KIND_ICON[doc.kind] ?? FileSignature
+  const Icon = doc.reused ? Repeat2 : (KIND_ICON[doc.kind] ?? FileSignature)
   const isDone = doc.status === "done"
   const size = phone ? "touch" : "default"
+  const keepId = `award-keep-${doc.key}`
   return (
     <li className="flex flex-col gap-2 px-4 py-4 sm:px-5" data-testid={`award-doc-${doc.key}`} data-status={doc.status}>
       <div className="flex items-start gap-3">
@@ -378,6 +447,18 @@ function DocRow({
             <DocChip doc={doc} />
           </div>
           <p className="mt-0.5 text-sm text-muted-foreground">{doc.why}</p>
+          {doc.reused && doc.kind !== "auto" ? (
+            <p className="mt-1.5 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-950" data-testid={`award-reused-${doc.key}`}>
+              On file on your profile{doc.vault_expires_at ? ` (valid to ${fmtLongDate(doc.vault_expires_at)})` : ""}, so there is
+              nothing to do here. Northgate gets the copy you already gave.
+            </p>
+          ) : null}
+          {!isDone && doc.vault_status === "expired" ? (
+            <p className="mt-1.5 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-950" data-testid={`award-vault-expired-${doc.key}`}>
+              The copy on your profile expired{doc.vault_expires_at ? ` on ${fmtLongDate(doc.vault_expires_at)}` : ""}. Send a current one;
+              it replaces the old one on file.
+            </p>
+          ) : null}
           {doc.kind === "auto" ? (
             <p className="mt-1.5 rounded-lg bg-muted px-3 py-2 text-sm text-foreground">
               {/^attached/i.test(doc.detail) ? null : <span className="font-medium">Attached from the profile: </span>}
@@ -404,11 +485,35 @@ function DocRow({
           Mark uploaded (demo — no file is stored)
         </Button>
       ) : null}
+      {!readOnly && !isDone && doc.vault_key ? (
+        <label htmlFor={keepId} className="flex min-h-9 items-center gap-2 self-start text-sm text-foreground sm:ml-8">
+          <input
+            id={keepId}
+            type="checkbox"
+            className="size-4 accent-emerald-700"
+            checked={keep}
+            onChange={(e) => onKeep(e.target.checked)}
+            data-testid={`award-keep-${doc.key}`}
+          />
+          Keep on file for the next award (paperwork once)
+        </label>
+      ) : null}
     </li>
   )
 }
 
 function DocChip({ doc }: { doc: AwardDocument }) {
+  if (doc.status === "done" && doc.reused) {
+    return (
+      <span
+        className="inline-flex min-h-6 items-center gap-1 rounded-full border border-emerald-300 bg-emerald-50 px-2 text-xs font-medium text-emerald-900"
+        data-testid="award-doc-reused"
+      >
+        <Repeat2 className="size-3.5" aria-hidden />
+        {doc.reused_label ?? "Reused from your profile"}
+      </span>
+    )
+  }
   if (doc.status === "done") {
     const verb = doc.kind === "sign" ? "Signed" : doc.kind === "upload" ? "Uploaded" : "Attached"
     return (

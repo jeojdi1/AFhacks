@@ -6,7 +6,7 @@ import { ArrowRight, ChevronDown, ExternalLink, Lock, Search, TriangleAlert } fr
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
-import { CERT_LABEL, GLOSSARY, certCountsForMatching } from "@/lib/format"
+import { CERT_LABEL, GLOSSARY, certCountsForMatching, certIsLapsed } from "@/lib/format"
 import { certPlain } from "@/lib/ui/plain"
 import { t } from "@/lib/app/strings"
 import { fmtDay, fmtLongDate, toISODate, addDays } from "@/lib/app/today"
@@ -92,6 +92,8 @@ export function CertRow({
   // Welders still in training (pending_training): counts for matching, but not held yet. No
   // renewal stage, no expiry date to add, and its jobs are waiting on it, not at risk (C3-11).
   const training = cert.status === "pending_training"
+  // Lapsed (status "expired"): held before, ran out. Stage "Lapsed", days since, renewal steps.
+  const lapsed = certIsLapsed(cert.status)
   const welding = cert.type.startsWith("CWB")
   const carry = React.useSyncExternalStore(noopSubscribe, readCarryQuery, serverQuery)
   const sid = shopId ?? cert.shop_id
@@ -132,7 +134,7 @@ export function CertRow({
           <span className="text-base leading-snug font-semibold break-words">{name}</span>
           {gloss ? <span className="-mt-1 text-sm leading-snug text-muted-foreground">{gloss}</span> : null}
           <span className="flex flex-wrap items-center gap-1.5">
-            {training ? null : <StageBadge stage={renewal.stage} held={held} />}
+            {training ? null : <StageBadge stage={renewal.stage} held={held || (lapsed && renewal.stage === "lapsed")} />}
             {held && cert.status !== "unknown" ? <CertStatusChip status={cert.status} /> : null}
             {dated ? <DateBasisChip basis={cert.date_basis} /> : null}
             {declaration?.pending ? (
@@ -145,6 +147,13 @@ export function CertRow({
         {dated && renewal.days_left !== null ? (
           <span className="flex w-[4.75rem] shrink-0 flex-col items-end text-right">
             <span className={cn("text-3xl leading-none font-bold tabular-nums", BIG_NUMBER_TONE[renewal.stage])}>
+              {Math.abs(renewal.days_left)}
+            </span>
+            <span className="mt-1 text-sm leading-tight text-muted-foreground">{daysCaption(renewal)}</span>
+          </span>
+        ) : lapsed && renewal.stage === "lapsed" && renewal.days_left !== null ? (
+          <span className="flex w-[4.75rem] shrink-0 flex-col items-end text-right" data-testid="cert-lapsed-days">
+            <span className={cn("text-3xl leading-none font-bold tabular-nums", BIG_NUMBER_TONE.lapsed)}>
               {Math.abs(renewal.days_left)}
             </span>
             <span className="mt-1 text-sm leading-tight text-muted-foreground">{daysCaption(renewal)}</span>
@@ -196,6 +205,29 @@ export function CertRow({
           ) : (
             training ? (
               <p className="text-[15px] text-muted-foreground">{t(welding ? "wallet.row.trainingBody" : "wallet.row.trainingBodyGeneric")}</p>
+            ) : lapsed ? (
+              <div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-red-950" data-testid="cert-lapsed">
+                <div className="flex items-center gap-1.5 text-[15px] font-semibold">
+                  <TriangleAlert className="size-4 shrink-0" aria-hidden />
+                  {renewal.expires_at ? t("wallet.row.lapsedOn", { date: fmtLongDate(renewal.expires_at) }) : t("stage.lapsed")}
+                </div>
+                <p className="text-[15px]">{t("wallet.row.lapsedBody")}</p>
+                {renewal.consequence ? (
+                  <p className="text-sm">
+                    <span className="font-medium">{t("wallet.row.consequence")}:</span> {renewal.consequence}
+                  </p>
+                ) : null}
+                {unlocks ? (
+                  <Link
+                    href={`${growHref(sid, cert.type)}${carry}`}
+                    className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg bg-background px-3 py-2 text-[15px] font-medium text-brand outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+                    data-testid="cert-lapsed-grow"
+                  >
+                    <span className="min-w-0">{t("wallet.row.lapsedUnlocks")}</span>
+                    <ArrowRight className="size-4 shrink-0" aria-hidden />
+                  </Link>
+                ) : null}
+              </div>
             ) : held ? (
               <p className="text-[15px] text-muted-foreground">{t("wallet.row.noDate")}</p>
             ) : (
@@ -344,7 +376,30 @@ export function CertRow({
             <p className="text-sm text-muted-foreground">{t("wallet.row.noRegistry")}</p>
           )}
 
-          {held && !training ? (
+          {lapsed ? (
+            <>
+              <Link
+                href={`${growHref(sid, cert.type)}${carry}`}
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-base font-medium text-primary-foreground outline-none hover:bg-primary/90 focus-visible:ring-3 focus-visible:ring-ring/50"
+                data-testid="cert-renew-steps"
+              >
+                {t("wallet.row.renewSteps")}
+                <ArrowRight className="size-4 shrink-0" aria-hidden />
+              </Link>
+              <Button variant="outline" size="touch" className="w-full" onClick={openSheet}>
+                {t("wallet.row.renewedAddDate")}
+              </Button>
+              <AddExpirySheet
+                key={sheetKey}
+                open={sheetOpen}
+                onOpenChange={setSheetOpen}
+                certType={cert.type}
+                initialDate={declaration?.expires_at ?? null}
+                initialNumber={declaration?.cert_number ?? null}
+                declare={declare}
+              />
+            </>
+          ) : held && !training ? (
             <>
               <Button variant={dated ? "outline" : "default"} size="touch" className="w-full" onClick={openSheet}>
                 {declaration ? t("wallet.row.editExpiry") : t("wallet.row.addExpiry")}

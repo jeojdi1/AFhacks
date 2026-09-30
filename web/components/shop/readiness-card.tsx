@@ -2,7 +2,9 @@
 
 import { useState, type ReactNode } from "react"
 import Link from "next/link"
-import { ArrowRight, CheckCircle2, ChevronDown, Send, Sparkles, Target } from "lucide-react"
+import { ArrowRight, CalendarX, CheckCircle2, ChevronDown, ExternalLink, Send, Sparkles, Target } from "lucide-react"
+import { fmtLongDate } from "@/lib/app/today"
+import { ruleFor } from "@/lib/app/renewals"
 import { cn } from "@/lib/utils"
 import { fmtMoney } from "@/lib/format"
 import { Term } from "@/components/muster/term"
@@ -34,6 +36,12 @@ function MessageWithTerm({ message, requirement }: { message: string; requiremen
 /** One plain line under the heading: the CWB line from §8.6, else the cert's plain meaning. */
 function plainLine(item: ReadinessT): string | null {
   if (item.kind !== "cert" || !item.requirement) return null
+  if (item.renewal) {
+    // A lapsed certificate (v0.6): when it lapsed and what that means (data/rules/renewals.json).
+    const when = item.lapsed_on ? `It lapsed on ${fmtLongDate(item.lapsed_on)}.` : "It has lapsed."
+    const rule = ruleFor(item.requirement)
+    return `${when} ${rule.consequence}`
+  }
   if (item.requirement === "CWB_W47.1") return c("shop.ready.cwb.plain")
   const p = certPlain(item.requirement)
   return p.tip ? `${p.first}: ${p.tip}` : null
@@ -121,8 +129,13 @@ export function ReadinessCard({
     const line = plainLine(top)
     body = (
       <div className="flex items-start gap-4">
-        <div className="mt-1 hidden size-10 shrink-0 items-center justify-center rounded-lg bg-teal-700 text-white sm:flex">
-          <Target className="size-5" aria-hidden />
+        <div
+          className={cn(
+            "mt-1 hidden size-10 shrink-0 items-center justify-center rounded-lg text-white sm:flex",
+            top.renewal ? "bg-red-700" : "bg-teal-700"
+          )}
+        >
+          {top.renewal ? <CalendarX className="size-5" aria-hidden /> : <Target className="size-5" aria-hidden />}
         </div>
         <div className="min-w-0 flex-1">
           <h2 className="text-xl leading-snug font-semibold tracking-tight text-balance text-foreground sm:text-2xl" data-readiness-message>
@@ -144,6 +157,30 @@ export function ReadinessCard({
                 <ChevronDown className={cn("size-4 transition-transform motion-reduce:transition-none", open && "rotate-180")} aria-hidden />
               </button>
             )}
+            {top.renewal && top.requirement ? (
+              <>
+                <Link
+                  href={wp(shopId ? growHref(shopId, top.requirement) : "/gaps")}
+                  prefetch={false}
+                  className="inline-flex min-h-8 items-center gap-1 font-semibold text-red-800 underline-offset-4 hover:underline"
+                  data-testid="shop-renew-steps"
+                >
+                  See the steps to renew
+                  <ArrowRight className="size-3.5" aria-hidden />
+                </Link>
+                {ruleFor(top.requirement).source_url ? (
+                  <a
+                    href={ruleFor(top.requirement).source_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex min-h-8 items-center gap-1 text-slate-700 underline-offset-4 hover:underline"
+                  >
+                    Official rule
+                    <ExternalLink className="size-3.5" aria-hidden />
+                  </a>
+                ) : null}
+              </>
+            ) : null}
             {!funded && top.requirement && fundingRequested.includes(top.requirement) ? (
               <span
                 className="inline-flex min-h-8 items-center gap-1.5 font-semibold text-teal-800"

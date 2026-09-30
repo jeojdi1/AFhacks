@@ -55,7 +55,7 @@ export function withCertDates(
   const extra = syntheticCerts(shopId)
   const out: CertWithDates[] = certs.map((c) => {
     const src = extra?.get(c.type)
-    const merged: Certification =
+    const dated: Certification =
       c.expires_at || !src
         ? c
         : {
@@ -65,6 +65,9 @@ export function withCertDates(
             source_url: c.source_url ?? src.source_url,
             note: src.note ?? c.note,
           }
+    // A lapsed certificate in shops_synthetic.json (status "expired", v0.6) reads lapsed even when
+    // the demo-data snapshot predates it ("unknown"): neither counts, so no matching changes.
+    const merged: Certification = c.status === "unknown" && src?.status === "expired" ? { ...dated, status: "expired" } : dated
     return { ...merged, date_basis: basisFor(merged, shopSource), declaration: null }
   })
   for (const [type, dec] of Object.entries(declared)) {

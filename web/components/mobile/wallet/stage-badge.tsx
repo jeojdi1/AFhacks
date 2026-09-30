@@ -51,6 +51,7 @@ const STATUS: Record<CertStatus, { cls: string; Icon: Icon }> = {
   declared: { cls: "border-slate-300 text-slate-700", Icon: FileCheck },
   pending_training: { cls: "border-amber-300 bg-amber-50 text-amber-800", Icon: Clock },
   unknown: { cls: "border-slate-300 text-slate-500", Icon: CircleDashed },
+  expired: { cls: "border-destructive/40 bg-destructive/5 text-destructive", Icon: CircleX },
 }
 
 /** Certification status chip: verified / declared / not held / pending training. */

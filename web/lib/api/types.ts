@@ -42,8 +42,11 @@ export const CERT_TYPES = [
 ] as const;
 export type CertType = (typeof CERT_TYPES)[number];
 
-/** A certification counts for the rules if its status is verified, declared or pending_training. */
-export const CERT_STATUSES = ["verified", "declared", "unknown", "pending_training"] as const;
+/**
+ * A certification counts for the rules if its status is verified, declared or pending_training.
+ * `expired` (v0.6) = the shop held it and it lapsed: never counts; readiness offers a renewal.
+ */
+export const CERT_STATUSES = ["verified", "declared", "unknown", "pending_training", "expired"] as const;
 export type CertStatus = (typeof CERT_STATUSES)[number];
 export const COUNTING_CERT_STATUSES: readonly CertStatus[] = ["verified", "declared", "pending_training"];
 
@@ -333,6 +336,10 @@ export interface ReadinessItem {
   jobs_unlocked: string[];
   value_cad: number;
   message: string;
+  /** v0.6: a lapsed certification (status `expired`) the shop can renew. Absent otherwise. */
+  renewal?: boolean;
+  /** v0.6: the date it lapsed (the certification's expires_at), on renewal items only. */
+  lapsed_on?: string | null;
 }
 
 /** GET /shops/{id} → training[] */

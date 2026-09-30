@@ -87,7 +87,7 @@ export function GrowList({ shopId }: { shopId: string }) {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-base leading-snug font-semibold">
-                    {growTitle(it.requirement, it.kind)}
+                    {growTitle(it.requirement, it.kind, it.renewal)}
                   </span>
                   {it.jobs.length ? (
                     <span className="mt-0.5 block text-sm text-muted-foreground tabular-nums">

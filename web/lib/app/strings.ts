@@ -119,6 +119,7 @@ const en = {
   "cert.status.declared": "Declared",
   "cert.status.unknown": "Not held",
   "cert.status.pending_training": "In training (paid by Northgate)",
+  "cert.status.expired": "Lapsed",
   "stage.ok": "OK",
   "stage.window_open": "Window open",
   "stage.urgent": "Urgent",

@@ -11,8 +11,10 @@ import { useShopBundle } from "@/lib/app/shop-bundle"
 import { appToday } from "@/lib/app/today"
 import { t } from "@/lib/app/strings"
 import { needsAttention, renewalFor, sortRenewals } from "@/lib/app/renewals"
+import { certIsLapsed } from "@/lib/format"
 import type { Assignment, CertWithDates, Renewal } from "@/lib/app/types"
 import { CertRow, certAnchor, certRowHeld } from "./cert-row"
+import { PaperworkSection } from "./paperwork-section"
 import "./wallet-strings"
 
 interface Row {
@@ -62,8 +64,10 @@ export function WalletView({ shopId }: { shopId: string }) {
   // pending_training counts for matching but is not held yet: welders are still in training (Q7).
   const trainingCount = heldRows.filter((r) => r.cert.status === "pending_training").length
   const inPlaceCount = heldRows.length - trainingCount
-  const notHeld = rows.filter((r) => !r.held)
-  const attention = heldRows.filter((r) => needsAttention(r.renewal)).length
+  // Lapsed (status "expired"): not held, but listed on their own, first, with renewal steps.
+  const lapsedRows = rows.filter((r) => !r.held && certIsLapsed(r.cert.status))
+  const notHeld = rows.filter((r) => !r.held && !certIsLapsed(r.cert.status))
+  const attention = heldRows.filter((r) => needsAttention(r.renewal)).length + lapsedRows.length
 
   // Open (and scroll to) the row named in the URL hash, e.g. #CGP from a Today card.
   React.useEffect(() => {
@@ -159,6 +163,12 @@ export function WalletView({ shopId }: { shopId: string }) {
               {t("wallet.summary.training", { count: trainingCount })}
             </li>
           ) : null}
+          {lapsedRows.length ? (
+            <li className="inline-flex h-8 items-center gap-1.5 rounded-full border border-red-300 bg-red-50 px-3 text-red-800" data-testid="wallet-lapsed">
+              <CircleAlert className="size-4" aria-hidden />
+              {t("wallet.summary.lapsed", { count: lapsedRows.length })}
+            </li>
+          ) : null}
           {notHeld.length ? (
             <li className="inline-flex h-8 items-center gap-1.5 rounded-full border border-dashed border-slate-300 px-3 text-slate-600">
               <CircleDashed className="size-4" aria-hidden />
@@ -168,6 +178,30 @@ export function WalletView({ shopId }: { shopId: string }) {
         </ul>
         {!routed ? <p className="text-sm text-muted-foreground">{t("wallet.notRouted")}</p> : null}
       </header>
+
+      {lapsedRows.length ? (
+        <section aria-labelledby="wallet-lapsed" className="flex flex-col gap-2">
+          <h2 id="wallet-lapsed" className="text-base font-semibold text-red-800">
+            {t("wallet.lapsedSection")}
+          </h2>
+          <ul className="flex flex-col gap-3">
+            {lapsedRows.map(({ cert, renewal }) => (
+              <CertRow
+                key={cert.type}
+                unlocks={unlockTypes.has(cert.type)}
+                cert={cert}
+                renewal={renewal}
+                today={today}
+                open={openSet.has(cert.type)}
+                onToggle={(o) => toggle(cert.type, o)}
+                routed={routed}
+                declare={declare}
+                shopId={shopId}
+              />
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {heldRows.length ? (
         <ul className="flex flex-col gap-3">
@@ -210,6 +244,8 @@ export function WalletView({ shopId }: { shopId: string }) {
           </ul>
         </section>
       ) : null}
+
+      <PaperworkSection shopId={shopId} />
     </div>
   )
 }

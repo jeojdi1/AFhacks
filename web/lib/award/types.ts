@@ -3,6 +3,7 @@
 // Demo only: no real e-signature, no file is stored, no invite is sent.
 
 import type { CertType } from "@/lib/api/types"
+import type { TimeSaved, VaultStatus } from "@/lib/vault/types"
 
 export type AwardStatus = "not_started" | "in_progress" | "complete"
 export type AwardDocKind = "sign" | "upload" | "auto"
@@ -18,6 +19,14 @@ export interface AwardDocument {
   done_at: string | null
   /** What the document says (sign) or what was attached (auto). */
   detail: string
+  /** v0.6 paperwork once (absent from older engines): done because it is on file in the vault. */
+  reused?: boolean
+  /** "Reused from your profile" when reused. */
+  reused_label?: string | null
+  /** The vault item this document maps to (null for subcontract, cgp, cpcsc, fai). */
+  vault_key?: string | null
+  vault_status?: VaultStatus | null
+  vault_expires_at?: string | null
 }
 
 export interface AwardCall {
@@ -55,6 +64,14 @@ export interface Award {
   total?: number
   demo_note?: string
   flags?: string[]
+  /** v0.6 paperwork once: documents done automatically (attached or reused from the vault). */
+  done_automatically?: number
+  /** Documents reused from the vault. */
+  reused?: number
+  /** "4 of 6 done automatically" */
+  automatic_summary?: string
+  /** Estimated time saved by reuse (assumption). */
+  time_saved?: TimeSaved
   /** Client-only: extra facts for the subcontract sheet (fixture build; absent from the engine). */
   qty?: number | null
   unit_price_cad?: number | null
@@ -74,7 +91,8 @@ export interface AwardState {
   problem: "not_accepted" | "not_found" | "error" | null
   error: string | null
   busy: boolean
-  signDocument(key: string): Promise<Award | null>
+  /** Mark a document done; saveToProfile also keeps it on file in the vault for the next award. */
+  signDocument(key: string, opts?: { saveToProfile?: boolean }): Promise<Award | null>
   bookCall(slot: string): Promise<Award | null>
   refresh(): Promise<void>
 }

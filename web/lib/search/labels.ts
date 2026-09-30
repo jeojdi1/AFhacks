@@ -57,6 +57,8 @@ export function certStatusPlain(status: string, source: "synthetic" | "public"):
       return "in training, paid by Northgate"
     case "declared":
       return source === "public" ? "stated on its website (unverified)" : "held (demo data)"
+    case "expired":
+      return "lapsed (needs renewal)"
     default:
       return "not held"
   }

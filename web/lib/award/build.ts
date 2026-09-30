@@ -7,6 +7,8 @@ import type { CertType, Job, Offer } from "@/lib/api/types"
 import { fmtMoney } from "@/lib/format"
 import { addBusinessDays, parseAppDate } from "@/lib/app/today"
 import type { Award, AwardDocument, AwardStatus } from "./types"
+import type { VaultItem } from "@/lib/vault/types"
+import { REUSED_LABEL, timeSaved } from "@/lib/vault/local"
 
 export const AWARD_WITH = "Northgate supplier development (fictional)"
 
@@ -57,8 +59,19 @@ function qualityDetail(job: Job | null, certs: CertLike[]): string {
   return parts.join(". ")
 }
 
-/** The documents for this job, in order. `doneAt` maps key → ISO. Auto documents are attached at accept time. */
-export function awardDocuments(offer: Offer, job: Job | null, certs: CertLike[], doneAt: Record<string, string>, acceptedAt: string | null): AwardDocument[] {
+/**
+ * The documents for this job, in order. `doneAt` maps key → ISO. Auto documents are attached at
+ * accept time. A document whose vault item is on file (and not expired) starts done, reused
+ * (engine/award.py, docs/api.md §6.1 v0.6).
+ */
+export function awardDocuments(
+  offer: Offer,
+  job: Job | null,
+  certs: CertLike[],
+  doneAt: Record<string, string>,
+  acceptedAt: string | null,
+  vault: VaultItem[] = []
+): AwardDocument[] {
   const controlled = !!job?.controlled
   const required = job?.required_certs ?? []
   const qty = job?.qty ?? null
@@ -135,9 +148,25 @@ export function awardDocuments(offer: Offer, job: Job | null, certs: CertLike[],
       detail: "Your current certificate of insurance.",
     }
   )
+  const byDoc = new Map(vault.filter((v) => v.award_document).map((v) => [v.award_document as string, v]))
   return docs.map((d) => {
-    const at = d.kind === "auto" ? (doneAt[d.key] ?? acceptedAt ?? new Date(0).toISOString()) : (doneAt[d.key] ?? null)
-    return { ...d, status: at ? "done" : "todo", done_at: at }
+    const item = byDoc.get(d.key) ?? null
+    const explicit = doneAt[d.key] ?? null
+    const reused = !!item?.reusable && !explicit
+    const at =
+      d.kind === "auto"
+        ? (explicit ?? acceptedAt ?? new Date(0).toISOString())
+        : (explicit ?? (reused ? (acceptedAt ?? new Date(0).toISOString()) : null))
+    return {
+      ...d,
+      status: at ? "done" : "todo",
+      done_at: at,
+      reused,
+      reused_label: reused ? REUSED_LABEL : null,
+      vault_key: item?.key ?? null,
+      vault_status: item?.status ?? null,
+      vault_expires_at: item?.expires_at ?? null,
+    }
   })
 }
 
@@ -163,8 +192,10 @@ export function awardNextSteps(controlled: boolean): string[] {
 export function awardStatus(docs: AwardDocument[], booked: boolean): AwardStatus {
   const manual = docs.filter((d) => d.kind !== "auto")
   const done = manual.filter((d) => d.status === "done").length
+  // Started = something the shop did itself: reused documents do not start the package.
+  const own = manual.filter((d) => d.status === "done" && !d.reused).length
   if (done === manual.length && booked) return "complete"
-  if (done > 0 || booked) return "in_progress"
+  if (own > 0 || booked) return "in_progress"
   return "not_started"
 }
 
@@ -175,10 +206,17 @@ export function buildLocalAward(input: {
   certs: CertLike[]
   acceptedAt: string | null
   progress: AwardProgress
+  /** The shop's vault items (paperwork once); omitted = nothing on file. */
+  vault?: VaultItem[]
 }): Award {
   const { shopId, offer, job, certs, acceptedAt, progress } = input
+  const vault = input.vault ?? []
   const controlled = !!job?.controlled
-  const documents = awardDocuments(offer, job, certs, progress.docs, acceptedAt)
+  const documents = awardDocuments(offer, job, certs, progress.docs, acceptedAt, vault)
+  const automatic = documents.filter((d) => d.status === "done" && (d.kind === "auto" || d.reused)).length
+  const reusedItems = vault.filter(
+    (v) => v.reusable && (!v.award_document || documents.some((d) => d.key === v.award_document && (d.reused || d.kind === "auto")))
+  )
   const slots = awardSlots(acceptedAt)
   const slot = progress.slot && slots.includes(progress.slot) ? progress.slot : null
   return {
@@ -195,6 +233,10 @@ export function buildLocalAward(input: {
     documents,
     call: { booked: !!slot, slot, slots, agenda: awardAgenda(controlled), with: AWARD_WITH },
     next_steps: awardNextSteps(controlled),
+    done_automatically: automatic,
+    reused: documents.filter((d) => d.reused).length,
+    automatic_summary: `${automatic} of ${documents.length} done automatically`,
+    time_saved: timeSaved(reusedItems.reduce((s, v) => s + v.minutes_saved, 0)),
     qty: job?.qty ?? null,
     unit_price_cad: job?.unit_price_cad ?? null,
     ccv_pct: job?.ccv_pct ?? null,

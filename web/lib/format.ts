@@ -103,6 +103,7 @@ export const CERT_STATUS_LABEL: Record<string, string> = {
   declared: "Declared",
   unknown: "Unknown",
   pending_training: "Training under way",
+  expired: "Lapsed",
 };
 
 /**
@@ -125,6 +126,14 @@ export function certDisplay(status: string | null | undefined): CertDisplay {
 /** Held now: verified or declared. `pending_training` is NOT held. */
 export function certIsHeld(status: string | null | undefined): boolean {
   return certDisplay(status) === "held";
+}
+
+/**
+ * Lapsed: the shop held it and it ran out (status `expired`). Shown as "Lapsed" with renewal
+ * steps; for matching and "held" it is the same as not held (certDisplay → "missing").
+ */
+export function certIsLapsed(status: string | null | undefined): boolean {
+  return status === "expired";
 }
 
 /** Welders in training for it, paid by Northgate (status `pending_training`). */
