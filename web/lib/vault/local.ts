@@ -45,7 +45,7 @@ export const VAULT_CATALOGUE: readonly CatalogueItem[] = [
   {
     key: "ccv",
     title: "Canadian content (CCV) declaration template",
-    why: "How much of your work is Canadian. Filled in with each job's numbers for Northgate's ITB report.",
+    why: "How much of your work is Canadian. Filled in with each job's numbers for Northgate's Canadian-content report.",
     award_document: "ccv",
     has_expiry: false,
     minutes_saved: 60,

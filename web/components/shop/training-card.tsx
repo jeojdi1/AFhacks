@@ -48,10 +48,11 @@ function headline(t: TrainingT): string {
   return t.message
 }
 
-/** "Welder training" when every package here trains welders; else the one trade, or "Worker training". */
+/** "Welder training" when every package here trains welders; else the one trade, or "Worker training" (also when there is none yet). */
 function cardTitle(training: TrainingT[]): string {
+  if (training.length === 0) return ce("shop.training.title.generic")
   const trade = commonPackageTrade(training)
-  if (training.length === 0 || isWeldingTrade(trade)) return ce("shop.training.title")
+  if (isWeldingTrade(trade)) return ce("shop.training.title")
   return trade ? ce("shop.training.title.trade", { Worker: capFirst(trade.worker) }) : ce("shop.training.title.generic")
 }
 
