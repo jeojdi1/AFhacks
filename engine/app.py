@@ -24,7 +24,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ConfigDict
 
-from engine import award, cache, graphdb, pipeline, search, shopside, simulate, tagger
+from engine import (
+    award,
+    cache,
+    graphdb,
+    pipeline,
+    search,
+    shopside,
+    simulate,
+    tagger,
+    vault,
+)
 from engine.state import (
     DEFAULT_PROGRAM_ID,
     DEMO_PARTS_CSV,
@@ -184,6 +194,7 @@ def demo_reset() -> dict:
 
 app.include_router(simulate.router)  # /demo/seed, /demo/simulate/* (engine/simulate.py)
 app.include_router(award.router)  # /shops/{id}/offers/{job}/award* (engine/award.py, §6.1)
+app.include_router(vault.router)  # /shops/{id}/vault* (engine/vault.py, §6.2)
 
 
 @app.get("/programs/{program_id}")

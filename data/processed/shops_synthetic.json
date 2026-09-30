@@ -3186,11 +3186,11 @@
         {
           "shop_id": "syn-028",
           "type": "CGP",
-          "status": "unknown",
+          "status": "expired",
           "source_url": null,
-          "verified_at": null,
-          "expires_at": null,
-          "note": "Synthetic shop: not declared (illustrative)"
+          "verified_at": "2026-09-01",
+          "expires_at": "2026-08-31",
+          "note": "Synthetic shop: registration lapsed on 2026-08-31 (illustrative). Controlled jobs can't go to this shop until it registers again with the Controlled Goods Program"
         },
         {
           "shop_id": "syn-028",

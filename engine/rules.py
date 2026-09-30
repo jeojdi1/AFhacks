@@ -19,6 +19,12 @@ RULE_FILES = ("policy", "filters", "weights", "training_costs")
 
 FILTERS: tuple[str, ...] = ("process", "envelope", "certs", "controlled_cgp", "cpcsc", "capacity")
 COUNTING_STATUSES: tuple[str, ...] = ("verified", "declared", "pending_training")
+# Every certification status (docs/api.md §1). ``expired`` = the shop held it and it lapsed:
+# like ``unknown`` it never counts for routing, but readiness offers it as a renewal.
+LAPSED = "expired"
+CERT_STATUSES: tuple[str, ...] = ("verified", "declared", "unknown", "pending_training", LAPSED)
+# Statuses that mean "not held" for graph edges and search result chips.
+NOT_HELD_STATUSES: tuple[str, ...] = ("unknown", LAPSED)
 CPCSC = "CPCSC_L1"
 CGP = "CGP"
 
@@ -58,12 +64,39 @@ CERT_REASON_PRIORITY: tuple[str, ...] = (
 )
 
 
+# What a lapsed certification is called in a renewal line ("Renew Controlled Goods
+# registration → …"). CGP: a lapsed registration means registering again with PSPC's
+# Controlled Goods Program (data/rules/renewals.json).
+RENEW_LABEL: dict[str, str] = {
+    "CGP": "Controlled Goods registration",
+    "CPCSC_L1": "CPCSC Level 1 self-assessment",
+    "ISO9001": "ISO 9001 certificate",
+    "AS9100": "AS9100 certificate",
+    "CWB_W47.1": "CWB W47.1 certification",
+}
+
+
 def process_label(tag: str) -> str:
     return PROCESS_LABEL.get(tag, tag.replace("_", " "))
 
 
 def cert_label(ctype: str) -> str:
     return CERT_LABEL.get(ctype, ctype)
+
+
+def renew_label(ctype: str) -> str:
+    """"Controlled Goods registration", "Nadcap heat treating accreditation", ..."""
+    if ctype in RENEW_LABEL:
+        return RENEW_LABEL[ctype]
+    if ctype.startswith("NADCAP:"):
+        return f"{cert_label(ctype)} accreditation"
+    return cert_label(ctype)
+
+
+def status_text(status: str | None) -> str:
+    """A status as a reason word: ``expired`` reads "lapsed", ``pending_training`` "pending training"."""
+    s = status or "unknown"
+    return "lapsed" if s == LAPSED else s.replace("_", " ")
 
 
 # --------------------------------------------------------------------------- config
@@ -101,6 +134,18 @@ def cert_status(shop: dict, ctype: str) -> str:
 
 def cert_counts(shop: dict, ctype: str, counting: tuple[str, ...] = COUNTING_STATUSES) -> bool:
     return cert_status(shop, ctype) in counting
+
+
+def cert_record(shop: dict, ctype: str) -> dict | None:
+    """The shop's first Certification of this type (the one cert_status reads), or None."""
+    for c in shop.get("certifications") or ():
+        if c.get("type") == ctype:
+            return c
+    return None
+
+
+def is_lapsed(shop: dict, ctype: str) -> bool:
+    return cert_status(shop, ctype) == LAPSED
 
 
 def fits(job_env: list, shop_env: list) -> bool:
@@ -171,18 +216,18 @@ def evaluate(
     miss_c = missing_certs(job, shop, counting)
     if miss_c:
         reasons["certs"] = "Missing " + ", ".join(
-            f"{cert_label(c)} (status {cert_status(shop, c)})" for c in miss_c
+            f"{cert_label(c)} (status {status_text(cert_status(shop, c))})" for c in miss_c
         )
 
     if job.get("controlled") and not cert_counts(shop, CGP, counting):
         reasons["controlled_cgp"] = (
             "Controlled job (controlled technical data) needs a CGP-registered shop; "
-            f"CGP status is {cert_status(shop, CGP)}"
+            f"CGP status is {status_text(cert_status(shop, CGP))}"
         )
 
     if requires_cpcsc(job) and not cert_counts(shop, CPCSC, counting):
         reasons["cpcsc"] = (
-            f"Job requires CPCSC Level 1; shop status is {cert_status(shop, CPCSC)}"
+            f"Job requires CPCSC Level 1; shop status is {status_text(cert_status(shop, CPCSC))}"
         )
 
     if remaining_hours is not None:

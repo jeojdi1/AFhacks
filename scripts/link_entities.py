@@ -940,7 +940,7 @@ def main() -> int:
         for proc in s.get("processes", []):
             edge("SHOP_HAS_PROCESS", sid, node(f"process:{proc}", "Process", name=proc))
         for c in s.get("certifications", []):
-            if c["status"] == "unknown":
+            if c["status"] in ("unknown", "expired"):  # not held (expired = lapsed)
                 continue
             cid = node(f"cert:{c['type']}", "Certification", type=c["type"])
             edge(

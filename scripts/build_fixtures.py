@@ -765,11 +765,29 @@ def tag_key(part_no: str, description: str) -> str:
 # One illustrative date moved into the CGP renewal window so the phone app's compliance
 # wallet has a live "urgent" example (docs/app-spec.md §2.4). Expiry is not a routing filter,
 # so no demo number moves.
+# One lapsed registration (status "expired", docs/api.md §1): syn-028's CGP ran out, so its
+# readiness shows "Renew Controlled Goods registration → …". syn-028's CGP was "unknown"
+# before, and neither status counts for routing, so no demo number moves.
 CERT_DATE_OVERRIDES = {
     ("syn-001", "CGP"): {
         "expires_at": "2027-01-15",
         "note": "Synthetic shop: self-declared (illustrative date, inside the CGP renewal window for the demo)",
     },
+    ("syn-028", "CGP"): {
+        "status": "expired",
+        "verified_at": "2026-09-01",
+        "expires_at": "2026-08-31",
+        "note": ("Synthetic shop: registration lapsed on 2026-08-31 (illustrative). Controlled jobs "
+                 "can't go to this shop until it registers again with the Controlled Goods Program"),
+    },
+}
+LAPSED_STATUS = "expired"
+RENEW_LABEL = {
+    "CGP": "Controlled Goods registration",
+    "CPCSC_L1": "CPCSC Level 1 self-assessment",
+    "ISO9001": "ISO 9001 certificate",
+    "AS9100": "AS9100 certificate",
+    "CWB_W47.1": "CWB W47.1 certification",
 }
 
 
@@ -1251,15 +1269,23 @@ class State:
         for (kind, req), jids in groups.items():
             value = sum((cents(self.jobs[j]["est_value_cad"]) for j in jids), Decimal(0))
             more = f"{len(jids)} more job" + ("" if len(jids) == 1 else "s")
-            if kind == "cert":
+            extra = {}
+            if kind == "cert" and self.cert_status(sid, req) == LAPSED_STATUS:
+                # A lapsed certification is a renewal (engine/gaps.py readiness mirrors this).
+                label = RENEW_LABEL.get(req, CERT_LABEL[req])
+                msg = f"Renew {label} → qualify for {more} worth {short_money(value)}"
+                lapsed_on = next((c["expires_at"] for c in self.certs[sid] if c["type"] == req), None)
+                extra = {"renewal": True, "lapsed_on": lapsed_on}
+            elif kind == "cert":
                 msg = f"Get {CERT_LABEL[req]} → qualify for {more} worth {short_money(value)}"
             elif kind == "capacity":
                 msg = f"Add {PROCESS_LABEL[req]} capacity → qualify for {more} worth {short_money(value)}"
             else:
                 msg = f"Add {PROCESS_LABEL[req]} → qualify for {more} worth {short_money(value)}"
             items.append({"kind": kind, "requirement": req, "jobs_unlocked": jids,
-                          "value_cad": float(value), "message": msg})
-        items.sort(key=lambda it: (-it["value_cad"], kind_order[it["kind"]], it["requirement"]))
+                          "value_cad": float(value), "message": msg, **extra})
+        items.sort(key=lambda it: (not it.get("renewal"), -it["value_cad"], kind_order[it["kind"]],
+                                   it["requirement"]))
         return items
 
     def shop_detail(self, sid):
@@ -1526,7 +1552,7 @@ def main() -> int:
         check(sum(p in s["processes"] for s in shops) >= 2, f"process {p} offered by >= 2 shops")
     for s, certs in shops_with_certs:
         check([c["type"] for c in certs] == CERT_TYPES, f"{s['id']}: one cert per type")
-        check(all(c["status"] in ("declared", "unknown") for c in certs), f"{s['id']}: cert statuses")
+        check(all(c["status"] in ("declared", "unknown", LAPSED_STATUS) for c in certs), f"{s['id']}: cert statuses")
         check(s["naics"][:4] in ("3327", "3323", "3328", "3344", "3353", "3359") or s["naics"][:3] == "332",
               f"{s['id']}: naics")
     cgp_shops = [s for s, c in shops_with_certs if any(x["type"] == "CGP" and x["status"] == "declared" for x in c)]

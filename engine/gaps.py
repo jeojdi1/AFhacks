@@ -25,8 +25,11 @@ from engine.rules import (
     CPCSC,
     FILTERS,
     cert_label,
+    cert_record,
     fits,
+    is_lapsed,
     process_label,
+    renew_label,
 )
 
 COST_BASIS = "data/rules/training_costs.json (assumption)"
@@ -569,11 +572,18 @@ def readiness(ctx, sid: str, assignments: dict[str, dict]) -> list[dict]:
             continue
         groups.setdefault(next(iter(reqs)), []).append(jid)
     kind_order = {"cert": 0, "capacity": 1, "process": 2}
+    shop = ctx.shops[sid]
     items = []
     for (kind, req), jids in groups.items():
         value = sum_money(ctx.jobs[j]["est_value_cad"] for j in jids)
         more = f"{len(jids)} more job" + ("" if len(jids) == 1 else "s")
-        if kind == "cert":
+        extra: dict = {}
+        if kind == "cert" and is_lapsed(shop, req):
+            # The shop held it and it lapsed (status "expired"): a renewal, not a first
+            # certification. Only these items carry the renewal fields (additive).
+            msg = f"Renew {renew_label(req)} → qualify for {more} worth {short_money(value)}"
+            extra = {"renewal": True, "lapsed_on": (cert_record(shop, req) or {}).get("expires_at")}
+        elif kind == "cert":
             msg = f"Get {cert_label(req)} → qualify for {more} worth {short_money(value)}"
         elif kind == "capacity":
             msg = f"Add {process_label(req)} capacity → qualify for {more} worth {short_money(value)}"
@@ -581,9 +591,10 @@ def readiness(ctx, sid: str, assignments: dict[str, dict]) -> list[dict]:
             msg = f"Add {process_label(req)} → qualify for {more} worth {short_money(value)}"
         items.append(
             {"kind": kind, "requirement": req, "jobs_unlocked": jids, "value_cad": value,
-             "message": msg}
+             "message": msg, **extra}
         )
-    items.sort(key=lambda it: (-it["value_cad"], kind_order[it["kind"]], it["requirement"]))
+    # Renewals first (the shop held it before: the quickest step back), then by value.
+    items.sort(key=lambda it: (not it.get("renewal"), -it["value_cad"], kind_order[it["kind"]], it["requirement"]))
     return items
 
 

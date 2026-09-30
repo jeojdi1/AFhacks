@@ -1,0 +1,36 @@
+{
+  "label": "Synthetic",
+  "source": "synthetic",
+  "as_of": "2026-09-26",
+  "note": "Illustrative paperwork records for a few synthetic demo shops (engine/vault.py, docs/api.md §6.2). Shieldworks records only that a reusable document is on file, its type and dates. No file is stored, and no banking details or personal names. The demo shop syn-012 starts with nothing on file, so its first award shows the full paperwork.",
+  "shops": {
+    "syn-021": [
+      {"key": "insurance", "on_file_at": "2026-05-04", "expires_at": "2027-05-31"},
+      {"key": "quality", "on_file_at": "2026-09-22", "expires_at": "2028-09-22"},
+      {"key": "nda", "on_file_at": "2026-06-15", "expires_at": null},
+      {"key": "ccv", "on_file_at": "2026-06-15", "expires_at": null},
+      {"key": "vendor", "on_file_at": "2026-06-15", "expires_at": null}
+    ],
+    "syn-001": [
+      {"key": "insurance", "on_file_at": "2026-02-10", "expires_at": "2027-02-28"},
+      {"key": "quality", "on_file_at": "2026-09-10", "expires_at": "2027-09-10"},
+      {"key": "nda", "on_file_at": "2026-04-20", "expires_at": null},
+      {"key": "vendor", "on_file_at": "2026-04-20", "expires_at": null}
+    ],
+    "syn-016": [
+      {"key": "insurance", "on_file_at": "2025-11-01", "expires_at": "2026-10-31", "note": "Synthetic shop: illustrative record (no file stored); expiring soon for the demo"},
+      {"key": "quality", "on_file_at": "2026-09-15", "expires_at": "2027-09-15"},
+      {"key": "nda", "on_file_at": "2026-03-02", "expires_at": null},
+      {"key": "ccv", "on_file_at": "2026-03-02", "expires_at": null}
+    ],
+    "syn-008": [
+      {"key": "insurance", "on_file_at": "2025-08-16", "expires_at": "2026-08-15", "note": "Synthetic shop: illustrative record (no file stored); expired for the demo"},
+      {"key": "quality", "on_file_at": "2026-09-06", "expires_at": "2027-09-06"},
+      {"key": "vendor", "on_file_at": "2025-08-16", "expires_at": null}
+    ],
+    "syn-028": [
+      {"key": "quality", "on_file_at": "2026-09-21", "expires_at": "2029-09-21"},
+      {"key": "vendor", "on_file_at": "2024-03-11", "expires_at": null}
+    ]
+  }
+}

@@ -70,6 +70,9 @@ class State:
     idempotency: dict[str, dict] = field(default_factory=dict)  # idempotency_key → stored response
     # Award onboarding progress after an accept (engine/award.py, docs/api.md §6.1). Additive.
     awards: dict[str, dict] = field(default_factory=dict)  # "shop:job" → paperwork + kickoff call
+    # Supplier document vault marks (engine/vault.py, docs/api.md §6.2). Additive; seeds live in
+    # data/processed/vault_synthetic.json, so an older database simply has no shop marks.
+    vault: dict[str, dict[str, dict]] = field(default_factory=dict)  # shop → item key → record
 
 
 def db_path() -> Path:

@@ -1,4 +1,4 @@
-# Shieldworks API contract (v0.1; §6 additive v0.2; §7 v0.3; §8 v0.4)
+# Shieldworks API contract (v0.1; §6 additive v0.2; §7 v0.3; §8 v0.4; §6.1 v0.5; §6.2 + `expired` v0.6)
 
 Owner: Lane B (shared). Source of truth for field names. Any change is a `CONTRACT:` commit that also updates `/data/fixtures` (CLAUDE.md §2).
 
@@ -41,6 +41,11 @@ Every live route: **29** (26 in `engine/app.py`, 3 in the `engine/simulate.py` r
 | `POST /shops/{shop_id}/capacity` | §6 | yes |
 | `POST /shops/{shop_id}/certifications/{cert_type}` | §6 | yes |
 | `GET /shops/{shop_id}/actions` | §6 | no |
+| `GET /shops/{shop_id}/offers/{job_id}/award` | §6.1 | no |
+| `POST /shops/{shop_id}/offers/{job_id}/award/documents/{key}` | §6.1 | yes |
+| `POST /shops/{shop_id}/offers/{job_id}/award/call` | §6.1 | yes |
+| `GET /shops/{shop_id}/vault` | §6.2 | no |
+| `POST /shops/{shop_id}/vault/{key}` | §6.2 | yes |
 | `GET /search/shops` | §7 | no |
 | `GET /search/jobs?shop_id=` | §7 | no |
 | `GET /graph/summary` | §7 | no |
@@ -73,7 +78,7 @@ Without the seed, the classic path is `POST /demo/reset` → `POST /programs/nor
 | `material` | `steel`, `armour_steel`, `stainless`, `aluminum`, `titanium`, `copper`, `polymer` |
 | `tolerance_class` | `standard` < `precision` < `ultra` (a shop's value is the best it can hold; used in the fit score, not as a hard filter) |
 | `cert_type` | `CGP`, `CPCSC_L1`, `ISO9001`, `AS9100`, `NADCAP:HEAT_TREAT`, `NADCAP:CHEM_PROCESSING`, `NADCAP:COATINGS`, `CWB_W47.1` |
-| `cert_status` | `verified`, `declared`, `unknown`, `pending_training` |
+| `cert_status` | `verified`, `declared`, `unknown`, `pending_training`, `expired` (v0.6) |
 | `filter` (rejection reason codes) | `process`, `envelope`, `certs`, `controlled_cgp`, `cpcsc`, `capacity` |
 | `credit_category` | `regular` (1x), `sme_direct` (2x), `training` (5x), `indigenous_training` (10x) |
 | `training_category` | `apprentice_sponsorship`, `personal_certification`, `skills_program_contribution`, `education_costs` |
@@ -84,6 +89,8 @@ Without the seed, the classic path is `POST /demo/reset` → `POST /programs/nor
 | `program.state` | `empty` (after reset), `uploaded`, `routed`, `funded` |
 
 A certification **counts** for the rules if its status is `verified`, `declared` or `pending_training`. `pending_training` is only ever created by funding a training package. A job **requires CPCSC** if `"CPCSC_L1"` is in its `required_certs`. A `controlled: true` job may only go to a shop whose `CGP` certification counts.
+
+*(Additive, v0.6.)* **`expired`** means the shop held the certification and it lapsed (`expires_at` is the date it ran out). Like `unknown` it **never counts** (the counting list above is unchanged), so a controlled job cannot go to a shop whose CGP registration lapsed. Where it shows: rule reasons read "lapsed" (`"CGP status is lapsed"`, `"… (status lapsed)"`); `GET /shops/{id}` readiness lists it as a **renewal** (§3); the graph has no `HOLDS_CERT` edge for it and `/search/shops` result chips leave it out (like `unknown`); `/search/jobs` near misses read `"Renew Controlled Goods registration (lapsed)"`. Demo data: synthetic shop `syn-028` (Millrace Machine Works) has a CGP registration that lapsed on 2026-08-31. Its CGP was `unknown` before, and neither status counts, so no routing number moves.
 
 ---
 
@@ -391,6 +398,7 @@ The shop-side view (H3.5): what this shop is offered, what it is missing, and wh
 }
 ```
 - `readiness` lists jobs this shop fails on **exactly one** requirement, grouped by that requirement (`kind`: `cert | capacity | process`).
+- *(Additive, v0.6.)* A `cert` item whose certification is `expired` at this shop is a **renewal**: `"message": "Renew Controlled Goods registration → qualify for 1 more job worth $1.5M"` plus `"renewal": true` and `"lapsed_on": "2026-08-31"` (the certification's `expires_at`). Renewals come first, then the other items by value. Items that are not renewals have no `renewal` / `lapsed_on` keys (their shape is unchanged). Renewal names: CGP → "Controlled Goods registration" (a lapsed registration means registering again with PSPC's Controlled Goods Program), CPCSC L1 → "CPCSC Level 1 self-assessment", ISO 9001 / AS9100 → "… certificate", CWB W47.1 → "CWB W47.1 certification", Nadcap → "Nadcap … accreditation".
 - After funding, the unblocked jobs appear in `offers` (2 → 5), the matching readiness item disappears (the next one is `"Get ISO 9001 → qualify for 2 more jobs worth $1.2M"`), and the training entry reads `"status": "funded"`, `"message": "4 welders in training for CWB W47.1"`.
 - Before routing, `offers` is `[]`.
 - A declined job Northgate re-offered to this shop (§6 re-offer) is also listed here, with the assignment's value, credit and multiplier, this shop's own three reasons, `status` from this shop's own answer (`offered | accepted | declined`) and `"reoffered_from": "<shop that declined>"`. The shop that declined keeps it in its list as `declined`. Other offers have no `reoffered_from` key.
@@ -659,6 +667,8 @@ Generated by `scripts/build_app_fixtures.py` (the real engine in-process on a te
 ### Data change (the only change to existing data)
 `scripts/build_fixtures.py` moves one illustrative date: `syn-001` (Tessellate Precision Machining) **CGP `expires_at` = `2027-01-15`**, note "Synthetic shop: self-declared (illustrative date, inside the CGP renewal window for the demo)". Only `data/processed/shops_synthetic.json` changes (so live `GET /shops/syn-001` shows it); every file in `data/fixtures/` is byte-identical, since expiry is not a routing filter and `shops.json` carries only `cert_summary`.
 
+*(v0.6.)* It also marks one lapsed registration: `syn-028` (Millrace Machine Works) **CGP `status` = `expired`**, `verified_at` 2026-09-01, `expires_at` 2026-08-31. In `data/fixtures/` only `shops.json` changes (that one `cert_summary` status); every routing, ledger, gaps and fund fixture is byte-identical.
+
 ### 6.1 Award onboarding after an accept (additive, v0.5)
 
 When a shop presses **Accept**, the phone jumps to a formal award page: the paperwork Northgate (fictional) needs for this job, and a kickoff call with Northgate's supplier development team. Northgate's desktop reads the same award to show progress and the booked call. Logic and routes: `engine/award.py`; tests: `engine/tests/test_award.py`.
@@ -704,9 +714,17 @@ When a shop presses **Accept**, the phone jumps to a formal award page: the pape
 | `insurance` | Certificate of insurance | upload | always | coverage per Northgate's terms (assumption); no file is stored |
 
 - `call.slots`: the next 5 business days after the demo clock's date (Eastern time), at 10:00 and 14:00, ISO 8601 with offset. `call.agenda` adds "Controlled goods handling" for a controlled job.
+- *(Additive, v0.6: paperwork once, §6.2.)* A document whose vault item is on file and not expired (`on_file` or `expiring_soon`) starts **done** without the shop doing anything: `nda` ← master NDA, `ccv` ← CCV declaration template, `insurance` ← certificate of insurance, `quality` ← quality certificate copies (already `auto`; it then also reads reused). Each document gains:
+  - `reused` (bool; true only when done because of the vault, not because the shop marked it here), `reused_label` (`"Reused from your profile"` or `null`),
+  - `vault_key` (the vault item it maps to, or `null` for `subcontract`, `cgp`, `cpcsc`, `fai`), `vault_status` (`on_file | expiring_soon | expired | missing`, or `null`) and `vault_expires_at`. An expired vault item is **not** reused: the document stays `todo` with `vault_status: "expired"`.
+  - The award gains `done_automatically` (documents done by `auto` or reuse), `reused` (count), `automatic_summary` (`"4 of 6 done automatically"`) and `time_saved` `{minutes, label, flag: "assumption", basis}` (e.g. 195 minutes → `"about 3.5 hours"`; per item: insurance 30, quality 20, NDA 45, CCV 60, vendor form 40 minutes, assumption, not measured; the vendor and banking form counts when on file).
+  - `status` counts only what the shop did itself: reused and `auto` documents leave it `not_started`. `next_steps` gains a payment set-up line: the vendor and banking form on file ("nothing new to send (reused from your profile)") or "send Northgate your vendor and banking form once …".
+  - The demo shop `syn-012` has nothing on file, so its awards are unchanged (`done` 1 of 6).
 
 #### `POST /shops/{shop_id}/offers/{job_id}/award/documents/{key}`
 Body `{}` (or none; `idempotency_key` is accepted and ignored: the call is naturally idempotent). Marks the document done and returns the award. Already done (or `auto`) → the same award, no event. 404 `Unknown document '…' for job '…' (one of: …)` for a key not in this job's list.
+
+*(Additive, v0.6.)* `{"save_to_profile": true}` also keeps the document on file in the shop's vault (§6.2) when it has a vault item that is not already reusable, so the next award reuses it. The `paperwork_done` event then carries `payload.saved_to_profile: true` and its message ends "…; kept on file for next time)". On a document that is already done it only adds the vault item (a new revision, no event). Without the flag the vault never changes.
 
 #### `POST /shops/{shop_id}/offers/{job_id}/award/call`
 Body `{ "slot": "2026-09-29T10:00:00-04:00" }`: must be the same instant as one of `call.slots` (a UTC `Z` form is accepted and stored as the offered string). Returns the award. Booking another slot re-books (event with `previous_slot`); the same slot again is a no-op. 400 `slot is required …` / `slot '…' is not one of the offered times (call.slots)`.
@@ -716,6 +734,47 @@ Body `{ "slot": "2026-09-29T10:00:00-04:00" }`: must be the same instant as one 
 | --- | --- | --- | --- |
 | `paperwork_done` | `null` / `null` | `job_id, key, title, done, total, demo: true` | "Tallowfield Fabricating Ltd. signed the Mutual non-disclosure agreement for NG-021 (2 of 6 done, demo)" (`sent` for uploads) |
 | `kickoff_booked` | `null` / `null` | `job_id, slot, with, demo: true, previous_slot?` | "Tallowfield Fabricating Ltd. booked the kickoff call with Northgate for NG-021: Tue Sep 29, 10:00 AM ET (demo, no invite sent)" |
+
+### 6.2 Supplier document vault: paperwork once (additive, v0.6)
+
+Shop owners told us the paperwork on a first defence order is the slow part, and that after the first time it runs like any other project. The vault keeps the reusable part on the shop's profile so the next award package reuses it (§6.1). Logic and routes: `engine/vault.py`; tests: `engine/tests/test_vault.py`.
+
+**No file is stored.** An item records only that a document is on file, its type, the date it was put on file and an optional expiry. No banking details, no personal names. Seeds: `data/processed/vault_synthetic.json` (illustrative records for synthetic shops `syn-021` (everything on file), `syn-001`, `syn-016` (insurance expiring soon), `syn-008` (insurance expired) and `syn-028`; labelled synthetic). The demo shop `syn-012` starts with nothing on file. A shop's own marks live in `State.vault` and override a seed. Upload and route keep the vault (it belongs to the shop); a reset clears the marks (seeds come back). Numbers never change: no assignment, job, package or ledger value.
+
+Items, in order (`key` → award document):
+
+| `key` | Title | Award document | Minutes saved per reuse (assumption) |
+| --- | --- | --- | --- |
+| `insurance` | Certificate of insurance | `insurance` | 30 |
+| `quality` | Quality certificates (copies) | `quality` | 20 |
+| `nda` | Master mutual NDA with Northgate | `nda` | 45 |
+| `ccv` | Canadian content (CCV) declaration template | `ccv` | 60 |
+| `vendor` | Vendor and banking set-up form | none (shortens payment set-up) | 40 |
+
+#### `GET /shops/{shop_id}/vault`
+```json
+{ "shop_id": "syn-021", "shop_name": "Northfield Axis Machining Inc.", "shop_source": "synthetic",
+  "as_of": "2026-09-26",
+  "items": [
+    { "key": "insurance", "title": "Certificate of insurance",
+      "why": "Proof of business liability insurance. Defence companies ask for it before a first order.",
+      "award_document": "insurance", "has_expiry": true,
+      "status": "on_file", "on_file": true, "reusable": true,
+      "on_file_at": "2026-05-04", "expires_at": "2027-05-31", "days_left": 247,
+      "source": "synthetic", "note": "Synthetic shop: illustrative record (no file stored)",
+      "marked_at": null, "minutes_saved": 30 } ],
+  "on_file": 5, "total": 5, "expired": 0, "expiring_soon": 0,
+  "time_saved_per_award": { "minutes": 195, "label": "about 3.5 hours", "flag": "assumption",
+                            "basis": "Typical time to find, fill in and send each document again (assumption, not measured)." },
+  "note": "Shieldworks records only that a document is on file: its type and dates. No file is stored, and no banking details or personal names.",
+  "flags": ["assumption"] }
+```
+- `status`: `missing` (not on file), `expired` (`expires_at` before the demo clock's date; not reused), `expiring_soon` (60 days or less left, assumption; still reused), `on_file`. `reusable` is true for `on_file` and `expiring_soon`. `on_file` (top level) counts the reusable items.
+- `source`: `synthetic` (seed) or `shop` (marked by the shop); `marked_at` is the shop's mark time (ISO), `null` for seeds.
+- 404 `Unknown shop '…'` (public `pub-XXX` shops have no vault). Cached per revision and per demo-clock date.
+
+#### `POST /shops/{shop_id}/vault/{key}`
+Body `{ "on_file": true, "expires_at": "2027-06-30", "idempotency_key": "…" }` (all optional; `on_file` defaults to true). Marks the item on file today (optionally with an expiry, any item) or, with `on_file: false`, off file (hides a seed). Returns `{ "item": VaultItem, "vault": <GET body>, "changed": bool }`. The same mark again changes nothing (`changed: false`, no new revision); a reused `idempotency_key` replays the stored response, and 409 when it was used for a different request. 404 unknown shop / `Unknown vault item '…' (one of: insurance, quality, nda, ccv, vendor)`; 400 `expires_at must be a date as YYYY-MM-DD`, before 2000-01-01, or more than 10 years out. A past date is accepted and reads `expired`. No event is emitted.
 
 ---
 
