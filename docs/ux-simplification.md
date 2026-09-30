@@ -64,7 +64,7 @@ Status: buildable spec, 2026-09-26 (night before the freeze).
 | 1 | **Parts list** | What does Northgate need made? | `/program` (before matching) |
 | 2 | **Where the work goes** | Which small shops got the work, and what's stuck? | `/program` (after matching) |
 | 3 | **Credit earned** | How much of what Northgate owes is covered? | `/scorecard` |
-| 4 | **Fix the welder gap** | Why are 4 jobs stuck, and what does $96K of training fix? | `/gaps` |
+| 4 | **Fix the skills gap** | Why are 4 jobs stuck, and what does $96K of training fix? | `/gaps` |
 | 5 | **The shop's side** | What does the small shop see and get? | `/shops/syn-012` (and `/m/shops/syn-012`) |
 | extra | **Shops directory** | Who is out there in real public data? | `/network`, `/shops/pub-*` |
 
@@ -144,7 +144,7 @@ Status: buildable spec, 2026-09-26 (night before the freeze).
 - The "PRIME / SHOP" group labels are removed from the nav.
 
 **Row 2: story bar (48 px), `web/components/shell/program-context-bar.tsx`, rewritten**
-- Left: the numbered steps: `1 Parts list · 2 Where the work goes · 3 Credit earned · 4 Fix the welder gap · 5 The shop's side`.
+- Left: the numbered steps: `1 Parts list · 2 Where the work goes · 3 Credit earned · 4 Fix the skills gap · 5 The shop's side`.
 - Right: the **promise meter**, "Credit so far **$57.5M** of $500M" with a 120-px mini bar and "11.5%". It reads `useDemo().ledger`.
   - Before matching, it shows "Northgate owes Canada **$500M** of business".
   - After funding, it animates to $67.1M / 13.4% on whatever page you are on.
@@ -160,7 +160,7 @@ State comes only from `pathname` plus `useDemo().stage`, never from component-lo
 | 1 Parts list | `/program` and stage ∈ {empty, uploaded} | stage ≥ uploaded | `/program` |
 | 2 Where the work goes | `/program` and stage ≥ routed | stage ≥ routed | `/program#map` |
 | 3 Credit earned | `/scorecard` | stage ≥ routed | `/scorecard` |
-| 4 Fix the welder gap | `/gaps` | stage = funded | `/gaps` |
+| 4 Fix the skills gap | `/gaps` | stage = funded | `/gaps` |
 | 5 The shop's side | `/shops/<demoShopId>` | stage = funded | `/shops/<demoShopId>` |
 
 - **Exactly one** pill is "current", or none, and only on the page it names.
@@ -373,9 +373,9 @@ Legend strip in words: "**Solid green line**: job matched · **Dashed purple lin
 - **"Every credit entry (36)"**: the ledger table.
 - Rules-version chip.
 
-### 5.4 `/gaps`, step 4 "Fix the welder gap"
+### 5.4 `/gaps`, step 4 "Fix the skills gap"
 
-**Page H1:** "Fix the welder gap" (was "Gaps & Training"). The subtitle paragraph is replaced by the banner.
+**Page H1:** "Fix the skills gap" (was "Gaps & Training"). The subtitle paragraph is replaced by the banner.
 
 **Banner, before funding**
 - **Summary:** "**4 welding jobs ($6.6M) are stuck.** The certified welding shops on Shieldworks are full, and the others don't have the certification. Real shops found in public data can't be sent work until they claim their profile. **Training 4 welders at Tallowfield Fabricating unsticks 3 of them.**"
@@ -572,7 +572,7 @@ Put desktop strings in **`web/lib/ui/copy.ts`** as a flat `COPY` object, keyed a
 | `app.sentence` | Big defence companies owe Canada business equal to their contracts. Shieldworks sends that work to small Canadian shops, and when shops are short of qualified welders, the defence company pays to train them. |
 | `app.tagline` | Defence work for small Canadian shops |
 | `app.creditExplainer` | Credit isn't cash. It's how the government counts Northgate's Canadian business toward the $500M it owes. Small-business work counts double. Training counts 5×. |
-| `nav.step1` … `nav.step5` | Parts list · Where the work goes · Credit earned · Fix the welder gap · The shop's side |
+| `nav.step1` … `nav.step5` | Parts list · Where the work goes · Credit earned · Fix the skills gap · The shop's side |
 | `nav.directory` | Shops directory |
 | `nav.phone` | Phone app |
 | `nav.startOver` | Start over |
@@ -671,7 +671,7 @@ The `busy.*` strings map onto the existing `BUSY` values. The store keeps its ow
 
 | Key | String |
 | --- | --- |
-| `gaps.h1` | Fix the welder gap |
+| `gaps.h1` | Fix the skills gap |
 | `gaps.b` | **{n} welding jobs ({value}) are stuck.** The certified welding shops on Shieldworks are full, and the others don't have the certification. Real shops found in public data can't be sent work until they claim their profile. **Training 4 welders at {shop} unsticks {k} of them.** |
 | `gaps.b.look` | The training card: what Northgate pays, and what it gets back. |
 | `gaps.next.fund` | ↓ Fund the training below |
@@ -830,7 +830,7 @@ export function useStoryMode(): { story: boolean; setStory(v: boolean): void }
    - the `BUSY` labels become the §8.1 `busy.*` strings
    - No logic changes.
 2. `docs/demo-script.md` gets its ON SCREEN cells updated:
-   - Nav names: "ITB Scorecard" → "3 Credit earned", "Gaps & Training" → "4 Fix the welder gap", "Shop view" → "5 The shop's side", "Network" → "Shops directory".
+   - Nav names: "ITB Scorecard" → "3 Credit earned", "Gaps & Training" → "4 Fix the skills gap", "Shop view" → "5 The shop's side", "Network" → "Shops directory".
    - "Reset demo" → "Start over"; "Demo mode · fixtures" / "Live API" → "Demo data" / "Live"; "Phone view" → "Phone app".
    - "Load Northgate demo parts list (40 lines)" → "Load Northgate's parts list (40 parts)"; "Route jobs" → "Match jobs to shops".
    - The filter becomes "Real shops · discovered from public data".
