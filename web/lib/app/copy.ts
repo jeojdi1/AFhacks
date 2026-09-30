@@ -74,10 +74,21 @@ export function certGrowTitle(req: string): string {
 }
 
 /**
+ * A lapsed certificate (status "expired"): "Renew Controlled Goods registration", "Renew quality
+ * certificate (ISO 9001)". A lapsed CGP registration means registering again from scratch.
+ */
+export function renewTitle(req: string): string {
+  if (req === "CGP") return t("grow.itemTitleRenewCgp")
+  const p = certPlain(req)
+  return t("grow.itemTitleRenew", { req: p.first !== p.label ? lowerFirst(p.first) : p.first })
+}
+
+/**
  * Grow item title: "Get welding certification (CWB W47.1)", "More welding hours" (capacity),
  * "Add wire harness work" (process). A raw key ("wire_harness") never reaches the screen.
  */
-export function growTitle(req: string, kind?: string | null): string {
+export function growTitle(req: string, kind?: string | null, renewal = false): string {
+  if (renewal) return renewTitle(req)
   if (kind === "capacity") return t("grow.itemTitleCapacity", { req: requirementName(req).toLowerCase() })
   if (kind === "process" || (!kind && PROCESS_LABEL[req])) return t("grow.itemTitleProcess", { req: requirementName(req).toLowerCase() })
   return certGrowTitle(req)
@@ -119,6 +130,9 @@ extendStrings("en", {
   "grow.itemTitleCapacity": "More {req} hours",
   "grow.itemTitleProcess": "Add {req} work",
   "grow.itemTitleCgp": "Register for Controlled Goods",
+  "grow.itemTitleRenew": "Renew {req}",
+  "grow.itemTitleRenewCgp": "Renew Controlled Goods registration",
+  "grow.lapsedOn": "Lapsed on {date}. Renewing it gets these jobs back within reach.",
   "grow.itemTitleCpcsc": "Do the cyber self-check (CPCSC L1)",
   "grow.itemJobs": "{count} more jobs · {value}",
   "grow.itemJobs_one": "1 more job · {value}",

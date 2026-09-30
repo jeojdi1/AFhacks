@@ -35,7 +35,15 @@ from engine import public as public_mod
 from engine import rules as rules_mod
 from engine import scoring as scoring_mod
 from engine.graph import CapabilityGraph
-from engine.rules import CERT_LABEL, PROCESS_LABEL, cert_label, process_label
+from engine.rules import (
+    CERT_LABEL,
+    LAPSED,
+    NOT_HELD_STATUSES,
+    PROCESS_LABEL,
+    cert_label,
+    process_label,
+    renew_label,
+)
 
 log = logging.getLogger(__name__)
 
@@ -421,7 +429,8 @@ def _finish(records: list[dict], sq: ShopQuery, counting: tuple[str, ...]) -> li
     for r in records:
         certs = [
             {"type": t, "status": r["certs"][t]["status"], "source_url": r["certs"][t]["source_url"]}
-            for t in _ordered_unique([t for t, v in r["certs"].items() if v["status"] != "unknown"], CERT_ORDER)
+            for t in _ordered_unique([t for t, v in r["certs"].items() if v["status"] not in NOT_HELD_STATUSES],
+                                      CERT_ORDER)
         ]
         matched, missing = [], []
         procs = set(r["processes"])
@@ -645,6 +654,8 @@ def _job_matches(job: dict, q: str | None, processes: list[str]) -> bool:
 
 def _missing_message(kind: str, req: str, status: str | None) -> str:
     if kind == "cert":
+        if status == LAPSED:
+            return f"Renew {renew_label(req)} (lapsed)"
         now = f" (now: {status.replace('_', ' ')})" if status else ""
         return f"Get {cert_label(req)}{now}"
     if kind == "process":

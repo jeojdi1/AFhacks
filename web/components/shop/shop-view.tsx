@@ -38,6 +38,7 @@ import { withCertDates } from "@/lib/app/shop-bundle"
 import { ReadinessCard } from "./readiness-card"
 import { ShopHeader } from "./shop-header"
 import { TrainingCard } from "./training-card"
+import { VaultCard } from "./vault-card"
 import {
   fx,
   isPublicShopId,
@@ -220,6 +221,9 @@ function RoutableShopView({ id }: { id: string }) {
 
   const back = useSuppliersBack(isDemoShopPath(`/shops/${id}`, demoShopId))
   const storyChrome = useStoryChrome()
+  // The defence company can see the shop's paperwork on file, but only the shop changes it.
+  const { session } = useSession()
+  const primeViewer = session?.role === "prime"
 
   // The shop's own actions (phone app §2.5/§2.8), as the shop desk shows them: a declared expiry
   // overrides the date ("shop-declared"), and an open funding request replaces the fund link.
@@ -448,6 +452,10 @@ function RoutableShopView({ id }: { id: string }) {
           neededTypes={neededTypes}
           offerTypes={[...new Set(offers.flatMap((o) => certsByJob[o.job_id] ?? []))]}
         />
+      </div>
+
+      <div id="paperwork" className="scroll-mt-24">
+        <VaultCard shopId={shop.id} readOnly={primeViewer} />
       </div>
 
       <Details summary={ce("shop.caps.show")} openSummary={ce("shop.caps.hide")}>

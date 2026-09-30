@@ -37,7 +37,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from engine.rules import CERT_LABEL, CGP, PROCESS_LABEL
+from engine.rules import CERT_LABEL, CGP, NOT_HELD_STATUSES, PROCESS_LABEL
 
 log = logging.getLogger(__name__)
 
@@ -479,8 +479,8 @@ def _build(hash_key: str) -> PropertyGraph:
                 if not ctype or ctype in seen:
                     continue
                 seen.add(ctype)  # first entry per type wins (rules.cert_status)
-                if status == "unknown":
-                    continue  # unknown = no edge (as in graph_seed)
+                if status in NOT_HELD_STATUSES:
+                    continue  # unknown or lapsed (expired) = no edge (as in graph_seed)
                 g.add_edge(sid, "HOLDS_CERT", cert(ctype), {
                     "status": status, "source_url": c.get("source_url"),
                     "verified_at": c.get("verified_at"), "expires_at": c.get("expires_at"),

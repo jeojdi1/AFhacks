@@ -5,6 +5,7 @@ import { BadgeCheck, GraduationCap, Inbox, ShieldCheck } from "lucide-react"
 import { useDemo } from "@/lib/data/store"
 import { fmtMoney } from "@/lib/format"
 import { useShopBundle } from "@/lib/app/shop-bundle"
+import { fmtLongDate } from "@/lib/app/today"
 import { extendStrings, t } from "@/lib/app/strings"
 import { capacityUnlockShort, growTitle, requirementName, requirementShort, trainingUnderwayTitle } from "@/lib/app/copy"
 import { growItemFor, packageFor, requirementDef, seatDemo, seatStages, type GrowItem, type ReadinessStepDef } from "@/lib/app/readiness"
@@ -152,8 +153,13 @@ export function ReadinessStepper({ shopId, requirement }: { shopId: string; requ
         <h2 className="mt-2 text-xl leading-snug font-semibold tracking-tight">
           {funded && item
             ? trainingUnderwayTitle(requirement, item.pkg?.trainees ?? item.training?.trainees ?? 0)
-            : growTitle(requirement, item?.kind ?? guessKind(requirement, bundle.shop?.processes))}
+            : growTitle(requirement, item?.kind ?? guessKind(requirement, bundle.shop?.processes), item?.renewal)}
         </h2>
+        {item?.renewal && item.lapsed_on ? (
+          <p className="mt-1 text-sm font-medium text-red-800" data-testid="grow-lapsed">
+            {t("grow.lapsedOn", { date: fmtLongDate(item.lapsed_on) })}
+          </p>
+        ) : null}
         {def ? (
           <p className="mt-0.5 text-sm font-medium text-muted-foreground">{def.title}</p>
         ) : requirementName(requirement) !== requirementShort(requirement) ? (

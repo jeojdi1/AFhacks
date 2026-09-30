@@ -92,6 +92,7 @@ const statusWord: Record<CertStatus, string> = {
   declared: "declared by your shop",
   pending_training: "pending training",
   unknown: "not held",
+  expired: "lapsed (renew it to qualify)",
 }
 
 /**

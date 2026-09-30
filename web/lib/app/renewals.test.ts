@@ -190,6 +190,25 @@ test("a shop-declared date on a not-held cert gets no stage and stays shop-decla
   assert.equal(r.status, "unknown")
 })
 
+test("a lapsed cert (status expired) is stage lapsed with its date and consequence", () => {
+  const r = renewalFor(cert("CGP", "2026-08-31", { status: "expired", shop_id: "syn-028" }), ctx("2026-09-26", "syn-028"))
+  assert.equal(r.stage, "lapsed")
+  assert.equal(r.expires_at, "2026-08-31")
+  assert.equal(r.days_left, -26)
+  assert.equal(r.act_by, null)
+  assert.ok(r.consequence && r.consequence.includes("re-registering"))
+  assert.deepEqual(r.jobs_at_risk, [])
+  assert.ok(needsAttention(r))
+  assert.equal(renewalSummary(r, d("2026-09-26")), "CGP · lapsed Aug 31")
+})
+
+test("expiryAlert flags urgent and lapsed certificates only", () => {
+  assert.equal(R.expiryAlert(cert("CGP", "2027-01-15"), d("2026-09-26"))?.stage, "urgent")
+  assert.equal(R.expiryAlert(cert("ISO9001", "2029-09-07"), d("2026-09-26")), null)
+  assert.equal(R.expiryAlert(cert("CGP", null, { status: "unknown" }), d("2026-09-26")), null)
+  assert.equal(R.expiryAlert(cert("CGP", "2026-08-31", { status: "expired" }), d("2026-09-26"))?.stage, "lapsed")
+})
+
 test("held cert with no date is stage unknown (Date unknown)", () => {
   const r = renewalFor(cert("ISO9001", null), ctx("2026-09-26"))
   assert.equal(r.stage, "unknown")

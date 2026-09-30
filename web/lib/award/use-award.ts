@@ -13,6 +13,8 @@ import { appFetch, isAppApiError } from "@/lib/app/api"
 import { useAppActions } from "@/lib/app/actions-store"
 import { useShopBundle } from "@/lib/app/shop-bundle"
 import { buildLocalAward, type AwardProgress } from "./build"
+import { markLocal } from "@/lib/vault/local"
+import { useLocalVault } from "@/lib/vault/use-vault"
 import type { Award, AwardState } from "./types"
 
 const KEY = "muster.award.v1"
@@ -98,6 +100,7 @@ export function useAward(shopId: string, jobId: string): AwardState {
   const { events } = useAppActions()
   const b = useShopBundle(shopId)
   const raw = React.useSyncExternalStore(subscribe, snapshot, serverSnapshot)
+  const localVault = useLocalVault(shopId)
 
   const [remote, setRemote] = React.useState<Award | null>(null)
   const [remoteProblem, setRemoteProblem] = React.useState<AwardState["problem"]>(null)
@@ -165,19 +168,24 @@ export function useAward(shopId: string, jobId: string): AwardState {
   const local = React.useMemo<Award | null>(() => {
     if (!offer || !locallyAccepted) return null
     const progress = (JSON.parse(progressRaw) as AwardProgress | null) ?? { docs: {}, slot: null }
-    return buildLocalAward({ shopId, offer, job, certs, acceptedAt, progress })
-  }, [offer, locallyAccepted, job, certs, acceptedAt, progressRaw, shopId])
+    return buildLocalAward({ shopId, offer, job, certs, acceptedAt, progress, vault: localVault.items })
+  }, [offer, locallyAccepted, job, certs, acceptedAt, progressRaw, shopId, localVault.items])
 
   const signDocument = React.useCallback(
-    async (key: string): Promise<Award | null> => {
+    async (key: string, opts: { saveToProfile?: boolean } = {}): Promise<Award | null> => {
       setBusy(true)
       try {
         if (live) {
-          const a = await appFetch<Award>(apiUrl, awardPaths.document(shopId, jobId, key), { json: {} })
+          const body = opts.saveToProfile ? { save_to_profile: true } : {}
+          const a = await appFetch<Award>(apiUrl, awardPaths.document(shopId, jobId, key), { json: body })
           setRemote(a)
           return a
         }
         updateProgress(shopId, jobId, (p) => (p.docs[key] ? p : { ...p, docs: { ...p.docs, [key]: new Date().toISOString() } }))
+        if (opts.saveToProfile) {
+          const item = localVault.items.find((v) => v.award_document === key)
+          if (item && !item.reusable) markLocal(shopId, item.key)
+        }
         return null
       } catch (e) {
         setRemoteError(e instanceof Error ? e.message : String(e))
@@ -186,7 +194,7 @@ export function useAward(shopId: string, jobId: string): AwardState {
         setBusy(false)
       }
     },
-    [live, apiUrl, shopId, jobId]
+    [live, apiUrl, shopId, jobId, localVault.items]
   )
 
   const bookCall = React.useCallback(

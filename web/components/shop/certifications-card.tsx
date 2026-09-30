@@ -1,13 +1,19 @@
 "use client"
 
-import type { ReactNode } from "react"
-import { CheckCircle2, Circle, Clock, ExternalLink } from "lucide-react"
+import { useState, type ReactNode } from "react"
+import Link from "next/link"
+import { AlertTriangle, ArrowRight, CalendarClock, CalendarX, CheckCircle2, Circle, Clock, ExternalLink } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Details } from "@/components/muster/details"
 import { c } from "@/lib/ui/copy"
 import { ce } from "@/lib/ui/copy-e"
 import { certPlain } from "@/lib/ui/plain"
-import { certDisplay } from "@/lib/format"
+import { certDisplay, certIsLapsed } from "@/lib/format"
+import { appToday, fmtLongDate } from "@/lib/app/today"
+import { expiryAlert, renewalVerb, ruleFor } from "@/lib/app/renewals"
+import { growHref } from "@/lib/app/readiness"
+import { useWithParams } from "@/lib/ui/use-with-params"
+import type { CertWithDates, DateBasis } from "@/lib/app/types"
 import { CertName, CertStatusBadge, certLabel, certStatusMeta, glossNote } from "./badges"
 import type { CertT as CertBase } from "./types"
 
@@ -59,13 +65,73 @@ function SourceText({ cert }: { cert: CertT }) {
 }
 
 function GroupIcon({ status }: { status: string }) {
+  if (certIsLapsed(status)) return <CalendarX className="size-5 shrink-0 text-red-600" aria-hidden />
   const d = certDisplay(status)
   if (d === "in_training") return <Clock className="size-5 shrink-0 text-amber-500" aria-hidden />
   if (d === "held") return <CheckCircle2 className="size-5 shrink-0 text-emerald-600" aria-hidden />
   return <Circle className="size-5 shrink-0 text-slate-300" aria-hidden />
 }
 
-const RANK: Record<string, number> = { verified: 3, declared: 2, pending_training: 1, unknown: 0 }
+const RANK: Record<string, number> = { verified: 3, declared: 2, pending_training: 1, expired: 0.5, unknown: 0 }
+
+function withDates(cert: CertT): CertWithDates {
+  return { ...cert, date_basis: (cert.date_basis ?? "illustrative") as DateBasis, declaration: null } as CertWithDates
+}
+
+const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
+
+/**
+ * Expiry alert for a held certificate (lib/app/renewals.ts stages): "File renewal by Oct 17, 2026"
+ * inside the reminder window, "Expired Sep 1, 2026 · renew now" once past. Nothing otherwise.
+ */
+function ExpiryAlert({ cert, today }: { cert: CertT; today: Date }) {
+  if (certDisplay(cert.status) !== "held") return null
+  const r = expiryAlert(withDates(cert), today)
+  if (!r) return null
+  const lapsed = r.stage === "lapsed"
+  const text = lapsed
+    ? `Expired ${fmtLongDate(r.expires_at)} · renew now`
+    : `${cap(renewalVerb(cert.type))} by ${fmtLongDate(r.act_by ?? r.expires_at)}`
+  return (
+    <span
+      className={cn(
+        "inline-flex h-6 items-center gap-1 rounded-full border px-2 text-xs font-medium",
+        lapsed || r.stage === "urgent" ? "border-red-200 bg-red-50 text-red-800" : "border-amber-300 bg-amber-50 text-amber-900"
+      )}
+      data-cert-alert={r.stage}
+    >
+      <CalendarClock className="size-3.5" aria-hidden />
+      {text}
+    </span>
+  )
+}
+
+/** A lapsed certificate (status "expired"): when it lapsed, what that blocks, how to renew. */
+function LapsedBox({ cert, shopId }: { cert: CertT; shopId: string }) {
+  const wp = useWithParams()
+  const rule = ruleFor(cert.type)
+  return (
+    <div className="mt-1.5 space-y-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-950" data-cert-lapsed>
+      <div className="flex items-center gap-1.5 font-semibold">
+        <AlertTriangle className="size-4 shrink-0" aria-hidden />
+        {cert.expires_at ? `Lapsed on ${fmtLongDate(cert.expires_at)}` : "Lapsed"}
+      </div>
+      {rule.consequence ? <p>{rule.consequence}</p> : null}
+      <div className="flex flex-wrap gap-x-4 gap-y-1">
+        <Link href={wp(growHref(shopId, cert.type))} prefetch={false} className="inline-flex items-center gap-1 font-medium text-red-900 underline-offset-4 hover:underline">
+          See the steps to renew
+          <ArrowRight className="size-3.5" aria-hidden />
+        </Link>
+        {rule.source_url ? (
+          <a href={rule.source_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-red-900 underline-offset-4 hover:underline">
+            Official rule
+            <ExternalLink className="size-3" aria-hidden />
+          </a>
+        ) : null}
+      </div>
+    </div>
+  )
+}
 
 interface Row {
   key: string
@@ -75,10 +141,12 @@ interface Row {
   held: boolean
   /** Welders in training for it, paid by Northgate (pending_training): shown, never counted as held. */
   training: boolean
+  /** Held before and ran out (status "expired"): always listed, with renewal steps. */
+  lapsed: boolean
   needed: boolean
 }
 
-function CertRow({ row }: { row: Row }) {
+function CertRow({ row, shopId, today }: { row: Row; shopId: string; today: Date }) {
   const { key, certs } = row
   return (
     <>
@@ -117,8 +185,10 @@ function CertRow({ row }: { row: Row }) {
               {bits.length > 0 && (
                 <div className="flex flex-wrap gap-x-3 gap-y-0.5 tabular-nums">{bits}</div>
               )}
+              <ExpiryAlert cert={cert} today={today} />
               {key === "CPCSC_L1" && <div className="text-slate-700">{ce("shop.certs.cpcsc")}</div>}
               {cert.note ? <div>{glossNote(cert.note)}</div> : null}
+              {certIsLapsed(cert.status) ? <LapsedBox cert={cert} shopId={shopId} /> : null}
             </div>
           </li>
         )
@@ -174,11 +244,14 @@ export function CertificationsCard({
       best,
       held: certDisplay(best.status) === "held",
       training: certDisplay(best.status) === "in_training",
+      lapsed: certIsLapsed(best.status),
       needed: [...needed].some((t) => g.match(t)),
     }
   })
-  const listed = rows.filter((r) => r.held || r.training || r.needed)
-  const others = rows.filter((r) => !r.held && !r.training && !r.needed)
+  const [today] = useState(() => appToday())
+  const listed = rows.filter((r) => r.held || r.training || r.needed || r.lapsed)
+  const others = rows.filter((r) => !r.held && !r.training && !r.needed && !r.lapsed)
+  const lapsedCount = listed.filter((r) => r.lapsed).length
   const held = listed.filter((r) => r.held).length
   const inTraining = listed.filter((r) => r.training).length
   const offerRows = forOffers ? rows.filter((r) => [...forOffers].some((t) => GROUPS.find((g) => g.key === r.key)?.match(t))) : null
@@ -203,7 +276,7 @@ export function CertificationsCard({
               {listed.map((r) => (
                 <span
                   key={r.key}
-                  className={cn("h-2 w-6 rounded-full", r.held || r.training ? certStatusMeta(r.best.status).dot : "bg-slate-200")}
+                  className={cn("h-2 w-6 rounded-full", r.held || r.training || r.lapsed ? certStatusMeta(r.best.status).dot : "bg-slate-200")}
                 />
               ))}
             </div>
@@ -216,6 +289,11 @@ export function CertificationsCard({
                   · {inTraining} in training
                 </span>
               ) : null}
+              {lapsedCount ? (
+                <span className="font-medium text-red-800" data-cert-lapsed-count>
+                  {" "}· {lapsedCount} lapsed
+                </span>
+              ) : null}
             </span>
           </div>
         )}
@@ -224,7 +302,7 @@ export function CertificationsCard({
       {listed.length > 0 && (
         <ul className="divide-y divide-border">
           {listed.map((r) => (
-            <CertRow key={r.key} row={r} />
+            <CertRow key={r.key} row={r} shopId={shopId} today={today} />
           ))}
         </ul>
       )}
@@ -237,7 +315,7 @@ export function CertificationsCard({
           >
             <ul className="-mx-5 divide-y divide-border sm:-mx-6">
               {others.map((r) => (
-                <CertRow key={r.key} row={r} />
+                <CertRow key={r.key} row={r} shopId={shopId} today={today} />
               ))}
             </ul>
           </Details>

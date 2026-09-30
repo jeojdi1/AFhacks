@@ -101,6 +101,10 @@ export interface GrowItem {
   training: ShopTraining | null
   request: FundingRequestRec | null
   funding: FundingState
+  /** v0.6: a lapsed certificate to renew (readiness item with renewal: true). */
+  renewal?: boolean
+  /** v0.6: the date it lapsed, on renewal items. */
+  lapsed_on?: string | null
 }
 
 export interface GrowInput {
@@ -185,7 +189,8 @@ export function buildGrowItems(input: GrowInput): GrowItem[] {
   const seen = new Set<string>()
   for (const r of input.detail?.readiness ?? []) {
     const pkg = packageFor(input.gaps, input.shopId, r.requirement)
-    out.push(item(input, r.requirement, r.kind, r.jobs_unlocked, r.value_cad, pkg))
+    const it = item(input, r.requirement, r.kind, r.jobs_unlocked, r.value_cad, pkg)
+    out.push(r.renewal ? { ...it, renewal: true, lapsed_on: r.lapsed_on ?? null } : it)
     seen.add(r.requirement)
   }
   const pkgs = (input.gaps?.suggestions ?? []).filter((p) => p.shop_id === input.shopId)

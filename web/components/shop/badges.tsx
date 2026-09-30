@@ -1,5 +1,5 @@
 import type * as React from "react"
-import { Check, Clock, HelpCircle, Landmark, ShieldCheck } from "lucide-react"
+import { CalendarX, Check, Clock, HelpCircle, Landmark, ShieldCheck } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { CERT_IN_TRAINING_LABEL, CERT_LABEL, certDisplay, fmtMoney } from "@/lib/format"
 import { StatusBadge } from "@/components/muster/status-badge"
@@ -12,7 +12,7 @@ import type { DndHistory } from "./types"
 const pill =
   "inline-flex h-6 shrink-0 items-center gap-1 whitespace-nowrap rounded-full border px-2.5 text-xs font-medium"
 
-export type CertStatus = "verified" | "declared" | "unknown" | "pending_training"
+export type CertStatus = "verified" | "declared" | "unknown" | "pending_training" | "expired"
 
 /**
  * `counts` = the matching rules accept it (verified, declared, pending_training; CLAUDE.md §1.1
@@ -55,6 +55,15 @@ export const CERT_STATUS_META: Record<
     held: false,
     inTraining: false,
   },
+  // Lapsed (v0.6): held before, ran out. Never counts for matching; shown with renewal steps.
+  expired: {
+    label: "Lapsed",
+    className: "border-red-200 bg-red-50 text-red-800",
+    dot: "bg-red-500",
+    counts: false,
+    held: false,
+    inTraining: false,
+  },
 }
 
 export function certStatusMeta(status: string | null | undefined) {
@@ -92,6 +101,7 @@ function StatusIcon({ status }: { status: string }) {
   if (status === "verified") return <ShieldCheck className="size-3.5" aria-hidden />
   if (status === "declared") return <Check className="size-3.5" aria-hidden />
   if (certDisplay(status) === "in_training") return <Clock className="size-3.5" aria-hidden />
+  if (status === "expired") return <CalendarX className="size-3.5" aria-hidden />
   return <HelpCircle className="size-3.5" aria-hidden />
 }
 

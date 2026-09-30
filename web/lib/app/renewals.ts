@@ -15,6 +15,8 @@
 //   window_open  today ≥ act_by − remind_days
 //   ok           otherwise
 //   unknown      no date, or the shop doesn't hold it ("Not held")
+//   status "expired" (v0.6: the shop held it and it ran out) is always "lapsed", with the
+//   date it lapsed; a shop-declared new date on it follows the not-held rule (no stage).
 //
 // days_left counts calendar days to act_by (the deadline to act); once the
 // certificate has lapsed it counts to expires_at, so it is negative.
@@ -24,7 +26,7 @@
 
 import type { Assignment, CertWithDates, Job, Renewal, RenewalRule, RenewalStage } from "./types"
 import { addDays, daysBetween, parseAppDate, toISODate } from "./today"
-import { certIsHeld } from "../format"
+import { certIsHeld, certIsLapsed } from "../format"
 import rulesFile from "../../../data/rules/renewals.json"
 
 // ---------------------------------------------------------------------------
@@ -137,13 +139,17 @@ export function renewalFor(
   // "Not held" never shows a stage (a self-declared date does not make it held). A certificate whose
   // welders are still in training (pending_training) is not held yet, so it never gets a renewal stage.
   const held = certIsHeld(cert.status)
+  // Lapsed (status "expired"): held before, ran out. Not held, but it has a stage ("lapsed"), the
+  // date it lapsed and the rule's consequence, so the wallet can show the renewal steps.
+  const lapsed = certIsLapsed(cert.status) && cert.date_basis !== "shop-declared"
   const actByDays = rule.act_by_days ?? 0
   const remindDays = rule.remind_days ?? FILE.defaults.remind_days
   const actBy = held && expiresAt ? toISODate(addDays(expiresAt, -actByDays)) : null
-  const stage: RenewalStage = held ? stageFor(ctx.today, expiresAt, actBy, remindDays) : "unknown"
+  const stage: RenewalStage = held ? stageFor(ctx.today, expiresAt, actBy, remindDays) : lapsed ? "lapsed" : "unknown"
 
   let daysLeft: number | null = null
   if (held && expiresAt && actBy) daysLeft = stage === "lapsed" ? daysBetween(ctx.today, expiresAt) : daysBetween(ctx.today, actBy)
+  else if (lapsed && expiresAt) daysLeft = daysBetween(ctx.today, expiresAt)
 
   // Held: the jobs at risk if it lapses. Welders still in training (pending_training): the offered
   // jobs waiting on it (C3-11), so the wallet can say "Needed for NG-031, NG-032, NG-033". Either
@@ -155,12 +161,12 @@ export function renewalFor(
   return {
     cert_type: cert.type,
     status: cert.status,
-    expires_at: held ? expiresAt : null,
+    expires_at: held || lapsed ? expiresAt : null,
     act_by: actBy,
     days_left: daysLeft,
     stage,
     action: rule.text,
-    consequence: held ? rule.consequence : null,
+    consequence: held || lapsed ? rule.consequence : null,
     source_url: rule.source_url,
     registry_url: rule.registry_url ?? null,
     flag,
@@ -198,6 +204,16 @@ export function sortRenewals(list: Renewal[]): Renewal[] {
 /** Stages that need the shop's attention (Today cards, prime feed). */
 export function needsAttention(r: Renewal): boolean {
   return r.stage === "urgent" || r.stage === "window_open" || r.stage === "lapsed"
+}
+
+/**
+ * Expiry alert for one certificate without job context (laptop certificate rows): the renewal
+ * stage, the act-by date and the rule's verb. null when nothing needs attention (ok, not held,
+ * no date). Built on renewalFor, so the stages and rules are the wallet's.
+ */
+export function expiryAlert(cert: CertWithDates, today: Date = new Date()): Renewal | null {
+  const r = renewalFor(cert, { today, shopId: cert.shop_id, jobsById: {}, assignments: [] })
+  return needsAttention(r) ? r : null
 }
 
 // ---------------------------------------------------------------------------

@@ -16,6 +16,12 @@ stored (``State.awards``, keyed ``"shop:job"``). A record belongs to one routing
 ``routed`` event's ``seq``), so a new route, an upload or a reset clears it; a fresh seed
 has none. Undoing and re-accepting the same offer keeps the progress.
 
+Paperwork once (engine/vault.py): a document whose item is on file in the shop's vault
+(insurance, quality copies, master NDA, CCV template) and not expired starts as done,
+"Reused from your profile"; the package counts "N of M done automatically" and an
+estimated time saved (assumption). ``save_to_profile`` on a document keeps it on file for
+the next award.
+
 Routes: ``GET /shops/{shop}/offers/{job}/award``, ``POST …/award/documents/{key}``,
 ``POST …/award/call``. Mutations emit ``paperwork_done`` / ``kickoff_booked`` events.
 """
@@ -30,9 +36,9 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ConfigDict
 
-from engine import cache, shopside
+from engine import cache, shopside, vault
 from engine.pipeline import effective_shop
-from engine.rules import cert_label
+from engine.rules import LAPSED, cert_label
 from engine.state import DEFAULT_PROGRAM_ID, STATE_LOCK, State, load_state, save_state
 
 router = APIRouter()
@@ -147,6 +153,8 @@ def _quality_detail(state: Any, shop_id: str, job: dict) -> str:
             lines.append(CWB_TRAINING_NOTE)
         elif status in HELD:
             lines.append(f"{cert_label(ctype)}: {status} on the shop's profile")
+        elif status == LAPSED:
+            lines.append(f"{cert_label(ctype)}: lapsed on the shop's profile; renew it before first article")
         else:
             lines.append(f"{cert_label(ctype)}: {status.replace('_', ' ')} on the shop's profile (assumption)")
     iso = certs.get("ISO9001") or {}
@@ -262,18 +270,44 @@ def build(state: Any, shop_id: str, job_id: str) -> dict:
     rec = _record(state, shop_id, job_id) or {}
     done_map: dict = rec.get("documents") or {}
     accepted_at = decision.get("at")
+    on_file = vault.by_award_document(state, shop_id)
     docs = []
     for d in documents_for(state, shop, a, job):
+        item = on_file.get(d["key"])
+        explicit = done_map.get(d["key"])
+        reused = bool(item and item["reusable"]) and not explicit
         if d["kind"] == "auto":
-            done_at = done_map.get(d["key"]) or accepted_at
+            done_at = explicit or accepted_at
+        elif explicit:
+            done_at = explicit
+        elif reused:
+            # Reused from the vault: done from the accept, or from when the shop put it on file.
+            done_at = max((x for x in (accepted_at, item.get("marked_at")) if x), default=None)
         else:
-            done_at = done_map.get(d["key"])
-        docs.append({**d, "status": "done" if done_at else "todo", "done_at": done_at})
+            done_at = None
+        docs.append({
+            **d,
+            "status": "done" if done_at else "todo",
+            "done_at": done_at,
+            "reused": reused,
+            "reused_label": vault.REUSED_LABEL if reused else None,
+            "vault_key": item["key"] if item else None,
+            "vault_status": item["status"] if item else None,
+            "vault_expires_at": item["expires_at"] if item else None,
+        })
     call_rec = rec.get("call") or {}
     booked = bool(call_rec.get("slot"))
     done = sum(1 for d in docs if d["status"] == "done")
     total = len(docs)
-    manual_done = any(d["status"] == "done" and d["kind"] != "auto" for d in docs)
+    # Started = the shop did something itself (a document it marked, or the call). Documents
+    # attached automatically or reused from the vault do not start the package.
+    manual_done = any(d["key"] in done_map and d["kind"] != "auto" for d in docs)
+    automatic = [d for d in docs if d["status"] == "done" and (d["kind"] == "auto" or d["reused"])]
+    saved = [on_file[d["key"]] for d in docs if d["key"] in on_file and on_file[d["key"]]["reusable"]
+             and (d["reused"] or d["kind"] == "auto")]
+    vendor = vault.vendor_item(state, shop_id)
+    if vendor["reusable"]:
+        saved.append(vendor)
     if done == total and booked:
         status = "complete"
     elif manual_done or booked:
@@ -298,6 +332,12 @@ def build(state: Any, shop_id: str, job_id: str) -> dict:
         next_steps.append(f"Kickoff call {slot_label(call_rec['slot'])} (Eastern time, {CALL_MINUTES} min)")
     if status == "complete":
         next_steps.append("Northgate reviews the package and confirms the purchase order (demo: nothing is sent)")
+    if vendor["reusable"]:
+        next_steps.append("Payment set-up: your vendor and banking form is on file, so there is nothing new "
+                          "to send (reused from your profile)")
+    else:
+        next_steps.append("Payment set-up: send Northgate your vendor and banking form once; keep it on "
+                          "file on your profile and the next award reuses it")
     next_steps.append("First article inspection before full production")
     return {
         "shop_id": shop_id,
@@ -314,6 +354,10 @@ def build(state: Any, shop_id: str, job_id: str) -> dict:
         "status": status,
         "done": done,
         "total": total,
+        "done_automatically": len(automatic),
+        "reused": sum(1 for d in docs if d["reused"]),
+        "automatic_summary": f"{len(automatic)} of {total} done automatically",
+        "time_saved": vault.time_saved(sum(i["minutes_saved"] for i in saved)),
         "documents": docs,
         "call": {
             "booked": booked,
@@ -348,25 +392,35 @@ def _ensure_record(state: Any, shop_id: str, job_id: str) -> dict:
 VERB = {"sign": "signed", "upload": "sent", "auto": "attached"}
 
 
-def complete_document(state: Any, shop_id: str, job_id: str, key: str) -> tuple[dict, bool]:
-    """``POST …/award/documents/{key}``: mark one document done (idempotent)."""
+def complete_document(
+    state: Any, shop_id: str, job_id: str, key: str, save_to_profile: bool = False
+) -> tuple[dict, bool]:
+    """``POST …/award/documents/{key}``: mark one document done (idempotent). With
+    ``save_to_profile``, a document that has a vault item (insurance, NDA, CCV, quality) is
+    also kept on file in the shop's vault, so the next award reuses it (engine/vault.py)."""
     current = build(state, shop_id, job_id)
     doc = next((d for d in current["documents"] if d["key"] == key), None)
     if doc is None:
         keys = ", ".join(d["key"] for d in current["documents"])
         raise shopside.ActionError(404, f"Unknown document '{key}' for job '{job_id}' (one of: {keys})")
+    save = bool(save_to_profile and doc.get("vault_key") and doc.get("vault_status") not in vault.REUSABLE)
+    if save:
+        vault.put(state, shop_id, doc["vault_key"])
     if doc["status"] == "done":
-        return current, False
+        return (build(state, shop_id, job_id), True) if save else (current, False)
     rec = _ensure_record(state, shop_id, job_id)
     rec["documents"][key] = shopside._now()
     award = build(state, shop_id, job_id)
+    payload = {"job_id": job_id, "key": key, "title": doc["title"], "done": award["done"],
+               "total": award["total"], "demo": True}
+    if save:
+        payload["saved_to_profile"] = True
+    kept = "; kept on file for next time" if save else ""
     shopside.emit(
         state, "paperwork_done",
         f"{award['shop_name']} {VERB[doc['kind']]} the {doc['title']} for {job_id} "
-        f"({award['done']} of {award['total']} done, demo)",
-        shop_id=shop_id, job_id=job_id,
-        payload={"job_id": job_id, "key": key, "title": doc["title"], "done": award["done"],
-                 "total": award["total"], "demo": True},
+        f"({award['done']} of {award['total']} done, demo{kept})",
+        shop_id=shop_id, job_id=job_id, payload=payload,
     )
     return award, True
 
@@ -406,6 +460,10 @@ class _Body(BaseModel):
     idempotency_key: str | None = None
 
 
+class DocumentBody(_Body):
+    save_to_profile: bool | None = None  # also keep it on file in the shop's vault (§6.2)
+
+
 class CallBody(_Body):
     slot: str | None = None  # required; checked above for a readable 400
 
@@ -440,8 +498,9 @@ def get_award(shop_id: str, job_id: str) -> Response:
 
 
 @router.post("/shops/{shop_id}/offers/{job_id}/award/documents/{key}")
-def post_award_document(shop_id: str, job_id: str, key: str, body: _Body | None = None) -> dict:
-    return _mutate(lambda s: complete_document(s, shop_id, job_id, key))
+def post_award_document(shop_id: str, job_id: str, key: str, body: DocumentBody | None = None) -> dict:
+    save = bool(body and body.save_to_profile)
+    return _mutate(lambda s: complete_document(s, shop_id, job_id, key, save_to_profile=save))
 
 
 @router.post("/shops/{shop_id}/offers/{job_id}/award/call")
