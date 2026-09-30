@@ -43,6 +43,9 @@
           "confidence": "synthetic"
         }
       ],
+      "min_annual_value_cad": 200000,
+      "prefers_ongoing": true,
+      "preferences_basis": "illustrative",
       "cert_summary": [
         {
           "type": "CGP",
@@ -121,6 +124,9 @@
           "confidence": "synthetic"
         }
       ],
+      "min_annual_value_cad": 150000,
+      "prefers_ongoing": true,
+      "preferences_basis": "illustrative",
       "cert_summary": [
         {
           "type": "CGP",
@@ -424,6 +430,9 @@
           "confidence": "synthetic"
         }
       ],
+      "min_annual_value_cad": 100000,
+      "prefers_ongoing": true,
+      "preferences_basis": "illustrative",
       "cert_summary": [
         {
           "type": "CGP",
@@ -804,6 +813,9 @@
           "confidence": "synthetic"
         }
       ],
+      "min_annual_value_cad": 250000,
+      "prefers_ongoing": false,
+      "preferences_basis": "illustrative",
       "cert_summary": [
         {
           "type": "CGP",
@@ -883,6 +895,9 @@
           "confidence": "synthetic"
         }
       ],
+      "min_annual_value_cad": 100000,
+      "prefers_ongoing": true,
+      "preferences_basis": "illustrative",
       "cert_summary": [
         {
           "type": "CGP",
@@ -1568,6 +1583,9 @@
           "confidence": "synthetic"
         }
       ],
+      "min_annual_value_cad": 100000,
+      "prefers_ongoing": true,
+      "preferences_basis": "illustrative",
       "cert_summary": [
         {
           "type": "CGP",
@@ -2101,7 +2119,7 @@
       "cert_summary": [
         {
           "type": "CGP",
-          "status": "unknown"
+          "status": "expired"
         },
         {
           "type": "CPCSC_L1",
@@ -2173,6 +2191,9 @@
           "confidence": "synthetic"
         }
       ],
+      "min_annual_value_cad": 50000,
+      "prefers_ongoing": false,
+      "preferences_basis": "illustrative",
       "cert_summary": [
         {
           "type": "CGP",

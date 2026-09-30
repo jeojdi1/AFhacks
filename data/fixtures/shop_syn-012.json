@@ -43,6 +43,9 @@
         "confidence": "synthetic"
       }
     ],
+    "min_annual_value_cad": 100000,
+    "prefers_ongoing": true,
+    "preferences_basis": "illustrative",
     "cert_summary": [
       {
         "type": "CGP",
@@ -168,7 +171,12 @@
         "88 km from Northgate's London site",
         "SME: 2x direct credit"
       ],
-      "status": "offered"
+      "status": "offered",
+      "annual_value_cad": 115200,
+      "duration_years": 8,
+      "duration_flag": "assumption",
+      "ongoing": true,
+      "meets_minimum": true
     },
     {
       "job_id": "NG-022",
@@ -185,7 +193,12 @@
         "88 km from Northgate's London site",
         "SME: 2x direct credit"
       ],
-      "status": "offered"
+      "status": "offered",
+      "annual_value_cad": 97200,
+      "duration_years": 8,
+      "duration_flag": "assumption",
+      "ongoing": true,
+      "meets_minimum": false
     }
   ],
   "readiness": [
@@ -213,6 +226,30 @@
         "welding": 80
       },
       "message": "Suggested: certify 4 welders to CWB W47.1"
+    }
+  ],
+  "work_packages": [
+    {
+      "program_id": "northgate",
+      "prime_name": "Northgate Land Systems",
+      "job_ids": [
+        "NG-021",
+        "NG-022"
+      ],
+      "offers": 2,
+      "declined": 0,
+      "total_value_cad": 1699200,
+      "annual_value_cad": 212400,
+      "duration_years": 8,
+      "duration_flag": "assumption",
+      "ongoing": true,
+      "min_annual_value_cad": 100000,
+      "prefers_ongoing": true,
+      "meets_minimum": true,
+      "below_minimum_job_ids": [
+        "NG-022"
+      ],
+      "message": "Northgate work package: 2 jobs · $212K a year for about 8 years · meets your $100K-a-year minimum"
     }
   ]
 }
