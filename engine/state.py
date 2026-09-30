@@ -70,6 +70,9 @@ class State:
     idempotency: dict[str, dict] = field(default_factory=dict)  # idempotency_key → stored response
     # Award onboarding progress after an accept (engine/award.py, docs/api.md §6.1). Additive.
     awards: dict[str, dict] = field(default_factory=dict)  # "shop:job" → paperwork + kickoff call
+    # Right-sized work (engine/rightsize.py, docs/api.md §9). Additive; belongs to the shop, so
+    # upload and routing keep it (a reset clears it).
+    shop_preferences: dict[str, dict] = field(default_factory=dict)  # shop_id → work preferences
 
 
 def db_path() -> Path:

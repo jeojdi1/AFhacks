@@ -101,6 +101,9 @@ const enc = encodeURIComponent
 /** Paths for the shop-side endpoints (also used as outbox targets). */
 export const appPaths = {
   decision: (shopId: string, jobId: string) => `/shops/${enc(shopId)}/offers/${enc(jobId)}/decision`,
+  /** The prime's answer to a counter-offer (docs/api.md §9). */
+  counterResponse: (shopId: string, jobId: string) => `/shops/${enc(shopId)}/offers/${enc(jobId)}/counter-response`,
+  preferences: (shopId: string) => `/shops/${enc(shopId)}/preferences`,
   fundingRequests: (shopId: string) => `/shops/${enc(shopId)}/funding-requests`,
   capacity: (shopId: string) => `/shops/${enc(shopId)}/capacity`,
   certDeclare: (shopId: string, certType: string) => `/shops/${enc(shopId)}/certifications/${enc(certType)}`,

@@ -549,6 +549,24 @@ SHOP_DEFS = [
 ]
 NON_SME_BANDS = {"500-999", "1000+"}
 
+# Work preferences (docs/api.md §9, engine/rightsize.py): the smallest annual value a shop
+# looks at, and whether it prefers ongoing work over one-and-done jobs. Illustrative values
+# for a handful of synthetic shops (assumption), after what Ontario shop owners told us:
+# "the majority of us don't want to look at anything under $100,000 annually". Display only:
+# never a routing filter, so no demo number moves.
+SHOP_PREFERENCES = {
+    "syn-001": (200_000, True),
+    "syn-002": (150_000, True),
+    "syn-006": (100_000, True),
+    "syn-011": (250_000, False),
+    "syn-012": (100_000, True),
+    "syn-021": (100_000, True),
+    "syn-029": (50_000, False),
+}
+# Program length for annual values: the program has no duration field, so the fleet lifetime
+# is assumed (engine/rightsize.py DEFAULT_PROGRAM_YEARS, flag "assumption").
+PROGRAM_YEARS = 8
+
 DEMO_SHOP_ID = "syn-012"
 CWB_SHOP_IDS = ["syn-008", "syn-026"]  # shop A (Cambridge), shop B (Hamilton)
 DEMO_PACKAGE_ID = "TP-01"
@@ -723,6 +741,51 @@ def plural(n: int, word: str) -> str:
     return f"{n} {word}" if n == 1 else f"{n} {word}s"
 
 
+# --- right-sized work (docs/api.md §9): mirrors engine/rightsize.py exactly --------------------
+
+def rs_num(x):
+    """engine.rightsize._num: 2 decimals, int when whole."""
+    x = round(float(x), 2)
+    return int(x) if x.is_integer() else x
+
+
+def rs_money(x) -> str:
+    """engine.gaps.short_money (rounds before choosing the unit)."""
+    x = float(x)
+    k = round(x / 1000)
+    if abs(k) >= 1000:
+        return f"${x / 1_000_000:.1f}M"
+    if abs(round(x)) >= 1000:
+        return f"${k:.0f}K"
+    return f"${x:.0f}"
+
+
+def work_packages(offers, shop):
+    """engine.rightsize.work_packages for one program (declined offers are left out)."""
+    min_annual = shop.get("min_annual_value_cad")
+    live = [o for o in offers if o["status"] != "declined"]
+    total = rs_num(sum(round(float(o["value_cad"]) * 100) for o in live) / 100)
+    annual = rs_num(float(total) / PROGRAM_YEARS)
+    meets = None if min_annual is None else annual >= float(min_annual)
+    prime = PROGRAM["prime_name"]
+    msg = (f"{prime.split()[0]} work package: {plural(len(live), 'job')} · {rs_money(annual)} a year "
+           f"for about {PROGRAM_YEARS} years")
+    if min_annual is not None:
+        msg += f" · {'meets' if meets else 'below'} your {rs_money(min_annual)}-a-year minimum"
+    if not offers:
+        return []
+    return [{
+        "program_id": "northgate", "prime_name": prime,
+        "job_ids": [o["job_id"] for o in live], "offers": len(live), "declined": len(offers) - len(live),
+        "total_value_cad": total, "annual_value_cad": annual,
+        "duration_years": PROGRAM_YEARS, "duration_flag": "assumption", "ongoing": PROGRAM_YEARS > 1,
+        "min_annual_value_cad": min_annual, "prefers_ongoing": shop.get("prefers_ongoing"),
+        "meets_minimum": meets,
+        "below_minimum_job_ids": [o["job_id"] for o in live if o["meets_minimum"] is False],
+        "message": msg,
+    }]
+
+
 def haversine_km(lat1, lon1, lat2, lon2) -> float:
     r = 6371.0
     p1, p2 = math.radians(lat1), math.radians(lat2)
@@ -787,6 +850,10 @@ def build_shops():
             "lead_time_days": d["lead"], "website": None, "contact_role_email": d["email"],
             "provenance": [{"field": "*", "source_url": None, "confidence": "synthetic"}],
         }
+        if d["id"] in SHOP_PREFERENCES:
+            min_annual, ongoing = SHOP_PREFERENCES[d["id"]]
+            shop.update(min_annual_value_cad=min_annual, prefers_ongoing=ongoing,
+                        preferences_basis="illustrative")
         certs = []
         for k, ctype in enumerate(CERT_TYPES):
             if ctype in d["certs"]:
@@ -1263,16 +1330,22 @@ class State:
         return items
 
     def shop_detail(self, sid):
+        min_annual = self.shops[sid].get("min_annual_value_cad")
         offers = []
         for jid in self.job_order:
             a = self.assignments.get(jid)
             if not a or a["shop_id"] != sid:
                 continue
+            annual = rs_num(float(a["value_cad"]) / PROGRAM_YEARS)
             offers.append({"job_id": jid, "part_no": a["part_no"], "description": a["description"],
                            "program_id": "northgate", "prime_name": PROGRAM["prime_name"],
                            "value_cad": a["value_cad"], "hours_week": a["hours_week"],
                            "multiplier": a["multiplier"], "credit_cad": a["credit_cad"],
-                           "reasons": list(a["reasons"]), "status": a["status"]})
+                           "reasons": list(a["reasons"]), "status": a["status"],
+                           # right-sized work (docs/api.md §9; engine/rightsize.py offer_size)
+                           "annual_value_cad": annual, "duration_years": PROGRAM_YEARS,
+                           "duration_flag": "assumption", "ongoing": PROGRAM_YEARS > 1,
+                           "meets_minimum": None if min_annual is None else annual >= float(min_annual)})
         training = []
         for p in self.packages:
             if p["shop_id"] != sid:
@@ -1292,7 +1365,8 @@ class State:
                              "cert_unlock": p["cert_unlock"], "capacity_unlock": dict(p["capacity_unlock"]),
                              "message": msg})
         return {"shop": self.shop_obj(sid), "certifications": copy.deepcopy(self.certs[sid]),
-                "offers": offers, "readiness": self.readiness(sid), "training": training}
+                "offers": offers, "readiness": self.readiness(sid), "training": training,
+                "work_packages": work_packages(offers, self.shops[sid])}
 
     def program_view(self):
         return {"program": copy.deepcopy(PROGRAM),
@@ -1389,7 +1463,9 @@ def main() -> int:
         "generated_by": "scripts/build_fixtures.py",
         "note": ("30 fictional shops for the Northgate demo. Names, addresses, capabilities and "
                  "certification statuses are illustrative; any resemblance to a real company is "
-                 "unintended. Declared certs are self-declared (verified_at = date declared)."),
+                 "unintended. Declared certs are self-declared (verified_at = date declared). Work "
+                 "preferences (min_annual_value_cad, prefers_ongoing) on some shops are illustrative "
+                 "(assumption) and never used for routing."),
         "shops": shops_out,
     })
     buf = io.StringIO()

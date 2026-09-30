@@ -22,6 +22,7 @@ from engine import gaps as gaps_mod
 from engine import graph as graph_mod
 from engine import ledger as ledger_mod
 from engine import public as public_mod
+from engine import rightsize as rightsize_mod
 from engine import rules as rules_mod
 from engine import scoring as scoring_mod
 from engine import shopside as shopside_mod
@@ -418,7 +419,7 @@ def shops_list(state: Any, source: str | None = None) -> dict:
         shop = effective_shop(state, sid)
         if source and shop.get("source") != source:
             continue
-        out.append(_public_shop(shop))
+        out.append(rightsize_mod.apply_preferences(state, _public_shop(shop)))
     if source in (None, "public"):
         seen = set(state.shops)
         out.extend(s for s in public_mod.shops() if s["id"] not in seen)
@@ -442,6 +443,10 @@ def shop_detail(state: Any, shop_id: str) -> dict:
         jid: ev for jid, ev in shopside_mod.reoffers(state).items() if ev.get("shop_id") == shop_id
     }
     full: Context | None = None
+    # Right-sized work (docs/api.md §9): annual value and duration on every offer, flagged
+    # against the shop's own minimum, and the offers grouped into work packages. Display only.
+    years, years_flag = rightsize_mod.program_years(state.program)
+    prefs = rightsize_mod.preferences(state, shop_id)
     offers = []
     for jid in ctx.job_order:
         a = state.assignments.get(jid)
@@ -473,14 +478,18 @@ def shop_detail(state: Any, shop_id: str) -> dict:
                 "reasons": reasons,
                 "status": status,
                 **extra,
+                **rightsize_mod.offer_size(a["value_cad"], years, years_flag, prefs["min_annual_value_cad"]),
             }
         )
     return {
-        "shop": _public_shop(shop),
+        "shop": rightsize_mod.apply_preferences(state, _public_shop(shop)),
         "certifications": copy.deepcopy(shop.get("certifications") or []),
         "offers": offers,
         "readiness": gaps_mod.readiness(ctx, shop_id, state.assignments) if state.jobs else [],
         "training": gaps_mod.training_entries(shop_id, state.packages),
+        "work_packages": rightsize_mod.work_packages(
+            offers, prefs, years, years_flag, state.program.get("prime_name")
+        ),
     }
 
 

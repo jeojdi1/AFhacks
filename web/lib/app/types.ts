@@ -27,13 +27,47 @@ export const APP_PROGRAM_ID = "northgate"
 // ---------------------------------------------------------------------------
 // §2.3 Offer decisions
 
-export const DECISION_KINDS = ["accepted", "declined", "question", "undo"] as const
+export const DECISION_KINDS = ["accepted", "declined", "question", "counter", "undo"] as const
 export type DecisionKind = (typeof DECISION_KINDS)[number]
 /** Decisions that are stored (undo deletes the stored decision). */
 export type StoredDecisionKind = Exclude<DecisionKind, "undo">
 
-export const REASON_CODES = ["capacity", "price", "tooling", "schedule", "not_our_process", "other"] as const
+/**
+ * Decline reasons. The last three are the right-sized-work reasons (docs/api.md §9): what
+ * small shops say about small, fiddly jobs. Chip order = this order.
+ */
+export const REASON_CODES = [
+  "capacity",
+  "price",
+  "too_small",
+  "min_quantity",
+  "paperwork",
+  "tooling",
+  "schedule",
+  "not_our_process",
+  "other",
+] as const
 export type ReasonCode = (typeof REASON_CODES)[number]
+
+/** Counter-offer limits (engine/shopside.py). */
+export const SETUP_CHARGE_MAX = 10_000_000
+export const MIN_QUANTITY_MAX = 10_000_000
+
+/** A counter-offer's terms: at least one is set (docs/api.md §9). */
+export interface CounterTerms {
+  /** One-time setup charge, CAD. */
+  setup_charge_cad: number | null
+  /** Minimum run, parts per order. */
+  min_quantity: number | null
+}
+
+export const COUNTER_RESPONSES = ["accepted", "declined"] as const
+export type CounterResponseKind = (typeof COUNTER_RESPONSES)[number]
+
+/** decision.counter: the terms, and Northgate's answer once it gives one. */
+export interface OfferCounter extends CounterTerms {
+  response: { response: CounterResponseKind; note: string | null; at: string } | null
+}
 
 export const QUESTION_CODES = ["lead_time", "material_supply", "first_article", "quantity_split"] as const
 export type QuestionCode = (typeof QUESTION_CODES)[number]
@@ -49,6 +83,9 @@ export interface DecisionInput {
   question_code?: QuestionCode | null
   /** ≤ 280 characters. */
   note?: string | null
+  /** decision "counter": one or both terms. */
+  setup_charge_cad?: number | null
+  min_quantity?: number | null
 }
 
 /** POST /shops/{shop_id}/offers/{job_id}/decision body. */
@@ -58,6 +95,9 @@ export interface DecisionRequest {
   question_code: QuestionCode | null
   note: string | null
   idempotency_key: string
+  /** Sent for decision "counter" only (docs/api.md §9). */
+  setup_charge_cad?: number | null
+  min_quantity?: number | null
 }
 
 /**
@@ -79,6 +119,11 @@ export interface OfferDecisionRec {
    * Absent until the prime replies; a new decision by the shop drops it.
    */
   reply?: OfferReply | null
+  /**
+   * A counter-offer's terms and Northgate's answer (docs/api.md §9). Present on a "counter"
+   * decision, and kept on the "accepted" decision after Northgate accepts the terms.
+   */
+  counter?: OfferCounter | null
   /** Client only: queued in the outbox, not yet confirmed by the engine ("Will send"). */
   pending?: boolean
 }
@@ -116,6 +161,11 @@ export const EVENT_KINDS = [
   "reoffered",
   "paperwork_done",
   "kickoff_booked",
+  // Right-sized work (docs/api.md §9)
+  "offer_countered",
+  "counter_accepted",
+  "counter_declined",
+  "preferences_set",
 ] as const
 export type EventKind = (typeof EVENT_KINDS)[number]
 

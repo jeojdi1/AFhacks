@@ -1,4 +1,4 @@
-# Shieldworks API contract (v0.1; §6 additive v0.2; §7 v0.3; §8 v0.4)
+# Shieldworks API contract (v0.1; §6 additive v0.2; §7 v0.3; §8 v0.4; §9 v0.6)
 
 Owner: Lane B (shared). Source of truth for field names. Any change is a `CONTRACT:` commit that also updates `/data/fixtures` (CLAUDE.md §2).
 
@@ -12,7 +12,7 @@ Owner: Lane B (shared). Source of truth for field names. Any change is a `CONTRA
 
 ### Endpoint index
 
-Every live route: **29** (26 in `engine/app.py`, 3 in the `engine/simulate.py` router; search and graph logic in `engine/search.py` / `engine/graphdb.py`). `{id}` is the program id (`northgate`). FastAPI's own `/docs` and `/openapi.json` are also served.
+Every live route: **32** (29 in `engine/app.py`, 3 in the `engine/simulate.py` router; search and graph logic in `engine/search.py` / `engine/graphdb.py`; the award routes are in §6.1). `{id}` is the program id (`northgate`). FastAPI's own `/docs` and `/openapi.json` are also served.
 
 | Method and path | Section | Writes state |
 | --- | --- | --- |
@@ -31,12 +31,15 @@ Every live route: **29** (26 in `engine/app.py`, 3 in the `engine/simulate.py` r
 | `POST /programs/{id}/training/{package_id}/fund` | §3 | yes |
 | `POST /programs/{id}/jobs/{job_id}/reoffer` | §6 | yes |
 | `GET /programs/{id}/actions` | §6 | no |
+| `GET /programs/{id}/decline-insights` | §9 | no |
 | `GET /programs/{id}/events?since=&limit=` | §6 | no |
 | `GET /programs/{id}/training/{package_id}/seats/{seat}` | §6 | no |
 | `GET /shops?source=public\|synthetic` | §3 | no |
 | `GET /shops/{shop_id}` | §3 | no |
 | `POST /shops/{shop_id}/offers/{job_id}/decision` | §6 | yes |
 | `POST /shops/{shop_id}/offers/{job_id}/reply` | §6 | yes |
+| `POST /shops/{shop_id}/offers/{job_id}/counter-response` | §9 | yes |
+| `POST /shops/{shop_id}/preferences` | §9 | yes |
 | `POST /shops/{shop_id}/funding-requests` | §6 | yes |
 | `POST /shops/{shop_id}/capacity` | §6 | yes |
 | `POST /shops/{shop_id}/certifications/{cert_type}` | §6 | yes |
@@ -477,8 +480,9 @@ What a shop tells Shieldworks from the phone app (docs/app-spec.md §2.3–§2.8
 ### `POST /shops/{shop_id}/offers/{job_id}/decision`
 ```json
 // request
-{ "decision": "declined",              // accepted | declined | question | undo
+{ "decision": "declined",              // accepted | declined | question | counter (§9) | undo
   "reason_code": "capacity",           // declined only: capacity | price | tooling | schedule | not_our_process | other
+                                       //   | too_small | paperwork | min_quantity (§9)
   "question_code": null,               // question only: lead_time | material_supply | first_article | quantity_split
   "note": null,                        // optional, ≤ 280 chars (not stored for undo)
   "idempotency_key": "6f1c…" }
@@ -924,3 +928,132 @@ Before TP-01 is funded, the queue runs out after 11 ticks: `{"event": null, "rem
   "seeded": true, "stage": "routed" }
 ```
 `remaining` counts only steps that can run now (the waiting funding request is not counted until TP-01 is funded; then `next` is `{"step": "tick-12", "type": "funding", "shop_id": "syn-026", "job_id": null}`). Before routing: `{"queue_length": 12, "applied": 0, "remaining": 0, "next": null, "seeded": false, "stage": "empty"}`.
+
+## 9. Right-sized work: offer size, counter-offers, decline insights (additive, v0.6)
+
+Why (feedback from Ontario shop owners, anonymized): small shops skip anything under about $100,000 a year (more for a one-and-done job), and when a quote comes in below their minimum quantity they quote the minimum and/or a setup charge, or decline. So every offer shows its size per year, a shop can set the smallest work worth its time and counter-offer, and the prime sees why shops said no, with a plain fix. Logic: `engine/rightsize.py` (sizes, packages, insights) and `engine/shopside.py` (preferences, counter-offers); tests: `engine/tests/test_rightsize.py`.
+
+**Additive and display-only.** Nothing here changes routing, assignments, `value_cad`, `credit_cad`, the ledger or any demo number (36 assigned / 4 blocked; TP-01 $96K → $480K credit; obligation 11.5% → 13.4%). Counter-offer terms are recorded only. All shop POSTs follow the §6 conventions (optional `idempotency_key`, replay, 409 on reuse, errors `{"detail"}`).
+
+**Program years.** Annual value = `value_cad ÷ years`. `years` is the program's `program_years` (or `duration_years`) when present (`duration_flag: "program"`), else **8** (the fleet lifetime; `duration_flag: "assumption"`). `program_northgate.json` has none, so the demo uses 8 (assumption).
+
+### Shop fields (`GET /shops`, `GET /shops/{id}` → `shop`)
+Optional; present only on shops with preferences (7 synthetic shops in `data/processed/shops_synthetic.json`, written by `scripts/build_fixtures.py` `SHOP_PREFERENCES`, labelled illustrative/assumption), or after the shop sets its own.
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `min_annual_value_cad` | number \| null | Smallest annual value (CAD a year) the shop looks at; `null` = no minimum |
+| `prefers_ongoing` | bool \| null | Prefers ongoing work over one-and-done jobs |
+| `preferences_basis` | `"illustrative"` \| `"shop-declared"` | Seed data for a synthetic shop, or set by the shop (`POST …/preferences`) |
+
+### Offer fields (`GET /shops/{id}` → `offers[]`)
+```json
+{ "job_id": "NG-022", "value_cad": 777600.0, "status": "offered", "…": "…",
+  "annual_value_cad": 97200, "duration_years": 8, "duration_flag": "assumption",
+  "ongoing": true, "meets_minimum": false }
+```
+`ongoing` = `duration_years > 1`. `meets_minimum` = `annual_value_cad ≥ min_annual_value_cad`, `null` when the shop has no minimum.
+
+### `GET /shops/{id}` → `work_packages[]`
+A shop's offers from one program, grouped (the demo has one program, so one package). Declined offers are off the table: counted in `declined`, left out of the totals.
+```json
+[{ "program_id": "northgate", "prime_name": "Northgate Land Systems",
+   "job_ids": ["NG-021", "NG-022"], "offers": 2, "declined": 0,
+   "total_value_cad": 1699200, "annual_value_cad": 212400,
+   "duration_years": 8, "duration_flag": "assumption", "ongoing": true,
+   "min_annual_value_cad": 100000, "prefers_ongoing": true,
+   "meets_minimum": true, "below_minimum_job_ids": ["NG-022"],
+   "message": "Northgate work package: 2 jobs · $212K a year for about 8 years · meets your $100K-a-year minimum" }]
+```
+The bundle story: NG-022 alone ($97K a year) is below the shop's $100K minimum; the package ($212K a year) meets it. `[]` before routing.
+
+### `POST /shops/{shop_id}/preferences`
+```json
+// request (both optional; a field left out keeps its value; 0 or null = no minimum)
+{ "min_annual_value_cad": 150000, "prefers_ongoing": true, "idempotency_key": "…" }
+// 200
+{ "preferences": { "shop_id": "syn-012", "min_annual_value_cad": 150000, "prefers_ongoing": true,
+                   "basis": "shop-declared", "updated_at": "2026-09-30T20:54:04Z", "used_in_routing": false },
+  "event": { "kind": "preferences_set", "shop_id": "syn-012", "value_cad": null, "credit_cad": null,
+             "message": "Tallowfield Fabricating Ltd. updated its work preferences: smallest work it looks at: $150K a year · prefers ongoing work",
+             "payload": { "min_annual_value_cad": 150000, "prefers_ongoing": true }, "…": "…" } }
+```
+- Stored in `State.shop_preferences`; like capacity check-ins it belongs to the shop, so upload and route keep it and a reset clears it (back to the seed values). Never used for routing. The same preferences again under a new key return `"event": null`.
+- Errors: 404 unknown shop; 400 `Send min_annual_value_cad or prefers_ongoing`; 400 `min_annual_value_cad must be a number (CAD a year) or null`; 400 `min_annual_value_cad must be between 0 and 100000000`; 400 `prefers_ongoing must be true, false or null`.
+
+### Counter-offer: `POST /shops/{shop_id}/offers/{job_id}/decision` with `decision: "counter"`
+```json
+// request: one or both terms, plus the usual optional note
+{ "decision": "counter", "setup_charge_cad": 4500, "min_quantity": 500,
+  "note": "Short runs need a setup", "idempotency_key": "…" }
+// 200
+{ "decision": { "shop_id": "syn-012", "job_id": "NG-022", "decision": "counter",
+                "reason_code": null, "question_code": null, "note": "Short runs need a setup",
+                "at": "2026-09-30T20:54:04Z", "idempotency_key": "…",
+                "counter": { "setup_charge_cad": 4500, "min_quantity": 500, "response": null } },
+  "assignment_status": "offered",
+  "event": { "kind": "offer_countered", "job_id": "NG-022", "value_cad": 777600.0, "credit_cad": 1415232.0,
+             "message": "Tallowfield Fabricating Ltd. countered on NG-022: $4.5K setup charge and a minimum of 500 parts per order",
+             "payload": { "setup_charge_cad": 4500, "min_quantity": 500, "note": "Short runs need a setup" }, "…": "…" } }
+```
+- `setup_charge_cad`: one-time setup charge, CAD, > 0 and ≤ 10,000,000. `min_quantity`: minimum run in parts per order, a whole number 1–10,000,000. At least one is required. Terms on any other decision are dropped (like a stray `reason_code`).
+- The assignment stays `offered` (the original offer stands until Northgate answers; the shop can still accept or decline it). `counter` appears only on counter records (and stays on the accepted record after Northgate accepts the terms), so every other decision record is unchanged.
+- Same counter again under a new key: `"event": null` (unless Northgate already answered it: then it is a new ask). New terms replace the counter (`payload.previous: "counter"`). `undo` works as for any decision.
+- Errors (besides §6's): 400 `A counter-offer needs setup_charge_cad or min_quantity`; 400 `setup_charge_cad must be a number (CAD)` / `… must be more than 0 and at most 10000000`; 400 `min_quantity must be a whole number of parts` / `… a whole number from 1 to 10000000`.
+
+### `POST /shops/{shop_id}/offers/{job_id}/counter-response`
+The prime (Northgate) answers the shop's counter-offer.
+```json
+// request
+{ "response": "accepted", "note": null, "idempotency_key": "…" }     // accepted | declined
+// 200 (accepted)
+{ "decision": { "…": "…", "decision": "accepted", "note": "Short runs need a setup",
+                "counter": { "setup_charge_cad": 4500, "min_quantity": 500,
+                             "response": { "response": "accepted", "note": null, "at": "2026-09-30T20:54:04Z" } } },
+  "assignment_status": "accepted",
+  "event": { "kind": "counter_accepted",
+             "message": "Northgate accepted Tallowfield Fabricating Ltd.'s counter on NG-022: $4.5K setup charge and a minimum of 500 parts per order",
+             "payload": { "response": "accepted", "setup_charge_cad": 4500, "min_quantity": 500 }, "…": "…" } }
+```
+- `accepted`: the offer is accepted on the shop's terms: the record becomes `decision: "accepted"` (keeping `counter`) and `assignment.status` becomes `accepted`, so the award paperwork (§6.1) opens as for any accept. Value, credit and the ledger do not change.
+- `declined`: the original offer stands. The record stays `decision: "counter"` with `counter.response` set; `assignment.status` stays `offered`; event `counter_declined` ("Northgate kept its original offer on NG-022 for Tallowfield Fabricating Ltd. (counter not accepted)"). Northgate can still accept later; the shop can accept or decline the original, or counter again.
+- The same answer again under a new key: `"event": null`. Route / upload / reset clear counters with the other decisions.
+- Errors: 404 unknown shop / job not offered to the shop; 400 `Route the program first`; 400 `response must be one of: accepted, declined`; 409 `No counter-offer from shop '…' on job '…'`; 409 `The counter-offer on '…' was already accepted` (a different answer after accepting).
+
+### New decline reasons (`reason_code`)
+| Code | Label (event message) |
+| --- | --- |
+| `too_small` | job too small for us |
+| `paperwork` | too much paperwork |
+| `min_quantity` | below our minimum quantity |
+
+### Events (additive kinds; same Event shape as §6)
+| `kind` | Emitted by | `value_cad` / `credit_cad` | `payload` |
+| --- | --- | --- | --- |
+| `offer_countered` | decision `counter` | the assignment's value / credit | `setup_charge_cad, min_quantity, note?, previous?` |
+| `counter_accepted` | counter-response `accepted` | the assignment's value / credit | `response, setup_charge_cad, min_quantity, note?` |
+| `counter_declined` | counter-response `declined` | the assignment's value / credit | `response, setup_charge_cad, min_quantity, note?` |
+| `preferences_set` | `POST /shops/{id}/preferences` | `null` / `null` | `min_annual_value_cad, prefers_ongoing` |
+
+### `GET /programs/{id}/decline-insights`
+Why shops said no, what they asked for instead, and which placed offers are below their shop's own minimum, each with a plain suggestion for the prime. Reads the current decisions and assignments; read-only; empty lists before routing.
+```json
+{ "program_id": "northgate", "declined": 1, "countered": 1,
+  "reasons": [{ "kind": "decline", "code": "too_small", "label": "job too small for us", "count": 1,
+                "job_ids": ["NG-002"], "shop_ids": ["syn-006"], "value_cad": 212800,
+                "suggestion": "Bundle small jobs into one package, so each shop sees one bigger, steadier order." }],
+  "counters": [{ "kind": "counter", "code": "min_quantity", "label": "asked for a minimum run", "count": 1,
+                 "job_ids": ["NG-022"], "shop_ids": ["syn-012"], "value_cad": 777600,
+                 "suggestion": "Order at least the shop's minimum run, or combine deliveries into fewer, larger lots." },
+               { "kind": "counter", "code": "setup_charge", "label": "asked for a setup charge", "count": 1,
+                 "job_ids": ["NG-022"], "shop_ids": ["syn-012"], "value_cad": 777600, "total_setup_cad": 4500,
+                 "suggestion": "Budget a one-time setup fee for small runs; it is often cheaper than finding another shop." }],
+  "below_minimum": { "count": 11, "job_ids": ["NG-001", "NG-002", "…"], "shop_ids": ["syn-002", "…"],
+                     "duration_years": 8, "duration_flag": "assumption",
+                     "suggestion": "Bundle these into bigger packages: each is below what the shop says is worth its time." },
+  "flags": ["assumption"] }
+```
+- `reasons`: one row per decline reason (most common first), from the current declines. `counters`: one row per term asked for (`setup_charge`, `min_quantity`), from every counter-offer (open, accepted or kept). Suggestions per reason: `too_small` bundle into one package; `min_quantity` order at least the minimum run; `paperwork` one standard subcontract and reuse certificates on file; `price` check the unit price; `capacity` more lead time or split; `schedule` move or stagger; `tooling` pay for tooling; `not_our_process` check the job's process; `other` ask the shop.
+- The web computes the same rows from `GET /programs/{id}/actions` (so demo data works too): the prime desk's "Why shops said no" panel (`web/lib/app/decline-insights.ts`).
+
+### Fixtures
+`scripts/build_fixtures.py` writes every §9 field (shop preferences, offer sizes, `work_packages`), so `make fixtures` reproduces the engine exactly. Until data/fixtures is regenerated, the parity tests compare with the new additive keys left out (`engine/tests/fixture_compat.py`); after regeneration they are strict again. The §6 app fixtures (`data/fixtures/app/`) are unchanged: counter records, the new events and preferences are additive and do not appear in them. The web handles fixtures without these fields: sizes are computed (value ÷ 8 years, assumption) and preferences come from `data/processed/shops_synthetic.json`.

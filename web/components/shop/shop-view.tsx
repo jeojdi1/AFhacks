@@ -8,7 +8,9 @@ import { toast } from "sonner"
 import { useDemo } from "@/lib/data/store"
 import { useAppActions, useShopActions } from "@/lib/app/actions-store"
 import { t } from "@/lib/app/strings"
-import type { ReasonCode } from "@/lib/app/types"
+import type { CounterTerms, ReasonCode } from "@/lib/app/types"
+import { counterTermsText } from "@/lib/app/sizing"
+import { useShopPrefs } from "@/lib/app/preferences"
 import { MATERIAL_LABEL, PROCESS_LABEL, fmtMoney } from "@/lib/format"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
@@ -232,6 +234,8 @@ function RoutableShopView({ id }: { id: string }) {
     [shopActions.fundingRequests]
   )
   const fundingRequested = useMemo(() => openRequests.map((r) => r.requirement), [openRequests])
+  // The shop's work preferences (docs/api.md §9): saved here > the shop object > seed data.
+  const prefs = useShopPrefs(data?.shop ?? null, id)
   const fundingRequestedPkgs = useMemo(() => openRequests.map((r) => r.package_id), [openRequests])
 
   // /shop's "All certificates →" links to #certificates: scroll there once the card has rendered.
@@ -309,29 +313,37 @@ function RoutableShopView({ id }: { id: string }) {
     lookAt = c("shop.b.look")
   }
 
-  // Offer answers: engine decisions in live mode; demo.offerStatus in fixtures mode.
+  // Offer answers: engine decisions in live mode; in fixtures mode the local actions store
+  // (questions, counter-offers, declines with their reason) plus demo.offerStatus.
   const inboxDecisions: Record<string, InboxDecision> = {}
-  if (viaEngine) {
-    for (const [jobId, d] of Object.entries(shopActions.decisions)) {
-      if (d.decision === "undo") continue
-      inboxDecisions[jobId] = {
-        decision: d.decision,
-        reason_code: d.reason_code,
-        question_code: d.question_code,
-        pending: d.pending,
-        simulated: decisionIsSimulated(d, shopActions.events),
-      }
+  for (const [jobId, d] of Object.entries(shopActions.decisions)) {
+    if (d.decision === "undo") continue
+    inboxDecisions[jobId] = {
+      decision: d.decision,
+      reason_code: d.reason_code,
+      question_code: d.question_code,
+      counter: d.counter ?? null,
+      pending: d.pending,
+      simulated: viaEngine ? decisionIsSimulated(d, shopActions.events) : undefined,
     }
-  } else {
+  }
+  if (!viaEngine) {
     const prefix = `${shop.id}:`
     for (const [k, v] of Object.entries(offerStatus ?? {})) {
-      if (k.startsWith(prefix) && (v === "accepted" || v === "declined")) inboxDecisions[k.slice(prefix.length)] = { decision: v }
+      if (!k.startsWith(prefix) || (v !== "accepted" && v !== "declined")) continue
+      const jobId = k.slice(prefix.length)
+      const cur = inboxDecisions[jobId]
+      inboxDecisions[jobId] = cur?.decision === v ? cur : { decision: v, counter: cur?.counter ?? null }
     }
   }
   const prime = offers[0]?.prime_name?.split(" ")[0] || "Northgate"
   const accept = async (jobId: string) => {
     if (!viaEngine) {
       setOfferStatus(shop.id, jobId, "accepted")
+      // An open question or counter-offer in the local store: answer it there too, so
+      // Northgate's desk stops waiting on it.
+      const cur = shopActions.decisions[jobId]?.decision
+      if (cur === "question" || cur === "counter") void shopActions.decide(jobId, { decision: "accepted" })
       goToAward(shop.id, jobId)
       return
     }
@@ -341,11 +353,23 @@ function RoutableShopView({ id }: { id: string }) {
     goToAward(shop.id, jobId)
   }
   const decline = async (jobId: string, reason: ReasonCode, note: string | null) => {
-    if (!viaEngine) return setOfferStatus(shop.id, jobId, "declined")
+    if (!viaEngine) {
+      setOfferStatus(shop.id, jobId, "declined")
+      // Record the reason too, so Northgate's "Why shops said no" can count it.
+      void shopActions.decide(jobId, { decision: "declined", reason_code: reason, note })
+      return
+    }
     const r = await shopActions.decide(jobId, { decision: "declined", reason_code: reason, note })
     if (!r || r.pending) return
     toast.message(`Declined: ${t(`reason.${reason}`).toLowerCase()}`, {
       description: `${prime} sees your reason.`,
+    })
+  }
+  const counterOffer = async (jobId: string, terms: CounterTerms, note: string | null) => {
+    const r = await shopActions.decide(jobId, { decision: "counter", ...terms, note })
+    if (!r || r.pending) return
+    toast.message(`Counter-offer sent: ${counterTermsText(terms)}`, {
+      description: `${prime} can accept your terms or keep its original offer.`,
     })
   }
 
@@ -423,6 +447,8 @@ function RoutableShopView({ id }: { id: string }) {
               certifications={certifications}
               onAccept={accept}
               onDecline={decline}
+              onCounter={counterOffer}
+              prefs={prefs}
               shopId={shop.id}
               routed={routed}
             />

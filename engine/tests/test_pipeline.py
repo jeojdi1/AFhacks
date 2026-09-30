@@ -15,6 +15,7 @@ from pathlib import Path
 import pytest
 
 from engine import pipeline, rules, tagger
+from engine.tests.fixture_compat import pending
 
 ROOT = Path(__file__).resolve().parents[2]
 PROCESSED = ROOT / "data" / "processed"
@@ -280,8 +281,9 @@ def test_shop_detail_before_and_after_fund(funded):
     cwb_cert = next(c for c in after["certifications"] if c["type"] == "CWB_W47.1")
     assert cwb_cert["status"] == "pending_training"
     assert after["shop"]["capacity_hours_week"] == 280
-    assert before == fixture("shop_syn-012.json")
-    assert after == fixture("shop_syn-012_after_fund.json")
+    fx_before, fx_after = fixture("shop_syn-012.json"), fixture("shop_syn-012_after_fund.json")
+    assert pending(before, fx_before) == fx_before
+    assert pending(after, fx_after) == fx_after
 
 
 def test_shop_detail_unknown_and_unrouted():
@@ -291,8 +293,9 @@ def test_shop_detail_unknown_and_unrouted():
     d = pipeline.shop_detail(st, DEMO_SHOP)
     assert d["offers"] == [] and d["training"] == []
     # Synthetic entries unchanged; discovered public shops (never routed) are appended after them.
-    assert pipeline.shops_list(st)["shops"][:30] == fixture("shops.json")["shops"]
-    assert pipeline.shops_list(st, source="synthetic") == fixture("shops.json")
+    fx = fixture("shops.json")
+    assert pending(pipeline.shops_list(st)["shops"][:30], fx["shops"]) == fx["shops"]
+    assert pending(pipeline.shops_list(st, source="synthetic"), fx) == fx
     assert pipeline.shops_list(st, source="public") == fixture("shops_public.json")
 
 

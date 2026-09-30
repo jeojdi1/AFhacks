@@ -3,11 +3,12 @@
 // Small pieces shared by the offer list and the offer card (T3).
 
 import * as React from "react"
-import { Check, CircleHelp, Clock, CloudUpload, Sparkles, X } from "lucide-react"
+import { ArrowLeftRight, Check, CircleHelp, Clock, CloudUpload, Sparkles, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/lib/data/store"
 import { addBusinessDays, fmtDateTime, fmtWeekday } from "@/lib/app/today"
 import { t } from "@/lib/app/strings"
+import { counterTermsText } from "@/lib/app/sizing"
 import type { AppEvent, CertWithDates, Job, Offer, OfferDecisionRec } from "@/lib/app/types"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
 import "./strings"
@@ -15,7 +16,8 @@ import "./strings"
 /** Business days a shop has to reply (assumption: set by the prime). */
 export const REPLY_BUSINESS_DAYS = 5
 
-export type OfferState = "open" | "question" | "accepted" | "declined"
+/** "counter": the shop sent a counter-offer (docs/api.md §9); Northgate may have answered it. */
+export type OfferState = "open" | "question" | "counter" | "accepted" | "declined"
 
 export interface OfferView {
   offer: Offer
@@ -31,11 +33,13 @@ export function offerState(offer: Offer, decision: OfferDecisionRec | null | und
   if (decision) {
     if (decision.decision === "accepted" || decision.decision === "declined") return decision.decision
     if (decision.decision === "question") return "question"
+    if (decision.decision === "counter") return "counter"
   }
   return offer.status === "accepted" || offer.status === "declined" ? offer.status : "open"
 }
 
-export const needsReply = (s: OfferState) => s === "open" || s === "question"
+/** Still open: no answer yet, a question, or a counter-offer (the original offer stands). */
+export const needsReply = (s: OfferState) => s === "open" || s === "question" || s === "counter"
 
 /** When the program was routed: the actions store, else the latest routed event. */
 export function routedAtFrom(routedAt: string | null, events: AppEvent[]): string | null {
@@ -138,6 +142,13 @@ export function DecisionChip({ state, decision, className }: { state: OfferState
         {t("offer.status.question")}
       </span>
     )
+  if (state === "counter")
+    return (
+      <span className={cn(chipBase, "border-violet-300 bg-violet-50 text-violet-900", className)} data-testid="counter-chip">
+        <ArrowLeftRight className="size-3.5" aria-hidden />
+        {decision?.counter?.response?.response === "declined" ? t("o.counter.chipKept") : t("offer.status.counter")}
+      </span>
+    )
   return (
     <span className={cn(chipBase, "border-brand/30 bg-background text-brand", className)}>
       <span aria-hidden className="size-2 rounded-full bg-brand" />
@@ -159,5 +170,9 @@ export function decisionLine(state: OfferState, d: OfferDecisionRec | null | und
     return r ? t(`o.status.declined${sim}`, { reason: r }) : t(`o.status.declinedNoReason${sim}`)
   }
   if (state === "question") return t(`o.status.question${sim}`, { question: questionText(d) ?? "" })
+  if (state === "counter") {
+    const terms = counterTermsText(d?.counter)
+    return d?.counter?.response?.response === "declined" ? t("o.status.counterKept", { terms }) : t("o.status.counter", { terms })
+  }
   return t("offer.status.offered")
 }

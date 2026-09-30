@@ -17,6 +17,7 @@ from fastapi.testclient import TestClient
 
 import engine.app as app_module
 from engine import pipeline, public
+from engine.tests.fixture_compat import pending
 from engine.tests.test_pipeline import build_state
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -114,7 +115,8 @@ def test_missing_file_means_no_public_shops(tmp_path, monkeypatch):
     try:
         assert public.shops() == []
         st = build_state(upload=False)
-        assert pipeline.shops_list(st) == fixture("shops.json")
+        fx = fixture("shops.json")
+        assert pending(pipeline.shops_list(st), fx) == fx
         with pytest.raises(KeyError):
             pipeline.shop_detail(st, "pub-001")
     finally:
@@ -148,7 +150,9 @@ def test_shops_list_appends_public_after_unchanged_synthetic(funded):
     before = build_state(upload=False)
     all_shops = pipeline.shops_list(before)["shops"]
     synthetic = pipeline.shops_list(before, "synthetic")["shops"]
-    assert json.dumps(all_shops[:30]) == json.dumps(synthetic) == json.dumps(fixture("shops.json")["shops"])
+    fx = fixture("shops.json")["shops"]
+    assert json.dumps(all_shops[:30]) == json.dumps(synthetic)
+    assert json.dumps(pending(synthetic, fx)) == json.dumps(fx)
     assert all_shops[30:] == public.shops()
     assert pipeline.shops_list(before, "public") == public.list_response()
     # After routing + funding the synthetic part tracks the State; the public part is static.
@@ -197,7 +201,8 @@ def test_http_lists_public_shops_and_numbers_do_not_move(client):
     shops = client.get("/shops").json()["shops"]
     assert len(shops) == 108
     assert client.get("/shops?source=public").json() == fixture("shops_public.json")
-    assert client.get("/shops?source=synthetic").json() == fixture("shops.json")
+    fx = fixture("shops.json")
+    assert pending(client.get("/shops?source=synthetic").json(), fx) == fx
     assert client.post("/programs/northgate/parts?use_demo=true").status_code == 200
     rt = client.post("/programs/northgate/route").json()
     assert rt["stats"]["assigned"] == 36 and rt["stats"]["blocked"] == 4

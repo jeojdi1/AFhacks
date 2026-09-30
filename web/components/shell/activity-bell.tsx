@@ -64,6 +64,9 @@ extendStrings("en", {
   "bell.shop.funded.detail": "{count} jobs unblocked for you: {jobs}",
   "bell.shop.funded.detail_one": "1 job unblocked for you: {jobs}",
   "bell.simPrefix": "Simulated · {title}",
+  "bell.shop.counterAccepted": "{prime} accepted your counter on {job}",
+  "bell.shop.counterDeclined": "{prime} kept its original offer on {job}",
+  "bell.shop.counterDeclined.detail": "You can still accept or decline it",
 })
 
 const isShopEvent = (e: AppEvent) => SHOP_EVENT_KINDS.includes(e.kind)
@@ -78,6 +81,18 @@ function shopRow(it: FeedItem, e: AppEvent, prime: string): FeedItem {
     case "offer_declined":
     case "funding_requested":
       return { ...it, detail: null, credit_cad: null }
+    case "offer_countered":
+      // The shop's own counter: no "Answer" button (that is Northgate's).
+      return { ...it, detail: null, credit_cad: null, action: null }
+    case "counter_accepted":
+      return { ...it, title: t("bell.shop.counterAccepted", { prime, job: e.job_id ?? "" }), credit_cad: null }
+    case "counter_declined":
+      return {
+        ...it,
+        title: t("bell.shop.counterDeclined", { prime, job: e.job_id ?? "" }),
+        detail: t("bell.shop.counterDeclined.detail"),
+        credit_cad: null,
+      }
     case "package_funded": {
       const raw = (e.payload ?? {}).unblocked_job_ids
       const ids = Array.isArray(raw) ? raw.filter((x): x is string => typeof x === "string") : []

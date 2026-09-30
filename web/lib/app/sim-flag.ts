@@ -34,6 +34,7 @@ const DECISION_EVENT: Record<string, string> = {
   accepted: "offer_accepted",
   declined: "offer_declined",
   question: "offer_question",
+  counter: "offer_countered",
 }
 
 /**
