@@ -29,15 +29,20 @@ import { CERT_TYPES, PROCESS_TAGS, type ShopListItem, type ShopsResponse } from 
 import { AppApiError, appFetch, appPaths, appApi, newIdempotencyKey } from "./api"
 import { addDays, appToday, parseAppDate, toISODate } from "./today"
 import { t } from "./strings"
+import { counterTermsText } from "./sizing"
+import { clearPreferenceOverrides } from "./preferences"
 import {
   APP_PROGRAM_ID,
   CAPACITY_MAX_HOURS,
   CERT_NUMBER_MAX,
   DECISION_NOTE_MAX,
   HORIZON_WEEKS,
+  MIN_QUANTITY_MAX,
   QUESTION_CODES,
   REASON_CODES,
+  SETUP_CHARGE_MAX,
   type AppEvent,
+  type CounterResponseKind,
   type CapacityCheckin,
   type CapacityInput,
   type CapacityRequest,
@@ -81,6 +86,11 @@ export interface AppActions {
   requestFunding(shopId: string, requirement: string): Promise<FundingRequestRec | null>
   confirmCapacity(shopId: string, input: CapacityInput): Promise<CapacityResult | null>
   declareCertExpiry(shopId: string, certType: string, expiresAt: string, certNumber?: string): Promise<CertDeclaration | null>
+  /**
+   * The prime answers a shop's counter-offer (docs/api.md §9): "accepted" accepts the offer on
+   * the shop's terms; "declined" keeps the original offer. Never changes value or credit.
+   */
+  respondToCounter(shopId: string, jobId: string, response: CounterResponseKind, note?: string | null): Promise<OfferDecisionRec | null>
   // --- extras ---
   /** "engine": live with the §6 endpoints; "local": fixtures, or a live engine without them. */
   source: "engine" | "local"
@@ -229,6 +239,9 @@ function decisionRec(shopId: string, jobId: string, body: DecisionRequest, at: s
     note: body.note,
     at,
     idempotency_key: body.idempotency_key,
+    ...(body.decision === "counter"
+      ? { counter: { setup_charge_cad: body.setup_charge_cad ?? null, min_quantity: body.min_quantity ?? null, response: null } }
+      : {}),
     ...(pending ? { pending: true } : {}),
   }
 }
@@ -339,6 +352,13 @@ function validateDecision(input: DecisionInput): string | null {
   if (input.decision === "declined" && !(input.reason_code && REASON_CODES.includes(input.reason_code))) return t("error.reasonRequired")
   if (input.decision === "question" && !(input.question_code && QUESTION_CODES.includes(input.question_code)))
     return t("error.questionRequired")
+  if (input.decision === "counter") {
+    const setup = input.setup_charge_cad ?? null
+    const qty = input.min_quantity ?? null
+    if (setup === null && qty === null) return t("error.counterTerms")
+    if (setup !== null && !(Number.isFinite(setup) && setup > 0 && setup <= SETUP_CHARGE_MAX)) return t("error.counterSetup")
+    if (qty !== null && !(Number.isInteger(qty) && qty >= 1 && qty <= MIN_QUANTITY_MAX)) return t("error.counterQty")
+  }
   if (input.note && input.note.length > DECISION_NOTE_MAX) return t("error.noteTooLong")
   return null
 }
@@ -799,6 +819,8 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }):
     if (!demo.ready || !loaded) return
     const prev = prevStageRef.current
     prevStageRef.current = demo.stage
+    // A demo reset clears the shops' saved work preferences, as the engine's reset does.
+    if (prev !== null && prev !== "empty" && demo.stage === "empty") clearPreferenceOverrides()
     if (useEngine) {
       // The engine clears and emits on its own; just re-read after a step.
       if (prev !== null && prev !== demo.stage) void syncLive(true)
@@ -926,6 +948,10 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }):
         question_code: input.decision === "question" ? (input.question_code ?? null) : null,
         note: input.note?.trim() ? input.note.trim() : null,
         idempotency_key: newIdempotencyKey(),
+        // Counter terms go only with a counter (the body of every other decision is unchanged).
+        ...(input.decision === "counter"
+          ? { setup_charge_cad: input.setup_charge_cad ?? null, min_quantity: input.min_quantity ?? null }
+          : {}),
       }
       const it: OutboxItem = { key: body.idempotency_key, kind: "decision", shopId, jobId, path: appPaths.decision(shopId, jobId), body, queuedAt: nowIso() }
       if (useEngineRef.current) {
@@ -943,7 +969,15 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }):
       const k = decisionKey(shopId, jobId)
       const name = a.shop_name
       const kind: EventKind =
-        body.decision === "accepted" ? "offer_accepted" : body.decision === "declined" ? "offer_declined" : body.decision === "question" ? "offer_question" : "offer_undo"
+        body.decision === "accepted"
+          ? "offer_accepted"
+          : body.decision === "declined"
+            ? "offer_declined"
+            : body.decision === "question"
+              ? "offer_question"
+              : body.decision === "counter"
+                ? "offer_countered"
+                : "offer_undo"
       const message =
         kind === "offer_accepted"
           ? t("event.offer_accepted", { shop: name, job: jobId })
@@ -951,9 +985,12 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }):
             ? t("event.offer_declined", { shop: name, job: jobId, reason: t(`reason.${body.reason_code}`).toLowerCase() })
             : kind === "offer_question"
               ? t("event.offer_question", { shop: name, job: jobId, question: t(`question.${body.question_code}`).toLowerCase() })
-              : t("event.offer_undo", { shop: name, job: jobId })
+              : kind === "offer_countered"
+                ? t("event.offer_countered", { shop: name, job: jobId, terms: counterTermsText(rec.counter) })
+                : t("event.offer_undo", { shop: name, job: jobId })
       // Same decision again (a new key): nothing new for the prime, like the engine's
       // `event: null` (shopside.decide). Return the stored decision, append no event.
+      // A counter Northgate already answered is a new ask.
       const same: { rec: OfferDecisionRec | null } = { rec: null }
       mutateLocal((cur) => {
         const prev = cur.decisions[k]
@@ -964,7 +1001,11 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }):
           prev.decision === rec.decision &&
           (prev.reason_code ?? null) === rec.reason_code &&
           (prev.question_code ?? null) === rec.question_code &&
-          (prev.note ?? null) === (rec.note ?? null)
+          (prev.note ?? null) === (rec.note ?? null) &&
+          (rec.decision !== "counter" ||
+            (!prev.counter?.response &&
+              (prev.counter?.setup_charge_cad ?? null) === (rec.counter?.setup_charge_cad ?? null) &&
+              (prev.counter?.min_quantity ?? null) === (rec.counter?.min_quantity ?? null)))
         ) {
           same.rec = prev
           return cur
@@ -983,7 +1024,10 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }):
               value_cad: a.value_cad,
               credit_cad: a.credit_cad,
               message,
-              payload: { reason_code: body.reason_code, question_code: body.question_code, note: body.note },
+              payload:
+                kind === "offer_countered"
+                  ? { setup_charge_cad: rec.counter?.setup_charge_cad ?? null, min_quantity: rec.counter?.min_quantity ?? null, note: body.note }
+                  : { reason_code: body.reason_code, question_code: body.question_code, note: body.note },
             }),
           ]),
         }
@@ -991,6 +1035,87 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }):
       return same.rec ?? rec
     },
     [mutateLocal, sendLive]
+  )
+
+  const respondToCounter = React.useCallback(
+    async (shopId: string, jobId: string, response: CounterResponseKind, note?: string | null): Promise<OfferDecisionRec | null> => {
+      const cleanNote = note?.trim() ? note.trim().slice(0, DECISION_NOTE_MAX) : null
+      const k = decisionKey(shopId, jobId)
+      if (useEngineRef.current) {
+        try {
+          const res = await appFetch<DecisionResponse>(demoRef.current.apiUrl, appPaths.counterResponse(shopId, jobId), {
+            json: { response, note: cleanNote, idempotency_key: newIdempotencyKey() },
+            timeoutMs: 8000,
+          })
+          const d = baseRef.current
+          if (res.decision) putBase({ ...d, decisions: { ...d.decisions, [k]: res.decision } })
+          mergeResponseEvent(res.event)
+          setOnline(true)
+          return res.decision ?? null
+        } catch (e) {
+          if (e instanceof AppApiError && e.network) setOnline(false)
+          return fail(e instanceof AppApiError ? e.detail : String(e))
+        }
+      }
+      // Local (fixtures, or an engine without the §6 routes)
+      const d = demoRef.current
+      const a = d.assignments.find((x) => x.job_id === jobId && x.shop_id === shopId)
+      const prime = (d.program?.prime_name ?? "Northgate").split(" ")[0]
+      const res: { out: OfferDecisionRec | null; problem: string | null } = { out: null, problem: null }
+      mutateLocal((cur) => {
+        const current = cur.decisions[k]
+        const counter = current?.counter
+        if (!current || !counter) {
+          res.problem = t("error.noCounter", { job: jobId })
+          return cur
+        }
+        const prev = counter.response
+        if (prev && prev.response === response && (prev.note ?? null) === cleanNote) {
+          // Same answer again: nothing new for the shop (engine: event null).
+          res.out = current
+          return cur
+        }
+        if (current.decision !== "counter") {
+          res.problem = t("error.noCounter", { job: jobId })
+          return cur
+        }
+        const at = nowIso()
+        const answered = { ...counter, response: { response, note: cleanNote, at } }
+        const rec: OfferDecisionRec =
+          response === "accepted" ? { ...current, decision: "accepted", at, counter: answered } : { ...current, counter: answered }
+        res.out = rec
+        const name = a?.shop_name ?? shopName(d, shopId)
+        return {
+          ...cur,
+          decisions: { ...cur.decisions, [k]: rec },
+          events: appendEvents(cur.events, [
+            makeEvent(cur.events, {
+              ts: at,
+              kind: response === "accepted" ? "counter_accepted" : "counter_declined",
+              shop_id: shopId,
+              shop_name: name,
+              job_id: jobId,
+              package_id: null,
+              value_cad: a?.value_cad ?? null,
+              credit_cad: a?.credit_cad ?? null,
+              message:
+                response === "accepted"
+                  ? t("event.counter_accepted", { prime, shop: name, job: jobId, terms: counterTermsText(counter) })
+                  : t("event.counter_declined", { prime, shop: name, job: jobId }),
+              payload: {
+                response,
+                setup_charge_cad: counter.setup_charge_cad ?? null,
+                min_quantity: counter.min_quantity ?? null,
+                ...(cleanNote ? { note: cleanNote } : {}),
+              },
+            }),
+          ]),
+        }
+      })
+      if (res.problem) return fail(res.problem)
+      return res.out
+    },
+    [mutateLocal, mergeResponseEvent, putBase]
   )
 
   const requestFunding = React.useCallback(
@@ -1166,11 +1291,26 @@ export function AppActionsProvider({ children }: { children: React.ReactNode }):
       requestFunding,
       confirmCapacity,
       declareCertExpiry,
+      respondToCounter,
       source: useEngine ? "engine" : "local",
       online,
       refresh,
     }),
-    [demo.ready, loaded, data, outbox.length, lastSyncAt, decideOffer, requestFunding, confirmCapacity, declareCertExpiry, useEngine, online, refresh]
+    [
+      demo.ready,
+      loaded,
+      data,
+      outbox.length,
+      lastSyncAt,
+      decideOffer,
+      requestFunding,
+      confirmCapacity,
+      declareCertExpiry,
+      respondToCounter,
+      useEngine,
+      online,
+      refresh,
+    ]
   )
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

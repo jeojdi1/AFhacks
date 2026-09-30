@@ -150,7 +150,18 @@ export interface Shop {
   provenance: Provenance[];
   /** Always present in list views (GET /shops); may be present elsewhere. */
   cert_summary?: CertSummary[];
+  // Work preferences (docs/api.md §9, additive; absent on shops without any, and on
+  // fixtures built before §9). Display only: never used for routing.
+  /** Smallest annual value (CAD a year) the shop looks at; null = no minimum. */
+  min_annual_value_cad?: number | null;
+  /** Prefers ongoing work over one-and-done jobs. */
+  prefers_ongoing?: boolean | null;
+  /** "illustrative" (synthetic seed data, assumption) or "shop-declared". */
+  preferences_basis?: PreferencesBasis | null;
 }
+
+export const PREFERENCES_BASES = ["illustrative", "shop-declared"] as const;
+export type PreferencesBasis = (typeof PREFERENCES_BASES)[number];
 
 /** A Shop as returned by GET /shops (cert_summary guaranteed). */
 export type ShopListItem = Shop & { cert_summary: CertSummary[] };
@@ -327,6 +338,37 @@ export interface Offer {
   status: AssignmentStatus;
   /** Set when Northgate re-offered this declined job to this shop (demo): the shop that declined. */
   reoffered_from?: string | null;
+  // Size (docs/api.md §9, additive; the web computes them when absent).
+  /** value_cad ÷ duration_years. */
+  annual_value_cad?: number;
+  /** Program length in years (8 = fleet lifetime when the program has none). */
+  duration_years?: number;
+  /** "assumption" when duration_years is the 8-year default. */
+  duration_flag?: "program" | "assumption";
+  /** Repeat work over more than a year (not a one-and-done job). */
+  ongoing?: boolean;
+  /** annual_value_cad ≥ the shop's minimum; null when the shop has none. */
+  meets_minimum?: boolean | null;
+}
+
+/** GET /shops/{id} → work_packages[]: a shop's offers from one program (docs/api.md §9). */
+export interface WorkPackage {
+  program_id: string;
+  prime_name: string;
+  /** Offers still on the table (declined ones left out). */
+  job_ids: string[];
+  offers: number;
+  declined: number;
+  total_value_cad: number;
+  annual_value_cad: number;
+  duration_years: number;
+  duration_flag: "program" | "assumption";
+  ongoing: boolean;
+  min_annual_value_cad: number | null;
+  prefers_ongoing: boolean | null;
+  meets_minimum: boolean | null;
+  below_minimum_job_ids: string[];
+  message: string;
 }
 
 /** GET /shops/{id} → readiness[]: jobs this shop fails on exactly one requirement. */
@@ -534,6 +576,8 @@ export interface ShopDetailResponse {
   offers: Offer[];
   readiness: ReadinessItem[];
   training: ShopTraining[];
+  /** docs/api.md §9 (additive): one per program. Absent in fixtures built before §9. */
+  work_packages?: WorkPackage[];
 }
 
 // ---------------------------------------------------------------------------

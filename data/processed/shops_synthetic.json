@@ -2,7 +2,7 @@
   "label": "Synthetic",
   "source": "synthetic",
   "generated_by": "scripts/build_fixtures.py",
-  "note": "30 fictional shops for the Northgate demo. Names, addresses, capabilities and certification statuses are illustrative; any resemblance to a real company is unintended. Declared certs are self-declared (verified_at = date declared).",
+  "note": "30 fictional shops for the Northgate demo. Names, addresses, capabilities and certification statuses are illustrative; any resemblance to a real company is unintended. Declared certs are self-declared (verified_at = date declared). Work preferences (min_annual_value_cad, prefers_ongoing) on some shops are illustrative (assumption) and never used for routing.",
   "shops": [
     {
       "id": "syn-001",
@@ -47,6 +47,9 @@
           "confidence": "synthetic"
         }
       ],
+      "min_annual_value_cad": 200000,
+      "prefers_ongoing": true,
+      "preferences_basis": "illustrative",
       "certifications": [
         {
           "shop_id": "syn-001",
@@ -165,6 +168,9 @@
           "confidence": "synthetic"
         }
       ],
+      "min_annual_value_cad": 150000,
+      "prefers_ongoing": true,
+      "preferences_basis": "illustrative",
       "certifications": [
         {
           "shop_id": "syn-002",
@@ -628,6 +634,9 @@
           "confidence": "synthetic"
         }
       ],
+      "min_annual_value_cad": 100000,
+      "prefers_ongoing": true,
+      "preferences_basis": "illustrative",
       "certifications": [
         {
           "shop_id": "syn-006",
@@ -1208,6 +1217,9 @@
           "confidence": "synthetic"
         }
       ],
+      "min_annual_value_cad": 250000,
+      "prefers_ongoing": false,
+      "preferences_basis": "illustrative",
       "certifications": [
         {
           "shop_id": "syn-011",
@@ -1327,6 +1339,9 @@
           "confidence": "synthetic"
         }
       ],
+      "min_annual_value_cad": 100000,
+      "prefers_ongoing": true,
+      "preferences_basis": "illustrative",
       "certifications": [
         {
           "shop_id": "syn-012",
@@ -2372,6 +2387,9 @@
           "confidence": "synthetic"
         }
       ],
+      "min_annual_value_cad": 100000,
+      "prefers_ongoing": true,
+      "preferences_basis": "illustrative",
       "certifications": [
         {
           "shop_id": "syn-021",
@@ -3297,6 +3315,9 @@
           "confidence": "synthetic"
         }
       ],
+      "min_annual_value_cad": 50000,
+      "prefers_ongoing": false,
+      "preferences_basis": "illustrative",
       "certifications": [
         {
           "shop_id": "syn-029",

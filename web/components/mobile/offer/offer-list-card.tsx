@@ -1,10 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { Check, ChevronRight, Lock, X } from "lucide-react"
+import { Check, ChevronRight, Lock, TriangleAlert, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { fmtMoney } from "@/lib/format"
 import { extendStrings, t } from "@/lib/app/strings"
+import { NO_PREFS, minimumText, offerSize, perYear, type ShopPrefs } from "@/lib/app/sizing"
 import { Button } from "@/components/ui/button"
 import { SimulatedChip } from "@/components/mobile/shell/simulation"
 import { isSimulatedRecord } from "@/lib/app/sim-flag"
@@ -32,6 +33,7 @@ export function OfferListCard({
   busy = false,
   onAccept,
   onDecline,
+  prefs = NO_PREFS,
 }: {
   shopId: string
   view: OfferView
@@ -39,9 +41,13 @@ export function OfferListCard({
   busy?: boolean
   onAccept?: () => void
   onDecline?: () => void
+  /** The shop's work preferences, for the "below your minimum" chip (docs/api.md §9). */
+  prefs?: ShopPrefs
 }) {
   const { offer, job, state, decision, isNew, pending } = view
   const open = needsReply(state)
+  const size = offerSize(offer, prefs)
+  const verdict = open ? minimumText(size, prefs) : null
   const href = `/m/shops/${encodeURIComponent(shopId)}/offers/${encodeURIComponent(offer.job_id)}`
   const inline = open && (onAccept || onDecline)
 
@@ -79,8 +85,23 @@ export function OfferListCard({
             </span>
             <span className="text-base text-muted-foreground tabular-nums">{t("o.list.hoursWeek", { hours: offer.hours_week })}</span>
           </div>
+          <p className="mt-1 text-sm text-muted-foreground tabular-nums" data-testid="offer-row-annual">
+            {perYear(size.annual)} · {t("o.card.duration", { years: size.years })}
+          </p>
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
             <DecisionChip state={state} decision={decision} />
+            {verdict ? (
+              <span
+                className={cn(
+                  "inline-flex min-h-7 shrink-0 items-center gap-1 rounded-full border px-2.5 py-0.5 text-sm font-medium whitespace-nowrap",
+                  size.meets ? "border-assigned/25 bg-assigned-soft text-assigned" : "border-amber-300 bg-amber-50 text-amber-900"
+                )}
+                data-meets-minimum={String(size.meets)}
+              >
+                {size.meets ? <Check className="size-3.5" aria-hidden /> : <TriangleAlert className="size-3.5" aria-hidden />}
+                {verdict}
+              </span>
+            ) : null}
             {decision && isSimulatedRecord(decision) ? <SimulatedChip /> : null}
             {pending ? <WillSendChip /> : null}
             {isNew && open ? <NewChip /> : null}

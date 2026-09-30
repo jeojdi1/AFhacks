@@ -144,6 +144,31 @@ extendStrings("en", {
 
   "o.sheet.cancel": "Cancel",
   "o.sheet.close": "Close",
+
+  // right-sized work (docs/api.md §9): size, counter-offers
+  "o.card.perYear": "Per year",
+  "o.card.duration": "{years} years · ongoing work",
+  "o.list.package": "{prime} work package: {annual} a year for about {years} years",
+  "o.counter.chipKept": "Original offer stands",
+  "o.status.counter": "Counter sent: {terms}",
+  "o.status.counterBody": "Waiting for Northgate. You can still accept or decline the original offer.",
+  "o.status.counterKept": "Northgate kept its original offer (your counter: {terms})",
+  "o.status.counterKeptBody": "Accept or decline the original offer, or send new terms.",
+  "o.status.counterAccepted": "On your terms: {terms}",
+  "o.counter.button": "Counter",
+  "o.counter.title": "Counter-offer on {job}",
+  "o.counter.body": "What would make this job worth it? {prime} can accept your terms or keep its original offer.",
+  "o.counter.setup": "One-time setup charge",
+  "o.counter.qty": "Minimum run (parts per order)",
+  "o.counter.none": "None",
+  "o.counter.submit": "Send counter-offer",
+  "o.counter.pick": "Pick a setup charge or a minimum run",
+  "o.counter.demo": "The job's value and credit don't change in this demo.",
+  "o.toast.counter": "Counter-offer sent",
+  "o.toast.counterBody": "{prime} can accept your terms or keep its original offer.",
+  "o.prime.status.counter": "{shop} countered: {terms}",
+  "o.prime.status.counterKept": "You kept the original offer ({shop} asked for {terms})",
+  "o.prime.counterCta": "Answer it on your desk",
 })
 
 export {}

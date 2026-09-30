@@ -37,6 +37,9 @@ import { CertBadgeArt, CertIconTile } from "./shop-art/cert-art"
 import { ProcessArt, SeatDots } from "@/components/mobile/art/process-art"
 import { WelderArt } from "@/components/mobile/trainee/seat-art"
 import { StartDemo, useRouted } from "./start-demo"
+import { useShopPrefs } from "@/lib/app/preferences"
+import { packageLine, packageVerdict, workPackage } from "@/lib/app/sizing"
+import { t } from "@/lib/app/strings"
 
 export const SHOP_ID = "syn-012"
 
@@ -76,6 +79,10 @@ export function ShopDesk() {
   const open = b.offers.filter((o) => o.status === "offered")
   const accepted = b.offers.filter((o) => o.status === "accepted")
   const offerValue = b.offers.filter((o) => o.status !== "declined").reduce((s, o) => s + (o.value_cad || 0), 0)
+  // All of Northgate's offers as one yearly figure vs the shop's own minimum (docs/api.md §9).
+  const prefs = useShopPrefs(b.shop, SHOP_ID)
+  const pkg = workPackage(b.offers, (o) => o.status, prefs)
+  const pkgVerdict = pkg ? packageVerdict(pkg) : null
   const newIds = React.useMemo(() => {
     const ids = new Set<string>()
     for (const r of Object.values(demo.fundResults)) for (const a of r.unblocked_jobs ?? []) if (a.shop_id === SHOP_ID) ids.add(a.job_id)
@@ -178,6 +185,15 @@ export function ShopDesk() {
                 <Stat kind="accepted" value={accepted.length} label="accepted" />
                 <Stat kind="money" value={fmtMoney(offerValue, { compact: true })} label="of work from Northgate" />
               </div>
+              {pkg && pkg.count > 0 ? (
+                <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-slate-700" data-testid="shop-desk-package">
+                  <span className="font-medium text-foreground">{packageLine(pkg)}</span>
+                  {pkg.assumed ? <AssumptionTag note={t("size.assumption", { years: pkg.years })} /> : null}
+                  {pkgVerdict ? (
+                    <span className={cn("font-medium", pkg.meets ? "text-assigned" : "text-amber-800")}>· {pkgVerdict}</span>
+                  ) : null}
+                </p>
+              ) : null}
               <p className="flex flex-wrap items-center gap-x-1 text-sm text-muted-foreground">
                 No bidding: each job was offered only to you.
                 <InfoTip label="Why you got these offers">

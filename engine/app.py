@@ -358,11 +358,25 @@ class DecisionBody(_Body):
     reason_code: str | None = None
     question_code: str | None = None
     note: str | None = None
+    # counter only (docs/api.md §9); validated in shopside for readable 400s
+    setup_charge_cad: Any = None
+    min_quantity: Any = None
 
 
 class ReplyBody(_Body):
     reply_code: str | None = None  # required; checked in shopside for a readable 400
     text: str | None = None
+
+
+class CounterResponseBody(_Body):
+    response: str | None = None  # required: accepted | declined (checked in shopside)
+    note: str | None = None
+
+
+class PreferencesBody(_Body):
+    # Both optional; a field left out keeps its value (model_dump(exclude_unset=True)).
+    min_annual_value_cad: Any = None
+    prefers_ongoing: Any = None
 
 
 class FundingRequestBody(_Body):
@@ -394,6 +408,21 @@ def decide_offer(shop_id: str, job_id: str, body: DecisionBody) -> dict:
 def reply_offer(shop_id: str, job_id: str, body: ReplyBody) -> dict:
     data = body.model_dump()
     return _action(DEFAULT_PROGRAM_ID, lambda s: shopside.reply(s, shop_id, job_id, data))
+
+
+@app.post("/shops/{shop_id}/offers/{job_id}/counter-response")
+def respond_to_counter(shop_id: str, job_id: str, body: CounterResponseBody) -> dict:
+    """The prime answers a shop's counter-offer (docs/api.md §9): accept the terms, or keep
+    the original offer. Terms are recorded only; value, credit and the ledger never change."""
+    data = body.model_dump()
+    return _action(DEFAULT_PROGRAM_ID, lambda s: shopside.counter_response(s, shop_id, job_id, data))
+
+
+@app.post("/shops/{shop_id}/preferences")
+def set_shop_preferences(shop_id: str, body: PreferencesBody) -> dict:
+    """The shop's work preferences (docs/api.md §9): display only, never used for routing."""
+    data = body.model_dump(exclude_unset=True)
+    return _action(DEFAULT_PROGRAM_ID, lambda s: shopside.set_preferences(s, shop_id, data))
 
 
 @app.post("/shops/{shop_id}/funding-requests")
@@ -438,6 +467,14 @@ def get_shop_actions(shop_id: str) -> Response:
 def get_program_actions(program_id: str) -> Response:
     _check_program(program_id)
     return _read(program_id, ("program_actions",), shopside.program_actions)
+
+
+@app.get("/programs/{program_id}/decline-insights")
+def get_decline_insights(program_id: str) -> Response:
+    """Why shops said no, what they countered with, and offers below a shop's own minimum,
+    each with a plain suggestion (docs/api.md §9). Read-only."""
+    _check_program(program_id)
+    return _read(program_id, ("decline_insights",), shopside.decline_insights)
 
 
 @app.get("/programs/{program_id}/events")

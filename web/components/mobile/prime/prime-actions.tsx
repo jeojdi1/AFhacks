@@ -10,6 +10,7 @@
 import * as React from "react"
 import { toast } from "sonner"
 import {
+  ArrowLeftRight,
   ArrowUpRight,
   CircleCheck,
   CircleHelp,
@@ -44,8 +45,17 @@ import { TrainingCapNote } from "@/components/scorecard/training-cap"
 import type { LedgerResponse } from "@/lib/api/types"
 import { AwardsPhoneSection } from "./awards"
 import { withBase } from "@/lib/base-path"
+import { counterTermsText } from "@/lib/app/sizing"
 
 extendStrings("en", {
+  "pa.ctr.title": "Counter-offers",
+  "pa.ctr.none": "No counter-offers. Shops can ask for a setup charge or a minimum run instead of saying no.",
+  "pa.ctr.row": "{shop} countered on {job}",
+  "pa.ctr.accept": "Accept their terms",
+  "pa.ctr.keep": "Keep original offer",
+  "pa.ctr.demo": "The job's value and credit don't change in this demo.",
+  "pa.ctr.accepted": "You accepted the terms · offer accepted",
+  "pa.ctr.kept": "You kept the original offer",
   "pa.title": "What you can do now",
   "pa.subtitle": "Northgate Land Systems is a fictional defence company. Shops are synthetic.",
   "pa.notRouted.title": "No work has gone to shops yet",
@@ -180,6 +190,21 @@ export function PrimeActions() {
   const declined = decisions
     .filter((d) => d.decision === "declined" && !declineResolved(reoffers, d.shop_id, d.job_id))
     .sort((a, b) => b.at.localeCompare(a.at))
+  // Counter-offers (docs/api.md §9): open ones first, then the ones already answered.
+  const counters = decisions
+    .filter((d) => d.decision === "counter" && d.counter)
+    .sort((a, b) => Number(!!a.counter?.response) - Number(!!b.counter?.response) || b.at.localeCompare(a.at))
+
+  const answerCounter = async (d: OfferDecisionRec, response: "accepted" | "declined") => {
+    const k = `${d.shop_id}:${d.job_id}:counter`
+    setReplying(k)
+    try {
+      const r = await actions.respondToCounter(d.shop_id, d.job_id, response)
+      if (r) toast.success(response === "accepted" ? t("pa.ctr.accepted") : t("pa.ctr.kept"), { description: `${d.job_id} · ${shopName(d.shop_id)}` })
+    } finally {
+      setReplying(null)
+    }
+  }
 
   /** Latest event for a shop+job+kind (to show the Simulated chip). */
   const simulatedFor = React.useCallback(
@@ -390,6 +415,44 @@ export function PrimeActions() {
                         </Button>
                       ))}
                     </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          {/* 2b. Counter-offers (setup charge / minimum run) */}
+          <div className="flex flex-col gap-2" data-testid="pa-counters">
+            <SubHeading Icon={ArrowLeftRight} title={t("pa.ctr.title")} count={counters.filter((d) => !d.counter?.response).length} />
+            {counters.length === 0 ? <Hint>{t("pa.ctr.none")}</Hint> : null}
+            {counters.map((d) => {
+              const k = `${d.shop_id}:${d.job_id}:counter`
+              return (
+                <div key={k} className={card} data-testid="counter-card">
+                  <div className="flex items-start gap-2">
+                    <p className="min-w-0 flex-1 text-base leading-snug font-semibold">
+                      <NoBreakIds text={t("pa.ctr.row", { shop: shopName(d.shop_id), job: d.job_id })} />
+                    </p>
+                    <time dateTime={d.at} className="shrink-0 text-sm text-muted-foreground tabular-nums">
+                      {fmtTime(d.at)}
+                    </time>
+                  </div>
+                  <p className="text-sm text-foreground">{counterTermsText(d.counter)}</p>
+                  {d.note ? <p className="text-sm break-words text-muted-foreground">“{d.note}”</p> : null}
+                  {d.counter?.response ? (
+                    <p className="rounded-lg border border-border bg-muted px-3 py-2 text-sm text-foreground">{t("pa.ctr.kept")}</p>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 gap-2 min-[380px]:grid-cols-2">
+                        <Button size="touch" className="bg-emerald-700 text-white hover:bg-emerald-800" disabled={replying === k} onClick={() => void answerCounter(d, "accepted")}>
+                          {t("pa.ctr.accept")}
+                        </Button>
+                        <Button size="touch" variant="outline" disabled={replying === k} onClick={() => void answerCounter(d, "declined")}>
+                          {t("pa.ctr.keep")}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">{t("pa.ctr.demo")}</p>
+                    </>
                   )}
                 </div>
               )

@@ -2,8 +2,11 @@
 
 What a shop tells Shieldworks from the phone app, and what the prime hears back:
 
-- offer decisions: accept / decline (with a reason) / ask a templated question / undo;
-- the prime's reply to a shop's question (stored on the question's decision record);
+- offer decisions: accept / decline (with a reason) / ask a templated question /
+  counter-offer (a setup charge and/or a minimum quantity) / undo;
+- the prime's reply to a shop's question (stored on the question's decision record) and its
+  answer to a counter-offer (accept the terms → accepted; or keep the original offer);
+- the shop's work preferences (smallest annual value worth its time, ongoing work);
 - funding requests ("Ask Northgate to fund this") for a suggested training package;
 - a weekly capacity check-in (free hours per week);
 - shop-declared certification expiry dates;
@@ -32,13 +35,14 @@ import re
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
+from engine import rightsize
 from engine.gaps import short_money
 from engine.rules import cert_label, process_label
 from engine.tagger import CERT_TYPES, PROCESS_TAGS
 
 # --------------------------------------------------------------------------- vocabularies
 
-DECISIONS = ("accepted", "declined", "question", "undo")
+DECISIONS = ("accepted", "declined", "question", "counter", "undo")
 REASON_LABEL = {
     "capacity": "no capacity",
     "price": "price too low",
@@ -46,7 +50,12 @@ REASON_LABEL = {
     "schedule": "schedule",
     "not_our_process": "not our process",
     "other": "other",
+    # Right-sized work (docs/api.md §9): what small shops say about small, fiddly jobs.
+    "too_small": "job too small for us",
+    "paperwork": "too much paperwork",
+    "min_quantity": "below our minimum quantity",
 }
+COUNTER_RESPONSES = ("accepted", "declined")
 QUESTION_LABEL = {
     "lead_time": "lead time",
     "material_supply": "material supply",
@@ -65,6 +74,11 @@ EVENT_KINDS = (
     "capacity_confirmed",
     "cert_declared",
     "reoffered",
+    # Right-sized work (docs/api.md §9, additive)
+    "offer_countered",
+    "counter_accepted",
+    "counter_declined",
+    "preferences_set",
 )
 HORIZON_WEEKS = (4, 8, 12)
 SEAT_STAGES = (
@@ -84,6 +98,9 @@ KEY_MAX = 128
 HOURS_MAX = 2000
 EXPIRY_MAX_YEARS = 10
 EXAMPLE_TEST_WEEKS = 6  # seat card: example test date = funding date + 6 weeks (assumption)
+SETUP_CHARGE_MAX = 10_000_000  # counter-offer: one-time setup charge, CAD
+MIN_QUANTITY_MAX = 10_000_000  # counter-offer: minimum run, parts per order
+MIN_ANNUAL_MAX = 100_000_000  # shop preference: smallest annual value worth its time, CAD
 MAX_EVENTS = 2000
 MAX_IDEMPOTENCY = 2000
 DECLARATION_NOTE = "Shop-declared; not used for routing until reviewed"
@@ -267,7 +284,7 @@ def on_routed(state: Any, result: dict) -> dict:
     state.offer_decisions = {}
     state.funding_requests = {}
     idem = _state_list(state, "idempotency", {})
-    for k in [k for k, v in idem.items() if v.get("kind") in ("decision", "funding")]:
+    for k in [k for k, v in idem.items() if v.get("kind") in ("decision", "funding", "counter_response")]:
         del idem[k]
     stats = result.get("stats") or {}
     assignments = result.get("assignments") or []
@@ -372,6 +389,50 @@ def _set_status(a: dict, own: bool, status: str) -> str:
     return status
 
 
+def _counter_terms(body: dict) -> dict:
+    """``{setup_charge_cad, min_quantity}`` of a counter-offer (at least one is set)."""
+    setup = body.get("setup_charge_cad")
+    min_qty = body.get("min_quantity")
+    if setup is not None:
+        if isinstance(setup, bool) or not isinstance(setup, (int, float)) or math.isnan(setup):
+            raise ActionError(400, "setup_charge_cad must be a number (CAD)")
+        if setup <= 0 or setup > SETUP_CHARGE_MAX:
+            raise ActionError(400, f"setup_charge_cad must be more than 0 and at most {SETUP_CHARGE_MAX}")
+        setup = _num(setup)
+    if min_qty is not None:
+        if isinstance(min_qty, bool) or not isinstance(min_qty, (int, float)) or math.isnan(min_qty):
+            raise ActionError(400, "min_quantity must be a whole number of parts")
+        if float(min_qty) != int(min_qty) or min_qty < 1 or min_qty > MIN_QUANTITY_MAX:
+            raise ActionError(400, f"min_quantity must be a whole number from 1 to {MIN_QUANTITY_MAX}")
+        min_qty = int(min_qty)
+    if setup is None and min_qty is None:
+        raise ActionError(400, "A counter-offer needs setup_charge_cad or min_quantity")
+    return {"setup_charge_cad": setup, "min_quantity": min_qty}
+
+
+def counter_text(counter: dict | None) -> str:
+    """"$4.5K setup charge and a minimum of 500 parts per order"."""
+    c = counter or {}
+    parts = []
+    if c.get("setup_charge_cad") is not None:
+        parts.append(f"{_money2(c['setup_charge_cad'])} setup charge")
+    if c.get("min_quantity") is not None:
+        parts.append(f"a minimum of {int(c['min_quantity']):,} parts per order")
+    return " and ".join(parts) or "new terms"
+
+
+def _same_decision(current: dict, norm: dict) -> bool:
+    """The shop sent the answer it already gave (a counter only while Northgate has not
+    answered it)."""
+    if any(current.get(k) != norm.get(k) for k in ("decision", "reason_code", "question_code", "note")):
+        return False
+    if norm["decision"] != "counter":
+        return True
+    c = current.get("counter") or {}
+    return (c.get("response") is None
+            and all(c.get(k) == v for k, v in (norm.get("counter") or {}).items()))
+
+
 def decide(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, bool]:
     """``POST /shops/{shop_id}/offers/{job_id}/decision``."""
     shop = _shop(state, shop_id)
@@ -390,6 +451,8 @@ def decide(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, boo
         raise ActionError(400, "reason_code is required when declining")
     if decision == "question" and question is None:
         raise ActionError(400, "question_code is required when asking a question")
+    # Counter terms only apply to a counter-offer (dropped otherwise, like a stray code).
+    counter = _counter_terms(body) if decision == "counter" else None
     if decision != "declined":
         reason = None
     if decision != "question":
@@ -401,6 +464,8 @@ def decide(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, boo
 
     key = _idem_key(body)
     norm = {"decision": decision, "reason_code": reason, "question_code": question, "note": note}
+    if counter is not None:
+        norm["counter"] = counter
     fp = _fingerprint("decision", (shop_id, job_id), norm)
     stored = _replay(state, key, "decision", fp)
     if stored is not None:
@@ -430,7 +495,7 @@ def decide(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, boo
         _remember(state, key, "decision", fp, resp)
         return resp, True
 
-    if current is not None and all(current.get(k) == v for k, v in norm.items()):
+    if current is not None and _same_decision(current, norm):
         # Same answer again under a new key: nothing new to tell the prime.
         status = a["status"] if own else decision_status(current)
         resp = {"decision": copy.deepcopy(current), "assignment_status": status, "event": None}
@@ -441,6 +506,9 @@ def decide(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, boo
         "shop_id": shop_id, "job_id": job_id, "decision": decision, "reason_code": reason,
         "question_code": question, "note": note, "at": _now(), "idempotency_key": key,
     }
+    if counter is not None:
+        # Northgate's answer lands in counter["response"] (POST …/counter-response).
+        rec["counter"] = {**counter, "response": None}
     decisions.pop(dkey, None)
     decisions[dkey] = rec
     status = _set_status(a, own, decision if decision in ("accepted", "declined") else "offered")
@@ -452,6 +520,10 @@ def decide(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, boo
         kind = "offer_declined"
         msg = f"{name} declined {job_id}: {REASON_LABEL[reason]}"
         payload = {"reason_code": reason}
+    elif decision == "counter":
+        kind = "offer_countered"
+        msg = f"{name} countered on {job_id}: {counter_text(counter)}"
+        payload = dict(counter)
     else:
         kind = "offer_question"
         msg = f"{name} asked about {QUESTION_LABEL[question]} on {job_id}"
@@ -519,6 +591,150 @@ def reply(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, bool
     resp = {"decision": copy.deepcopy(current), "event": ev}
     _remember(state, key, "reply", fp, resp)
     return resp, True
+
+
+def counter_response(state: Any, shop_id: str, job_id: str, body: dict) -> tuple[dict, bool]:
+    """``POST /shops/{shop_id}/offers/{job_id}/counter-response`` ``{response, note?}``: the
+    prime answers the shop's counter-offer.
+
+    - ``accepted``: the offer is accepted on the shop's terms. The decision record becomes
+      ``decision: "accepted"`` (keeping ``counter``, now with ``counter.response``) and the
+      assignment's status ``accepted``, so it flows into the award paperwork like any accept.
+    - ``declined``: the original offer stands. The record stays a counter (with the
+      response) and the status ``offered``: the shop can still accept or decline it.
+
+    The terms are recorded only: the assignment's value, its credit and the ledger never
+    change (demo). A shop's new answer or undo replaces the record, as for any decision."""
+    shop = _shop(state, shop_id)
+    _require_routed(state)
+    response = body.get("response")
+    if response not in COUNTER_RESPONSES:
+        raise ActionError(400, f"response must be one of: {', '.join(COUNTER_RESPONSES)}")
+    note = _opt_str(body, "note", NOTE_MAX)
+
+    a, own = _offer_target(state, shop_id, job_id)
+
+    key = _idem_key(body)
+    norm = {"response": response, "note": note}
+    fp = _fingerprint("counter_response", (shop_id, job_id), norm)
+    stored = _replay(state, key, "counter_response", fp)
+    if stored is not None:
+        return stored, False
+
+    decisions = _state_list(state, "offer_decisions", {})
+    dkey = _decision_key(shop_id, job_id)
+    current = decisions.get(dkey)
+    counter = (current or {}).get("counter")
+    if not counter:
+        raise ActionError(409, f"No counter-offer from shop '{shop_id}' on job '{job_id}'")
+    prev = counter.get("response") or {}
+    if prev.get("response") == response and prev.get("note") == note:
+        # Same answer again under a new key: nothing new to tell the shop.
+        status = a["status"] if own else decision_status(current)
+        resp = {"decision": copy.deepcopy(current), "assignment_status": status, "event": None}
+        _remember(state, key, "counter_response", fp, resp)
+        return resp, True
+    if current.get("decision") != "counter":
+        raise ActionError(409, f"The counter-offer on '{job_id}' was already accepted")
+
+    now = _now()
+    answered = {**counter, "response": {"response": response, "note": note, "at": now}}
+    prime = (state.program.get("prime_name") or "The prime").split()[0]
+    terms = {k: counter.get(k) for k in ("setup_charge_cad", "min_quantity")}
+    payload: dict = {"response": response, **terms}
+    if note:
+        payload["note"] = note
+    if response == "accepted":
+        rec = {**current, "decision": "accepted", "at": now, "counter": answered}
+        decisions.pop(dkey, None)
+        decisions[dkey] = rec
+        status = _set_status(a, own, "accepted")
+        kind = "counter_accepted"
+        msg = f"{prime} accepted {shop['name']}'s counter on {job_id}: {counter_text(counter)}"
+    else:
+        rec = current
+        rec["counter"] = answered
+        status = _set_status(a, own, "offered")
+        kind = "counter_declined"
+        msg = f"{prime} kept its original offer on {job_id} for {shop['name']} (counter not accepted)"
+    ev = emit(
+        state, kind, msg, shop_id=shop_id, job_id=job_id,
+        value_cad=a["value_cad"], credit_cad=a["credit_cad"], payload=payload,
+    )
+    resp = {"decision": copy.deepcopy(rec), "assignment_status": status, "event": ev}
+    _remember(state, key, "counter_response", fp, resp)
+    return resp, True
+
+
+# --------------------------------------------------------------------------- work preferences
+
+
+def set_preferences(state: Any, shop_id: str, body: dict) -> tuple[dict, bool]:
+    """``POST /shops/{shop_id}/preferences`` ``{min_annual_value_cad?, prefers_ongoing?}``.
+
+    The shop says what work is worth its time: the smallest annual value it looks at
+    (``null`` = no minimum) and whether it prefers ongoing work over one-and-done jobs. A
+    field left out keeps its current value. Stored in ``shop_preferences`` (kept across
+    upload and routing, like capacity check-ins); shown on offers and work packages
+    (docs/api.md §9). Display only: never changes routing, assignments or credit."""
+    shop = _shop(state, shop_id)
+    if "min_annual_value_cad" not in body and "prefers_ongoing" not in body:
+        raise ActionError(400, "Send min_annual_value_cad or prefers_ongoing")
+    cur = rightsize.preferences(state, shop_id)
+    min_annual = cur["min_annual_value_cad"]
+    prefers = cur["prefers_ongoing"]
+    if "min_annual_value_cad" in body:
+        raw = body.get("min_annual_value_cad")
+        if raw is not None:
+            if isinstance(raw, bool) or not isinstance(raw, (int, float)) or math.isnan(raw):
+                raise ActionError(400, "min_annual_value_cad must be a number (CAD a year) or null")
+            if raw < 0 or raw > MIN_ANNUAL_MAX:
+                raise ActionError(400, f"min_annual_value_cad must be between 0 and {MIN_ANNUAL_MAX}")
+            raw = _num(raw) or None  # 0 means no minimum
+        min_annual = raw
+    if "prefers_ongoing" in body:
+        raw = body.get("prefers_ongoing")
+        if raw is not None and not isinstance(raw, bool):
+            raise ActionError(400, "prefers_ongoing must be true, false or null")
+        prefers = raw
+
+    key = _idem_key(body)
+    norm = {"min_annual_value_cad": min_annual, "prefers_ongoing": prefers}
+    fp = _fingerprint("preferences", (shop_id,), norm)
+    stored = _replay(state, key, "preferences", fp)
+    if stored is not None:
+        return stored, False
+
+    store = _state_list(state, "shop_preferences", {})
+    existing = store.get(shop_id)
+    if existing is not None and all(existing.get(k) == v for k, v in norm.items()):
+        resp = {"preferences": copy.deepcopy(existing), "event": None}
+        _remember(state, key, "preferences", fp, resp)
+        return resp, True
+
+    rec = {
+        "shop_id": shop_id, "min_annual_value_cad": min_annual, "prefers_ongoing": prefers,
+        "basis": "shop-declared", "updated_at": _now(), "used_in_routing": False,
+    }
+    store[shop_id] = rec
+    parts = [f"smallest work it looks at: {short_money(min_annual)} a year" if min_annual
+             else "no minimum job size"]
+    if prefers is True:
+        parts.append("prefers ongoing work")
+    elif prefers is False:
+        parts.append("one-off jobs are fine")
+    ev = emit(
+        state, "preferences_set", f"{shop['name']} updated its work preferences: {' · '.join(parts)}",
+        shop_id=shop_id, payload={"min_annual_value_cad": min_annual, "prefers_ongoing": prefers},
+    )
+    resp = {"preferences": copy.deepcopy(rec), "event": ev}
+    _remember(state, key, "preferences", fp, resp)
+    return resp, True
+
+
+def decline_insights(state: Any) -> dict:
+    """``GET /programs/{id}/decline-insights`` (engine.rightsize.decline_insights)."""
+    return rightsize.decline_insights(state, REASON_LABEL)
 
 
 # --------------------------------------------------------------------------- re-offer (demo)

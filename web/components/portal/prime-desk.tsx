@@ -9,10 +9,13 @@ import Link from "next/link"
 import { toast } from "sonner"
 import {
   Activity,
+  ArrowLeftRight,
+  Check,
   ClipboardList,
   FilePen,
   Gauge,
   Inbox,
+  Lightbulb,
   Loader2,
   MessageCircleQuestion,
   MessageSquareReply,
@@ -28,8 +31,11 @@ import { declineResolved, useReoffers } from "@/lib/search/reoffers"
 import { feedItems, type FeedContext, type FeedTone } from "@/lib/app/feed"
 import { replyForDecision, replyTemplates, sendPrimeReply, usePrimeReplies, useSyncRepliesWithRouting } from "@/lib/app/prime-replies"
 import { isSimulatedEvent, isSimulatedRecord } from "@/lib/app/sim-flag"
-import type { OfferDecisionRec } from "@/lib/app/types"
+import type { CounterResponseKind, OfferDecisionRec } from "@/lib/app/types"
 import { t } from "@/lib/app/strings"
+import { counterTermsText } from "@/lib/app/sizing"
+import { prefsFor, usePreferenceOverrides } from "@/lib/app/preferences"
+import { declineInsights, insightMoney, type InsightRow } from "@/lib/app/decline-insights"
 import { fmtMoney } from "@/lib/format"
 import { SimulatedChip } from "@/components/mobile/shell/simulation"
 import { Button } from "@/components/ui/button"
@@ -45,8 +51,8 @@ interface AttentionRow {
   key: string
   jobId: string
   shop: string
-  kind: "declined" | "question"
-  /** Reason (declines) or question topic. */
+  kind: "declined" | "question" | "counter"
+  /** Reason (declines), question topic, or counter-offer terms. */
   detail: string
   /** The shop's own words (the decision note), e.g. "Can delivery start in November?". */
   note: string | null
@@ -62,6 +68,83 @@ const TONE_DOT: Record<FeedTone, string> = {
   action: "bg-public",
 }
 
+/** One insight: "2 shops · Job too small for us (NG-002, NG-022)" → the plain fix. */
+function InsightItem({ row, lead }: { row: InsightRow; lead: string }) {
+  return (
+    <li className="flex flex-col gap-1 rounded-lg border border-border bg-background px-3 py-2 text-sm" data-insight={row.code}>
+      <p className="flex flex-wrap items-baseline gap-x-1.5">
+        <span className="font-medium text-foreground">{lead}</span>
+        <span className="text-muted-foreground">
+          · {row.jobIds.join(", ")} · {insightMoney(row.value)} of work
+        </span>
+      </p>
+      <p className="flex items-start gap-1.5 text-slate-700">
+        <Lightbulb className="mt-0.5 size-3.5 shrink-0 text-amber-600" aria-hidden />
+        {row.suggestion}
+      </p>
+    </li>
+  )
+}
+
+function WhyShopsSaidNo({ why }: { why: ReturnType<typeof declineInsights> }) {
+  const empty = !why.declines.length && !why.counters.length && !why.belowMinimum
+  if (empty) {
+    return (
+      <p className="flex items-center gap-2 text-sm text-muted-foreground" data-testid="why-empty">
+        <Inbox className="size-4" aria-hidden /> No shop has said no yet. When one does, its reason and a fix show up here.
+      </p>
+    )
+  }
+  const n = (k: number, one: string, many: string) => `${k} ${k === 1 ? one : many}`
+  return (
+    <div className="flex flex-col gap-3">
+      {why.declines.length ? (
+        <section aria-label="Decline reasons" className="flex flex-col gap-2">
+          <h3 className="text-sm font-semibold text-muted-foreground">Declined</h3>
+          <ul className="flex flex-col gap-2">
+            {why.declines.map((r) => (
+              <InsightItem key={r.code} row={r} lead={`${n(r.count, "shop said", "shops said")}: ${r.label.toLowerCase()}`} />
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      {why.counters.length ? (
+        <section aria-label="Counter-offers" className="flex flex-col gap-2">
+          <h3 className="text-sm font-semibold text-muted-foreground">Said yes, if…</h3>
+          <ul className="flex flex-col gap-2">
+            {why.counters.map((r) => (
+              <InsightItem
+                key={r.code}
+                row={r}
+                lead={`${n(r.count, "shop", "shops")} ${r.label.toLowerCase()}${
+                  r.setupTotal ? ` (${insightMoney(r.setupTotal)} in all)` : ""
+                }`}
+              />
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      {why.belowMinimum ? (
+        <section aria-label="Offers below the shop's minimum" className="flex flex-col gap-2">
+          <h3 className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+            Too small for the shop
+            <InfoTip label="How this is worked out">
+              Each offer&apos;s value is spread over 8 years (the fleet lifetime, an assumption) and compared with the
+              smallest yearly amount the shop says is worth its time. Demo shops&apos; minimums are illustrative.
+            </InfoTip>
+          </h3>
+          <ul className="flex flex-col gap-2">
+            <InsightItem
+              row={why.belowMinimum}
+              lead={`${n(why.belowMinimum.count, "offer is", "offers are")} below the shop's own yearly minimum`}
+            />
+          </ul>
+        </section>
+      ) : null}
+    </div>
+  )
+}
+
 export function PrimeDesk() {
   const demo = useDemo()
   const wp = useWithParams()
@@ -74,6 +157,14 @@ export function PrimeDesk() {
   const [replying, setReplying] = React.useState<string | null>(null)
   const repliesRef = React.useRef<HTMLDivElement>(null)
   const { ledger, program, assignments, blocked, jobs, gaps, offerStatus } = demo
+  const prefOverrides = usePreferenceOverrides()
+
+  // Why shops said no (docs/api.md §9): decline reasons, counter terms, and placed offers
+  // below the shop's own minimum, each with a plain suggestion.
+  const why = React.useMemo(
+    () => declineInsights(Object.values(actions.decisions), assignments, (id) => prefsFor(null, id, prefOverrides)),
+    [actions.decisions, assignments, prefOverrides]
+  )
 
   const replies = React.useMemo(() => {
     let accepted = 0
@@ -95,10 +186,12 @@ export function PrimeDesk() {
     const out: AttentionRow[] = []
     for (const [key, d] of Object.entries(actions.decisions)) {
       const a = byJob.get(key)
-      if (!a || (d.decision !== "declined" && d.decision !== "question")) continue
+      if (!a || (d.decision !== "declined" && d.decision !== "question" && d.decision !== "counter")) continue
       if (d.decision === "declined" && declineResolved(reoffers, d.shop_id, d.job_id)) continue
       if (d.decision === "question" && replyForDecision(d, primeReplies)) continue
-      const evKind = d.decision === "declined" ? "offer_declined" : "offer_question"
+      // A counter-offer leaves the list once Northgate answers it.
+      if (d.decision === "counter" && (!d.counter || d.counter.response)) continue
+      const evKind = d.decision === "declined" ? "offer_declined" : d.decision === "question" ? "offer_question" : "offer_countered"
       let simulated = isSimulatedRecord(d)
       for (let i = actions.events.length - 1; i >= 0; i--) {
         const e = actions.events[i]
@@ -117,17 +210,35 @@ export function PrimeDesk() {
             ? d.reason_code
               ? t(`reason.${d.reason_code}`)
               : "no reason given"
-            : d.question_code
-              ? t(`question.${d.question_code}`)
-              : "question",
+            : d.decision === "counter"
+              ? counterTermsText(d.counter)
+              : d.question_code
+                ? t(`question.${d.question_code}`)
+                : "question",
         note: d.note?.trim() || null,
         simulated,
         decision: d,
       })
     }
-    // Declines first, then questions; by job id.
-    return out.sort((x, y) => (x.kind === y.kind ? x.jobId.localeCompare(y.jobId) : x.kind === "declined" ? -1 : 1))
+    // Declines first, then counter-offers, then questions; by job id.
+    const rank = { declined: 0, counter: 1, question: 2 } as const
+    return out.sort((x, y) => rank[x.kind] - rank[y.kind] || x.jobId.localeCompare(y.jobId))
   }, [assignments, actions.decisions, actions.events, primeReplies, reoffers])
+
+  // Accept the shop's terms (the offer is accepted) or keep the original offer. Terms are
+  // recorded only: value, credit and the ledger never change (demo).
+  const answerCounter = async (n: AttentionRow, response: CounterResponseKind) => {
+    setReplying(n.key)
+    try {
+      const r = await actions.respondToCounter(n.decision.shop_id, n.jobId, response)
+      if (!r) return
+      if (response === "accepted") toast.success(`You accepted ${n.shop}'s terms on ${n.jobId}`, { description: `${n.detail}. The offer is accepted.` })
+      else toast.message(`You kept your original offer on ${n.jobId}`, { description: `${n.shop} can still accept or decline it.` })
+      requestAnimationFrame(() => repliesRef.current?.focus({ preventScroll: true }))
+    } finally {
+      setReplying(null)
+    }
+  }
 
   // Same send path as /m/prime: the engine's reply route when live, else recorded on this device.
   const reply = async (n: AttentionRow, code: string, text: string) => {
@@ -250,23 +361,63 @@ export function PrimeDesk() {
                       key={n.key}
                       className={cn(
                         "flex items-start gap-2 rounded-lg border px-3 py-2 text-sm",
-                        n.kind === "declined" ? "border-destructive/30 bg-destructive/5" : "border-sky-200 bg-sky-50/60"
+                        n.kind === "declined"
+                          ? "border-destructive/30 bg-destructive/5"
+                          : n.kind === "counter"
+                            ? "border-violet-200 bg-violet-50/60"
+                            : "border-sky-200 bg-sky-50/60"
                       )}
+                      data-attention-kind={n.kind}
                     >
                       {n.kind === "declined" ? (
                         <XCircle className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden />
+                      ) : n.kind === "counter" ? (
+                        <ArrowLeftRight className="mt-0.5 size-4 shrink-0 text-violet-700" aria-hidden />
                       ) : (
                         <MessageCircleQuestion className="mt-0.5 size-4 shrink-0 text-sky-700" aria-hidden />
                       )}
                       <div className="flex min-w-0 flex-1 flex-col gap-1">
                         <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
                           <span className="font-medium text-foreground">
-                            {n.shop} {n.kind === "declined" ? "declined" : "asked about"} {n.jobId}
+                            {n.shop} {n.kind === "declined" ? "declined" : n.kind === "counter" ? "countered on" : "asked about"} {n.jobId}
                           </span>
                           <span className="text-muted-foreground">· {n.detail}</span>
                           {n.simulated ? <SimulatedChip /> : null}
                         </p>
-                        {n.kind === "question" ? (
+                        {n.kind === "counter" ? (
+                          <>
+                            {n.note ? <p className="break-words text-slate-700">“{n.note}”</p> : null}
+                            <div className="flex flex-wrap gap-2" role="group" aria-label={`Answer ${n.shop}'s counter-offer on ${n.jobId}`}>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-auto min-h-8 border-emerald-300 bg-white py-1 text-emerald-800 hover:bg-emerald-50"
+                                disabled={replying === n.key}
+                                aria-busy={replying === n.key || undefined}
+                                onClick={() => void answerCounter(n, "accepted")}
+                                data-testid="desk-counter-accept"
+                              >
+                                {replying === n.key ? (
+                                  <Loader2 className="size-3.5 animate-spin motion-reduce:animate-none" aria-hidden />
+                                ) : (
+                                  <Check className="size-3.5" aria-hidden />
+                                )}
+                                Accept their terms
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-auto min-h-8 bg-white py-1"
+                                disabled={replying === n.key}
+                                onClick={() => void answerCounter(n, "declined")}
+                                data-testid="desk-counter-keep"
+                              >
+                                Keep original offer
+                              </Button>
+                            </div>
+                            <p className="text-xs text-muted-foreground">The job&apos;s value and credit don&apos;t change in this demo.</p>
+                          </>
+                        ) : n.kind === "question" ? (
                           <>
                             {n.note ? <p className="break-words text-slate-700" data-testid="question-note">“{n.note}”</p> : null}
                             <div className="flex flex-wrap gap-2" role="group" aria-label={`Reply to ${n.shop} about ${n.jobId}`}>
@@ -340,6 +491,24 @@ export function PrimeDesk() {
           )}
         </Panel>
       </div>
+
+      {routed ? (
+        <Panel
+          title={
+            <>
+              Why shops said no
+              <InfoTip label="About this panel">
+                Small shops told us they skip jobs worth under about $100K a year, and quote a setup charge or a
+                minimum run for small orders. This panel groups what your shops said, with one fix for each.
+              </InfoTip>
+            </>
+          }
+          icon={Lightbulb}
+          testId="panel-why-no"
+        >
+          <WhyShopsSaidNo why={why} />
+        </Panel>
+      ) : null}
 
       {routed ? (
         <Panel

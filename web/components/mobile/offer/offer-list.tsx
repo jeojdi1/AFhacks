@@ -2,7 +2,9 @@
 
 import * as React from "react"
 import { toast } from "sonner"
-import { Clock, ShieldCheck, Wallet } from "lucide-react"
+import { CircleCheck, Clock, Package, ShieldCheck, TriangleAlert, Wallet } from "lucide-react"
+import { useShopPrefs } from "@/lib/app/preferences"
+import { packageVerdict, workPackage } from "@/lib/app/sizing"
 import { useDemo } from "@/lib/data/store"
 import { fmtMoney } from "@/lib/format"
 import { useShopBundle } from "@/lib/app/shop-bundle"
@@ -30,6 +32,7 @@ export function OfferList({ shopId }: { shopId: string }) {
   const newIds = useNewOfferIds(b.certs, b.jobsById, b.offers)
   const routedAt = routedAtFrom(b.actions.routedAt, b.actions.events)
   const replyBy = replyByFrom(routedAt)
+  const prefs = useShopPrefs(b.shop, shopId)
 
   const views = React.useMemo<OfferView[]>(() => {
     const vs = b.offers.map((offer, i) => {
@@ -127,6 +130,9 @@ export function OfferList({ shopId }: { shopId: string }) {
   const total = live.reduce((s, v) => s + v.offer.value_cad, 0)
   // Hours only for offers still waiting for an answer: accepted work is already booked.
   const hours = open.reduce((s, v) => s + v.offer.hours_week, 0)
+  // All of Northgate's offers as one yearly figure, checked against the shop's minimum (§9).
+  const pkg = workPackage(b.offers, (o) => offerState(o, b.actions.decisions[o.job_id]), prefs)
+  const pkgVerdict = pkg ? packageVerdict(pkg) : null
 
   return (
     <div className="flex flex-col gap-4 pt-2">
@@ -165,6 +171,23 @@ export function OfferList({ shopId }: { shopId: string }) {
             </span>
           </span>
         </div>
+        {pkg && pkg.count > 0 ? (
+          <div className="mt-1 flex items-start gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm" data-testid="offer-package">
+            <Package className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
+            <span className="min-w-0">
+              <span className="font-medium text-foreground">
+                {t("o.list.package", { prime: pkg.prime, annual: fmtMoney(pkg.annual, { compact: true }), years: pkg.years })}
+              </span>
+              {pkg.assumed ? <AssumptionTag className="ml-1.5 align-middle" note={t("size.assumption", { years: pkg.years })} /> : null}
+              {pkgVerdict ? (
+                <span className={`mt-0.5 flex items-center gap-1 font-medium ${pkg.meets ? "text-assigned" : "text-amber-900"}`}>
+                  {pkg.meets ? <CircleCheck className="size-3.5" aria-hidden /> : <TriangleAlert className="size-3.5" aria-hidden />}
+                  {pkgVerdict}
+                </span>
+              ) : null}
+            </span>
+          </div>
+        ) : null}
         <p className="mt-1 flex items-start gap-2 rounded-lg border border-assigned/25 bg-assigned-soft px-3 py-2 text-sm font-medium text-assigned">
           <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden />
           {t("o.list.noBidding")}
@@ -182,6 +205,7 @@ export function OfferList({ shopId }: { shopId: string }) {
                 busy={busyId === v.offer.job_id}
                 onAccept={() => void accept(v.offer.job_id)}
                 onDecline={() => setDeclineFor(v.offer.job_id)}
+                prefs={prefs}
               />
             </li>
           ))}
@@ -196,7 +220,7 @@ export function OfferList({ shopId }: { shopId: string }) {
           <ul className="flex flex-col gap-3">
             {answered.map((v) => (
               <li key={v.offer.job_id}>
-                <OfferListCard shopId={shopId} view={v} replyBy={replyBy} />
+                <OfferListCard shopId={shopId} view={v} replyBy={replyBy} prefs={prefs} />
                 {v.state === "accepted" ? <AwardLink shopId={shopId} jobId={v.offer.job_id} phone className="mt-1 px-1" /> : null}
               </li>
             ))}

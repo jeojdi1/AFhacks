@@ -15,6 +15,7 @@ import { fmtDay } from "./today"
 import type { AppEvent, EventKind, Renewal, RenewalStage } from "./types"
 import { isSimulatedEvent } from "./sim-flag"
 import { awardHref, fmtSlot } from "@/lib/award/summary"
+import { counterTermsText } from "./sizing"
 
 /** Award events (shop paperwork and kickoff call after an accept, docs/api.md §6). Additive kinds. */
 export const AWARD_EVENT_KINDS = ["paperwork_done", "kickoff_booked"] as const
@@ -110,6 +111,21 @@ extendStrings("en", {
   "feed.paperwork.did.other": "completed a document",
   "feed.kickoff": "{shop} booked a kickoff call: {when} ({job})",
   "feed.kickoff.detail": "With {prime} supplier development · demo: no real invite sent",
+  // right-sized work (docs/api.md §9)
+  "feed.countered": "{shop} countered on {job}: {terms}",
+  "feed.countered.detail": "Accept its terms or keep your original offer",
+  "feed.counterAccepted": "You accepted {shop}'s counter on {job}: {terms}",
+  "feed.counterAccepted.detail": "Offer accepted · value and credit unchanged (demo)",
+  "feed.counterDeclined": "You kept your original offer on {job} for {shop}",
+  "feed.counterDeclined.detail": "{shop} can still accept or decline it",
+  "feed.prefs": "{shop} updated what work is worth its time",
+  "feed.prefs.min": "Smallest work: {amount} a year",
+  "feed.prefs.noMin": "No minimum job size",
+  "feed.prefs.ongoing": "prefers ongoing work",
+  "feed.prefs.oneOff": "one-off jobs are fine",
+  "feed.action.answer": "Answer",
+  "bell.toast.countered": "{shop} countered on {job}: {terms}",
+  "bell.toast.prefs": "{shop} updated what work is worth its time",
 
   // --- actions -----------------------------------------------------------------
   "feed.action.view": "View",
@@ -520,9 +536,51 @@ export function eventItem(e: AppEvent, ledger: LedgerResponse | null, ctx: FeedC
         action: e.shop_id && cert ? { label: t("feed.action.certs"), href: withFromPrime(shopCertHref(e.shop_id, cert)) } : null,
       }
     }
+    case "offer_countered": {
+      const note = str(p.note)
+      return {
+        ...base,
+        tone: "action",
+        title: t("feed.countered", { shop, job: e.job_id ?? "", terms: counterTermsText(counterOf(p)) }),
+        detail: note ? `“${note}” · ${t("feed.countered.detail")}` : t("feed.countered.detail"),
+        action: { label: t("feed.action.answer"), href: "/prime" },
+      }
+    }
+    case "counter_accepted":
+      return {
+        ...base,
+        tone: "success",
+        title: t("feed.counterAccepted", { shop, job: e.job_id ?? "", terms: counterTermsText(counterOf(p)) }),
+        detail: t("feed.counterAccepted.detail"),
+        action: e.shop_id && e.job_id ? { label: t("feed.action.view"), href: withFromPrime(shopOfferHref(e.shop_id, e.job_id)) } : null,
+      }
+    case "counter_declined":
+      return {
+        ...base,
+        tone: "info",
+        title: t("feed.counterDeclined", { shop, job: e.job_id ?? "" }),
+        detail: t("feed.counterDeclined.detail", { shop }),
+        action: e.shop_id && e.job_id ? { label: t("feed.action.view"), href: withFromPrime(shopOfferHref(e.shop_id, e.job_id)) } : null,
+      }
+    case "preferences_set":
+      return { ...base, tone: "info", title: t("feed.prefs", { shop }), detail: prefsDetail(p), action: null }
     default:
       return null
   }
+}
+
+/** Counter terms from an event payload. */
+function counterOf(p: Record<string, unknown>): { setup_charge_cad: number | null; min_quantity: number | null } {
+  return { setup_charge_cad: num(p.setup_charge_cad), min_quantity: num(p.min_quantity) }
+}
+
+/** "Smallest work: $150K a year · prefers ongoing work" */
+function prefsDetail(p: Record<string, unknown>): string {
+  const min = num(p.min_annual_value_cad)
+  const parts = [min ? t("feed.prefs.min", { amount: money(min) }) : t("feed.prefs.noMin")]
+  if (p.prefers_ongoing === true) parts.push(t("feed.prefs.ongoing"))
+  else if (p.prefers_ongoing === false) parts.push(t("feed.prefs.oneOff"))
+  return parts.join(" · ")
 }
 
 // ---------------------------------------------------------------------------
@@ -606,6 +664,8 @@ export const SHOP_EVENT_KINDS: readonly string[] = [
   "funding_requested",
   "capacity_confirmed",
   "cert_declared",
+  "offer_countered",
+  "preferences_set",
   ...AWARD_EVENT_KINDS,
 ]
 
@@ -664,6 +724,14 @@ export function eventToast(e: AppEvent, ctx: FeedContext = {}): { title: string;
         description: null,
         tone: "info",
       }
+    case "offer_countered":
+      return {
+        title: t("bell.toast.countered", { shop, job, terms: counterTermsText(counterOf(p)) }),
+        description: t("feed.countered.detail"),
+        tone: "action",
+      }
+    case "preferences_set":
+      return { title: t("bell.toast.prefs", { shop }), description: prefsDetail(p), tone: "info" }
     default:
       return null
   }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useId, useState } from "react"
-import { Check, Clock, Inbox, MessageCircleQuestion, X } from "lucide-react"
+import { ArrowLeftRight, Check, Clock, Inbox, MessageCircleQuestion, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { fmtMoney } from "@/lib/format"
@@ -9,11 +9,21 @@ import { fmtMoney2 } from "@/components/muster/credit-equation"
 import { ce } from "@/lib/ui/copy-e"
 import { certPlain } from "@/lib/ui/plain"
 import { MultiplierPill, NewBadge, TermText } from "./badges"
-import { t } from "@/lib/app/strings"
-import { DECISION_NOTE_MAX, REASON_CODES, type ReasonCode } from "@/lib/app/types"
+import { extendStrings, t } from "@/lib/app/strings"
+import { DECISION_NOTE_MAX, REASON_CODES, type CounterTerms, type OfferCounter, type ReasonCode } from "@/lib/app/types"
+import { NO_PREFS, counterTermsText, offerSize, workPackage, type ShopPrefs } from "@/lib/app/sizing"
 import { SimulatedChip } from "@/components/mobile/shell/simulation"
 import type { CertT, OfferT } from "./types"
 import { AwardLink } from "@/components/award/award-link"
+import { CounterPicker, OfferSizeLine, PreferencesEditor, WorkPackageBanner } from "./work-package"
+
+extendStrings("en", {
+  "inbox.counter": "Counter-offer",
+  "inbox.counterSent": "Counter sent: {terms}",
+  "inbox.counterWaiting": "Waiting for {prime}. You can still accept the original offer.",
+  "inbox.counterKept": "{prime} kept its original offer (your counter: {terms})",
+  "inbox.counterAccepted": "On your terms: {terms}",
+})
 
 /**
  * Engine routing reasons in plain words (docs/ux-simplification.md §2): "SME: 2x direct credit"
@@ -40,9 +50,11 @@ function plainReason(r: string): string {
 
 /** Reason codes and question codes are the engine's (docs/api.md §6). */
 export interface InboxDecision {
-  decision: "accepted" | "declined" | "question"
+  decision: "accepted" | "declined" | "question" | "counter"
   reason_code?: ReasonCode | null
   question_code?: string | null
+  /** Counter-offer terms and Northgate's answer (docs/api.md §9). */
+  counter?: OfferCounter | null
   /** Saved on this device, not yet sent. */
   pending?: boolean
   /** Written by the demo simulator, not the shop (see decisionIsSimulated in lib/app/sim-flag). */
@@ -67,6 +79,8 @@ export function OfferInbox({
   certifications = [],
   onAccept,
   onDecline,
+  onCounter,
+  prefs = NO_PREFS,
   routed,
   shopId,
 }: {
@@ -77,11 +91,16 @@ export function OfferInbox({
   certifications?: CertT[]
   onAccept: (jobId: string) => void | Promise<unknown>
   onDecline: (jobId: string, reason: ReasonCode, note: string | null) => void | Promise<unknown>
+  /** Counter-offer (setup charge and/or minimum run); hidden when not given. */
+  onCounter?: (jobId: string, terms: CounterTerms, note: string | null) => void | Promise<unknown>
+  /** The shop's work preferences (docs/api.md §9). */
+  prefs?: ShopPrefs
   routed: boolean
-  /** When given, accepted offers link to their award package. */
+  /** When given, accepted offers link to their award package (and preferences can be edited). */
   shopId?: string
 }) {
   const [declining, setDeclining] = useState<string | null>(null)
+  const [countering, setCountering] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const certStatus = new Map(certifications.map((c) => [c.type as string, c.status as string]))
 
@@ -106,9 +125,12 @@ export function OfferInbox({
 
   const openCount = sorted.filter((o) => {
     const st = decided(o.job_id, o.status)
-    return st === "offered" || st === "question"
+    return st === "offered" || st === "question" || st === "counter"
   }).length
   const totalValue = sorted.reduce((s, o) => s + o.value_cad, 0)
+  // All of Northgate's offers as one yearly figure (declined ones left out).
+  const pkg = workPackage(offers, (o) => decided(o.job_id, o.status), prefs)
+  const primeShort = offers[0]?.prime_name?.split(" ")[0] || "Northgate"
 
   return (
     <section className="rounded-xl border border-zinc-200 bg-white" data-offer-inbox>
@@ -125,6 +147,8 @@ export function OfferInbox({
             <div className="text-xs text-zinc-500">{ce("shop.inbox.total", { n: sorted.length, open: openCount })}</div>
           </div>
         )}
+        {pkg ? <WorkPackageBanner pkg={pkg} prefs={prefs} className="w-full" /> : null}
+        {shopId && sorted.length > 0 ? <PreferencesEditor shopId={shopId} prefs={prefs} className="w-full" /> : null}
       </header>
 
       {sorted.length === 0 ? (
@@ -196,6 +220,7 @@ export function OfferInbox({
                       {ce("shop.inbox.earns", { credit: fmtMoney2(o.credit_cad) })}
                       <MultiplierPill multiplier={o.multiplier} />
                     </div>
+                    <OfferSizeLine size={offerSize(o, prefs)} prefs={prefs} />
                   </div>
                 </div>
 
@@ -209,6 +234,11 @@ export function OfferInbox({
                       {dec?.simulated ? <SimulatedChip /> : null}
                       <span className="text-sm text-zinc-500">{ce("shop.inbox.accepted.note", { h: o.hours_week })}</span>
                       {dec?.pending ? <WillSend /> : null}
+                      {dec?.counter?.response?.response === "accepted" ? (
+                        <span className="text-sm font-medium text-emerald-800" data-counter-accepted>
+                          {t("inbox.counterAccepted", { terms: counterTermsText(dec.counter) })}
+                        </span>
+                      ) : null}
                       {shopId ? <AwardLink shopId={shopId} jobId={o.job_id} className="ml-auto" /> : null}
                     </>
                   ) : status === "declined" ? (
@@ -242,8 +272,38 @@ export function OfferInbox({
                         })
                       }
                     />
+                  ) : countering === o.job_id && onCounter ? (
+                    <CounterPicker
+                      jobId={o.job_id}
+                      prime={o.prime_name?.split(" ")[0] || "Northgate"}
+                      busy={isBusy}
+                      onCancel={() => setCountering(null)}
+                      onSubmit={(terms, note) =>
+                        void run(o.job_id, async () => {
+                          await onCounter(o.job_id, terms, note)
+                          setCountering(null)
+                        })
+                      }
+                    />
                   ) : (
                     <>
+                      {status === "counter" && dec?.counter ? (
+                        <span
+                          className={cn(
+                            "mr-1 inline-flex min-h-8 flex-wrap items-center gap-1.5 rounded-lg px-3 py-1 text-sm font-medium",
+                            dec.counter.response?.response === "declined" ? "bg-zinc-100 text-zinc-700" : "bg-violet-50 text-violet-900"
+                          )}
+                          data-counter-status={dec.counter.response?.response ?? "open"}
+                        >
+                          <ArrowLeftRight className="size-4" aria-hidden />
+                          {dec.counter.response?.response === "declined"
+                            ? t("inbox.counterKept", { prime: primeShort, terms: counterTermsText(dec.counter) })
+                            : t("inbox.counterSent", { terms: counterTermsText(dec.counter) })}
+                        </span>
+                      ) : null}
+                      {status === "counter" && dec?.counter && !dec.counter.response ? (
+                        <span className="basis-full text-sm text-zinc-500">{t("inbox.counterWaiting", { prime: primeShort })}</span>
+                      ) : null}
                       {status === "question" ? (
                         <span className="mr-1 inline-flex h-8 items-center gap-1.5 rounded-lg bg-sky-50 px-3 text-sm font-medium text-sky-800">
                           <MessageCircleQuestion className="size-4" aria-hidden />
@@ -260,12 +320,31 @@ export function OfferInbox({
                         <Check aria-hidden />
                         Accept
                       </Button>
+                      {onCounter ? (
+                        <Button
+                          size="lg"
+                          variant="outline"
+                          className="px-4"
+                          disabled={isBusy}
+                          onClick={() => {
+                            setDeclining(null)
+                            setCountering(o.job_id)
+                          }}
+                          data-counter-button={o.job_id}
+                        >
+                          <ArrowLeftRight aria-hidden />
+                          {t("inbox.counter")}
+                        </Button>
+                      ) : null}
                       <Button
                         size="lg"
                         variant="outline"
                         className="px-4"
                         disabled={isBusy}
-                        onClick={() => setDeclining(o.job_id)}
+                        onClick={() => {
+                          setCountering(null)
+                          setDeclining(o.job_id)
+                        }}
                       >
                         Decline
                       </Button>

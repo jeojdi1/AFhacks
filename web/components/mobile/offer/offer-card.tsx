@@ -3,7 +3,23 @@
 import * as React from "react"
 import { toast } from "sonner"
 import Link from "next/link"
-import { Check, CircleHelp, Clock, Eye, FileLock2, Lock, MapPin, MessageSquareReply, Send, ShieldCheck, Wallet, X } from "lucide-react"
+import {
+  ArrowLeftRight,
+  CalendarRange,
+  Check,
+  CircleHelp,
+  Clock,
+  Eye,
+  FileLock2,
+  Lock,
+  MapPin,
+  MessageSquareReply,
+  Send,
+  ShieldCheck,
+  TriangleAlert,
+  Wallet,
+  X,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useDemo } from "@/lib/data/store"
 import { MATERIAL_LABEL, PROCESS_LABEL, fmtKm, fmtMoney, label } from "@/lib/format"
@@ -20,7 +36,9 @@ import { SimulatedChip } from "@/components/mobile/shell/simulation"
 import { certPlain } from "@/lib/ui/plain"
 import { fmtDateTime, fmtWeekday } from "@/lib/app/today"
 import { t } from "@/lib/app/strings"
-import type { QuestionCode, ReasonCode } from "@/lib/app/types"
+import type { CounterTerms, QuestionCode, ReasonCode } from "@/lib/app/types"
+import { counterTermsText, minimumText, offerSize } from "@/lib/app/sizing"
+import { useShopPrefs } from "@/lib/app/preferences"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { EmptyState } from "@/components/muster/empty-state"
@@ -29,6 +47,7 @@ import { FitChecklist } from "./fit-checklist"
 import { DecisionBar } from "./decision-bar"
 import { DeclineSheet } from "./decline-sheet"
 import { AskSheet } from "./ask-sheet"
+import { CounterSheet } from "./counter-sheet"
 import {
   DecisionChip,
   NewChip,
@@ -59,7 +78,7 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
   const { unreachable } = useConnection()
   const b = useShopBundle(shopId)
   const [busy, setBusy] = React.useState(false)
-  const [sheet, setSheet] = React.useState<"decline" | "ask" | null>(null)
+  const [sheet, setSheet] = React.useState<"decline" | "ask" | "counter" | null>(null)
 
   const offer = b.offers.find((o) => o.job_id === jobId) ?? null
   const job = b.jobsById[jobId] ?? null
@@ -74,6 +93,7 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
   const simulated = !!decision && isSimulatedRecord(decision)
   const localReplies = usePrimeReplies()
   const reply = replyForDecision(decision, localReplies)
+  const prefs = useShopPrefs(b.shop, shopId)
 
   const fit = React.useMemo(() => {
     if (!job || !b.shop) return null
@@ -147,6 +167,17 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
       if (r.pending) return
       toast.message(t("o.toast.question", { question: t(`question.${q}`).toLowerCase() }), {
         description: t("o.toast.questionBody", { prime }),
+      })
+    })
+
+  const counter = (terms: CounterTerms, note: string | null) =>
+    void run(async () => {
+      const r = await decide(jobId, { decision: "counter", ...terms, note })
+      if (!r) return
+      setSheet(null)
+      if (r.pending) return
+      toast.message(`${t("o.toast.counter")}: ${counterTermsText(terms)}`, {
+        description: t("o.toast.counterBody", { prime }),
       })
     })
 
@@ -229,6 +260,9 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
             </dd>
           </div>
         </dl>
+
+        {/* Right-sized work (docs/api.md §9): the value per year, how long it runs, and the shop's own minimum. */}
+        <SizeStrip size={offerSize(offer, prefs)} verdict={fromPrime ? null : minimumText(offerSize(offer, prefs), prefs)} />
 
         {/* 2. No bidding + credit: the reason to say yes, above the fold */}
         <div className="rounded-xl border border-assigned/25 bg-assigned-soft px-4 py-3 text-base text-foreground">
@@ -373,9 +407,18 @@ export function OfferCard({ shopId, jobId }: { shopId: string; jobId: string }) 
             onAccept={accept}
             onDecline={() => setSheet("decline")}
             onAsk={() => setSheet("ask")}
+            onCounter={() => setSheet("counter")}
             simulated={simulated}
             reply={reply}
             prime={prime}
+          />
+          <CounterSheet
+            open={sheet === "counter"}
+            onOpenChange={(o) => setSheet(o ? "counter" : null)}
+            jobId={offer.job_id}
+            primeName={prime}
+            busy={busy}
+            onSubmit={counter}
           />
 
           <DeclineSheet
@@ -397,9 +440,43 @@ const PRIME_TONE: Record<OfferState, string> = {
   accepted: "border-assigned/25 bg-assigned-soft text-assigned",
   declined: "border-blocked/30 bg-blocked-soft text-blocked",
   question: "border-controlled/25 bg-controlled-soft text-controlled",
+  counter: "border-violet-300 bg-violet-50 text-violet-900",
   open: "border-border bg-muted text-foreground",
 }
-const PRIME_ICON: Record<OfferState, typeof Check> = { accepted: Check, declined: X, question: CircleHelp, open: Clock }
+const PRIME_ICON: Record<OfferState, typeof Check> = {
+  accepted: Check,
+  declined: X,
+  question: CircleHelp,
+  counter: ArrowLeftRight,
+  open: Clock,
+}
+
+/** "Per year $115K · 8 years · ongoing work", with the shop's minimum check when it has one. */
+function SizeStrip({ size, verdict }: { size: ReturnType<typeof offerSize>; verdict: string | null }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-border bg-card px-3 py-2.5" data-testid="offer-size">
+      <CalendarRange className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+      <span className="flex items-baseline gap-1.5">
+        <span className="text-sm text-muted-foreground">{t("o.card.perYear")}</span>
+        <span className="text-xl leading-none font-semibold tabular-nums">{fmtMoney(size.annual, { compact: true })}</span>
+      </span>
+      <span className="text-sm text-muted-foreground">{t("o.card.duration", { years: size.years })}</span>
+      {size.assumed ? <AssumptionTag note={t("size.assumption", { years: size.years })} /> : null}
+      {verdict ? (
+        <span
+          className={cn(
+            "inline-flex min-h-7 items-center gap-1 rounded-full border px-2.5 py-0.5 text-sm font-medium",
+            size.meets ? "border-assigned/25 bg-assigned-soft text-assigned" : "border-amber-300 bg-amber-50 text-amber-900"
+          )}
+          data-meets-minimum={String(size.meets)}
+        >
+          {size.meets ? <Check className="size-3.5" aria-hidden /> : <TriangleAlert className="size-3.5" aria-hidden />}
+          {verdict}
+        </span>
+      ) : null}
+    </div>
+  )
+}
 
 /** Read-only answer line for the defence company: "Accepted by Tallowfield · Sep 26, 9:41 PM". */
 function PrimeStatus({
@@ -422,14 +499,20 @@ function PrimeStatus({
     const r = reasonText(decision)
     line = r ? t("o.prime.status.declined", { shop, reason: r.toLowerCase() }) : t("o.prime.status.declinedNoReason", { shop })
   } else if (state === "question") line = t("o.prime.status.question", { shop, question: (questionText(decision) ?? "").toLowerCase() })
-  else line = t("o.prime.status.open", { shop })
+  else if (state === "counter") {
+    const terms = counterTermsText(decision?.counter)
+    line =
+      decision?.counter?.response?.response === "declined"
+        ? t("o.prime.status.counterKept", { shop, terms })
+        : t("o.prime.status.counter", { shop, terms })
+  } else line = t("o.prime.status.open", { shop })
   return (
     <section aria-label={t("o.prime.status.label", { shop })} className="flex flex-col gap-2" data-testid="prime-offer-status">
       <div className={cn("flex items-start gap-2 rounded-xl border px-4 py-3", PRIME_TONE[state])}>
         <Icon className="mt-0.5 size-5 shrink-0" aria-hidden />
         <div className="min-w-0 flex-1">
           <p className="text-base leading-snug font-semibold">{line}</p>
-          {decision?.note && (state === "declined" || state === "question") ? (
+          {decision?.note && (state === "declined" || state === "question" || state === "counter") ? (
             <p className="text-sm break-words text-foreground/80">“{decision.note}”</p>
           ) : null}
           {simulated ? <p className="text-sm text-foreground/80">{t("o.prime.status.sim", { shop })}</p> : null}
@@ -445,6 +528,11 @@ function PrimeStatus({
       {state === "question" && !reply ? (
         <Link href="/m/prime" className="text-base font-medium text-brand underline underline-offset-4">
           {t("o.prime.replyCta")}
+        </Link>
+      ) : null}
+      {state === "counter" && !decision?.counter?.response ? (
+        <Link href="/prime" className="text-base font-medium text-brand underline underline-offset-4">
+          {t("o.prime.counterCta")}
         </Link>
       ) : null}
       <p className="flex items-start gap-2 text-sm text-muted-foreground">

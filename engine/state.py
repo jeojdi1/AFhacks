@@ -73,6 +73,9 @@ class State:
     # Supplier document vault marks (engine/vault.py, docs/api.md §6.2). Additive; seeds live in
     # data/processed/vault_synthetic.json, so an older database simply has no shop marks.
     vault: dict[str, dict[str, dict]] = field(default_factory=dict)  # shop → item key → record
+    # Right-sized work (engine/rightsize.py, docs/api.md §9). Additive; belongs to the shop, so
+    # upload and routing keep it (a reset clears it).
+    shop_preferences: dict[str, dict] = field(default_factory=dict)  # shop_id → work preferences
 
 
 def db_path() -> Path:

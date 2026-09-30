@@ -1,9 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { Check, CircleHelp, MessageSquareReply, X } from "lucide-react"
+import { ArrowLeftRight, Check, CircleHelp, MessageSquareReply, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { t } from "@/lib/app/strings"
+import { counterTermsText } from "@/lib/app/sizing"
 import type { OfferDecisionRec } from "@/lib/app/types"
 import { Button } from "@/components/ui/button"
 import { SimulatedChip } from "@/components/mobile/shell/simulation"
@@ -14,14 +15,22 @@ const STATUS_TONE: Record<OfferState, string> = {
   accepted: "border-assigned/25 bg-assigned-soft text-assigned",
   declined: "border-blocked/30 bg-blocked-soft text-blocked",
   question: "border-controlled/25 bg-controlled-soft text-controlled",
+  counter: "border-violet-300 bg-violet-50 text-violet-900",
   open: "border-border bg-background text-foreground",
 }
-const STATUS_ICON: Record<OfferState, typeof Check> = { accepted: Check, declined: X, question: CircleHelp, open: Check }
+const STATUS_ICON: Record<OfferState, typeof Check> = {
+  accepted: Check,
+  declined: X,
+  question: CircleHelp,
+  counter: ArrowLeftRight,
+  open: Check,
+}
 
 /**
- * Sticky bottom bar: Accept · Decline · Ask Northgate (56 px each).
- * After an accept/decline it becomes a status row with "Change answer".
- * A question keeps the three buttons, with the question (and Northgate's reply, once sent) above them.
+ * Sticky bottom bar: Accept · Decline / Counter · Ask Northgate (56 px each; two rows
+ * when a counter-offer is possible). After an accept/decline it becomes a status row
+ * with "Change answer". A question or counter-offer keeps the buttons, with the question
+ * (and Northgate's reply) or the counter terms (and Northgate's answer) above them.
  * A simulated decision (the demo simulator answered for this shop) is labelled as such.
  */
 export function DecisionBar({
@@ -32,6 +41,7 @@ export function DecisionBar({
   onAccept,
   onDecline,
   onAsk,
+  onCounter,
   simulated = false,
   reply = null,
   prime = "Northgate",
@@ -46,6 +56,8 @@ export function DecisionBar({
   onAccept: () => void
   onDecline: () => void
   onAsk: () => void
+  /** Counter-offer (docs/api.md §9); the button is hidden when not given. */
+  onCounter?: () => void
 }) {
   const [changing, setChanging] = React.useState(false)
   const decided = state === "accepted" || state === "declined"
@@ -82,6 +94,16 @@ export function DecisionBar({
             {state === "question" ? (
               <p className="text-sm text-foreground/80">{reply ? t("o.status.questionReplied") : t("o.status.questionBody")}</p>
             ) : null}
+            {state === "counter" ? (
+              <p className="text-sm text-foreground/80">
+                {decision?.counter?.response?.response === "declined" ? t("o.status.counterKeptBody") : t("o.status.counterBody")}
+              </p>
+            ) : null}
+            {state === "accepted" && decision?.counter?.response?.response === "accepted" ? (
+              <p className="text-sm text-foreground/80" data-testid="counter-accepted">
+                {t("o.status.counterAccepted", { terms: counterTermsText(decision.counter) })}
+              </p>
+            ) : null}
             {state === "declined" && decision?.note ? <p className="text-sm break-words text-foreground/80">“{decision.note}”</p> : null}
           </div>
           {simulated ? <SimulatedChip /> : null}
@@ -90,7 +112,7 @@ export function DecisionBar({
       ) : null}
 
       {showButtons ? (
-        <div className="grid grid-cols-[1.3fr_1fr_1fr] gap-2">
+        <div className={cn("grid gap-2", onCounter ? "grid-cols-2" : "grid-cols-[1.3fr_1fr_1fr]")}>
           <Button size="touch-lg" className="bg-emerald-700 px-2 text-white hover:bg-emerald-800" disabled={busy || state === "accepted"} onClick={onAccept}>
             <Check className="size-5" aria-hidden />
             {t("decision.accept")}
@@ -98,6 +120,12 @@ export function DecisionBar({
           <Button size="touch-lg" variant="outline" className="px-2" disabled={busy || state === "declined"} onClick={onDecline}>
             {t("decision.decline")}
           </Button>
+          {onCounter ? (
+            <Button size="touch-lg" variant="outline" className="px-2" disabled={busy} onClick={onCounter} data-testid="counter-open">
+              <ArrowLeftRight className="size-5" aria-hidden />
+              {t("o.counter.button")}
+            </Button>
+          ) : null}
           <Button size="touch-lg" variant="outline" className="px-2 leading-tight whitespace-normal" disabled={busy} onClick={onAsk}>
             {t("decision.ask")}
           </Button>
