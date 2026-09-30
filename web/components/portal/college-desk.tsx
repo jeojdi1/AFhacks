@@ -66,7 +66,7 @@ const EVIDENCE: EvidenceItem[] = [
   {
     id: "completion",
     title: "Completion or test result for each seat",
-    body: "Proof each trainee finished, such as passing the welding test with a recognized trade body.",
+    body: "Proof each trainee finished, such as a welding test or an IPC certificate from a recognized trade body.",
     basis: null,
     state: () => "todo",
   },
@@ -239,13 +239,13 @@ export function CollegeDesk() {
       title="Training coordinator's desk"
       lede={
         <>
-          When small shops are short of qualified welders, Northgate pays for the training. Your college fills the seats
+          When small shops are short of qualified workers, Northgate pays for the training. Your college fills the seats
           and keeps the records that let the training count.
         </>
       }
     >
       {!routed && demo.ready ? (
-        <StartDemo message="No training plans yet. They appear once Northgate's parts list is matched and some jobs are stuck for lack of qualified welders." />
+        <StartDemo message="No training plans yet. They appear once Northgate's parts list is matched and some jobs are stuck for lack of qualified workers." />
       ) : null}
 
       {plans.length ? (
@@ -268,7 +268,7 @@ export function CollegeDesk() {
             <p className="text-sm text-muted-foreground">
               Northgate decides which plan to fund on its{" "}
               <Link href="/gaps" className="font-medium text-foreground underline underline-offset-4">
-                welder gap screen
+                skills gap screen
               </Link>
               .
             </p>

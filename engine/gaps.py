@@ -20,6 +20,7 @@ import math
 import re
 from collections import Counter
 
+from engine import trades
 from engine.rules import (
     CERT_REASON_PRIORITY,
     CPCSC,
@@ -33,6 +34,9 @@ from engine.rules import (
 )
 
 COST_BASIS = "data/rules/training_costs.json (assumption)"
+# Capacity packages in these categories train workers ("Train 2 electronics assemblers");
+# any other category sponsors apprentices ("Sponsor 2 welding apprentices").
+TRAIN_CATEGORIES = ("education_costs", "skills_program_contribution")
 PACKAGE_ID_RE = re.compile(r"^TP-(\d+)$")
 
 DEFAULT_TRAINING_COSTS: dict = {
@@ -71,6 +75,11 @@ CAPACITY_ELIGIBILITY = (
     "The 10x Indigenous workforce development multiplier applies per the ITB overview; "
     "eligibility of this apprenticeship sponsorship would need to be confirmed with the Defence "
     "Investment Agency (assumption)."
+)
+CAPACITY_EDUCATION_ELIGIBILITY = (
+    "The 10x Indigenous workforce development multiplier applies per the ITB overview; "
+    "eligibility of these course fees (education costs, ITB model terms §7.5.1) would need to be "
+    "confirmed with the Defence Investment Agency (assumption)."
 )
 
 
@@ -125,6 +134,23 @@ def _per_trainee_cost(tc: dict, category: str) -> float:
             if key.endswith("_cad") and isinstance(val, (int, float)):
                 return float(val)
     return 0.0
+
+
+def _trainee_cost(tc: dict, trade: dict | None, category: str, rule_category: str) -> float:
+    """Per-trainee cost: the trade's ``cost_cad`` for the category when it has one (every trade
+    but welding), else the ``costs`` block (welding: the original demo numbers)."""
+    own = trades.cost(trade, category)
+    if own is not None:
+        return own
+    return _per_trainee_cost(tc, category) or _per_trainee_cost(tc, rule_category)
+
+
+def _shortage(trade: dict | None) -> str:
+    """" (certified-welder shortage)" or " (shortage of certified CNC machinists)"."""
+    one = (trade or {}).get("worker")
+    if one and " " not in one:
+        return f" (certified-{one} shortage)"
+    return f" (shortage of certified {trades.workers(trade)})"
 
 
 # --------------------------------------------------------------------------- blocked jobs
@@ -247,8 +273,10 @@ def blocked_job(ctx, job_id: str, packages: list[dict]) -> dict:
             else f"{len(fit_lacking)} other {proc} shops lack"
         )
         reason = f"{head}; {other} {label}" if fit_lacking else head
-        if cert in training_costs(ctx).get("trainable_certs", ["CWB_W47.1"]):
-            reason += " (certified-welder shortage)"
+        tc = training_costs(ctx)
+        if cert in tc.get("trainable_certs", ["CWB_W47.1"]):
+            found = trades.for_gap(tc, "cert", cert, tags[0] if tags else None)
+            reason += _shortage(found[1] if found else None)
     elif cert and holders:
         # Cert holders exist and have room: name the filter they actually fail.
         label = cert_label(cert)
@@ -271,6 +299,11 @@ def blocked_job(ctx, job_id: str, packages: list[dict]) -> dict:
         verb = "offers" if len(process_shops) == 1 else "offer"
         why = _why_not(ctx, job, process_shops, ("process",))
         reason = f"{plural(len(process_shops), 'shop')} {verb} {proc}, but {why}"
+        if reason_code == "capacity" and why.startswith(("it is at capacity", "all are at capacity")):
+            # Every shop that could do it is full: name the trade whose workers would add hours.
+            found = trades.for_process(training_costs(ctx), tags[0] if tags else None)
+            if found:
+                reason += f" (shortage of {trades.workers(found[1])})"
     return {
         "job_id": job_id,
         "part_no": job["part_no"],
@@ -368,9 +401,19 @@ def _near_miss_groups(ctx, uncovered: list[str], trainable) -> list[tuple[str, d
     return [(sid, per_shop[sid]) for sid in g.ordered(per_shop)]
 
 
+def _apprentices(tkey: str | None, trade: dict | None, proc: str, n: int) -> str:
+    """"2 welding apprentices" (welding keeps its original wording) or "2 CNC machinist
+    apprentices"."""
+    base = process_label(proc) if tkey in (None, trades.WELDING) else trade["worker"]
+    return f"{n} {base} apprentice" if n == 1 else f"{n} {base} apprentices"
+
+
 def make_package(ctx, pkg_id: str, kind: str, req: str, sid: str, trainees: int,
                  unlock: float, jids: list[str]) -> dict:
-    """TrainingPackage dict (docs/api.md), status "suggested"."""
+    """TrainingPackage dict (docs/api.md), status "suggested".
+
+    The gap's trade (engine/trades.py) names the workers and, for every trade but welding,
+    sets the per-trainee cost and any category override. Welding packages are unchanged."""
     shop = ctx.shops[sid]
     tc = training_costs(ctx)
     rule = _rule_for(tc, kind)
@@ -378,9 +421,19 @@ def make_package(ctx, pkg_id: str, kind: str, req: str, sid: str, trainees: int,
     jids = sorted(jids, key=lambda j: (order.get(j, len(order)), j))
     program_id = getattr(ctx, "program_id", "northgate")
     rem = _fmt_h(ctx.remaining(sid))
+    first_proc = (ctx.jobs[jids[0]].get("process_tags") or ["welding"])[0]
+    found = trades.for_gap(tc, kind, req, first_proc)
+    tkey, trade = found if found else (None, None)
+    category = trades.category(trade, kind, rule["category"])
+    categories = (
+        list(rule.get("categories") or [rule["category"]])
+        if category == rule["category"]
+        else [category]
+    )
+    at = f"at {shop['name']} ({shop['city']})"
     if kind == "cert":
-        proc = (ctx.jobs[jids[0]].get("process_tags") or ["welding"])[0]
-        title = f"Certify {trainees} welders to {cert_label(req)} at {shop['name']} ({shop['city']})"
+        proc = first_proc
+        title = f"Certify {trades.workers(trade, trainees)} to {cert_label(req)} {at}"
         detail = (
             f"Has {process_label(proc)} cells and {rem} h/week free capacity, "
             f"but no {cert_label(req)} certification"
@@ -390,10 +443,13 @@ def make_package(ctx, pkg_id: str, kind: str, req: str, sid: str, trainees: int,
         eligibility = CERT_ELIGIBILITY
     else:
         proc = req
-        title = (
-            f"Sponsor {trainees} {process_label(proc)} apprentices at {shop['name']} "
-            f"({shop['city']}) through an Indigenous-governed training institute"
-        )
+        if category in TRAIN_CATEGORIES:
+            who = f"Train {trades.workers(trade, trainees)}"
+            eligibility = CAPACITY_EDUCATION_ELIGIBILITY
+        else:
+            who = f"Sponsor {_apprentices(tkey, trade, proc, trainees)}"
+            eligibility = CAPACITY_ELIGIBILITY
+        title = f"{who} {at} through an Indigenous-governed training institute"
         needed = max(ctx.jobs[j]["hours_week"] for j in jids)
         certs_held = [
             cert_label(c) for c in ctx.jobs[jids[0]].get("required_certs") or () if c != CPCSC
@@ -405,8 +461,7 @@ def make_package(ctx, pkg_id: str, kind: str, req: str, sid: str, trainees: int,
         )
         gap = {"kind": "capacity", "requirement": proc, "detail": detail}
         cert_unlock = None
-        eligibility = CAPACITY_ELIGIBILITY
-    per = _per_trainee_cost(tc, rule["category"])
+    per = _trainee_cost(tc, trade, category, rule["category"])
     cost = round(per * trainees, 2)
     mult = rule["multiplier"]
     unlock_n = int(unlock) if float(unlock).is_integer() else unlock
@@ -420,10 +475,10 @@ def make_package(ctx, pkg_id: str, kind: str, req: str, sid: str, trainees: int,
         "shop_city": shop["city"],
         "shop_source": shop["source"],
         "gap": gap,
-        "category": rule["category"],
-        "categories": list(rule.get("categories") or [rule["category"]]),
+        "category": category,
+        "categories": categories,
         "recipient_type": rule["recipient_type"],
-        "recipient_example": rule["recipient_example"],
+        "recipient_example": trades.recipient_example(trade, kind, rule["recipient_example"]),
         "trainees": trainees,
         "est_cost_cad": cost,
         "cost_basis": COST_BASIS,
@@ -521,8 +576,13 @@ def top_reason(ctx, blocked_ids: list[str], blocked: list[dict]) -> str:
             missing[cert] += 1
     if missing:
         top_cert = min(missing.items(), key=lambda kv: (-kv[1], kv[0]))[0]
-        if top_cert in training_costs(ctx).get("trainable_certs", ["CWB_W47.1"]):
-            return f"{cert_label(top_cert)} welder shortage (certification + capacity)"
+        tc = training_costs(ctx)
+        if top_cert in tc.get("trainable_certs", ["CWB_W47.1"]):
+            found = trades.for_cert(tc, top_cert)
+            worker = found[1].get("worker") if found else None
+            if worker:
+                return f"{cert_label(top_cert)} {worker} shortage (certification + capacity)"
+            return f"{cert_label(top_cert)}: shortage of qualified workers (certification + capacity)"
         return f"{cert_label(top_cert)} shortage (certification + capacity)"
     codes = Counter(b["reason_code"] for b in blocked if b.get("reason_code") in FILTERS)
     if not codes:
@@ -556,11 +616,26 @@ def requirements(ctx, sid: str, job: dict) -> tuple[set[tuple[str, str]], bool]:
     return reqs, envelope_fail
 
 
+def capacity_step(ctx, sid: str, proc: str, jids: list[str]) -> tuple[dict, int, float] | None:
+    """(trade, trainees, hours/week) to train so each of ``jids`` fits the shop's free
+    capacity, or None when no trade covers the process (the message then stays generic)."""
+    tc = training_costs(ctx)
+    found = trades.for_process(tc, proc)
+    if not found or not jids:
+        return None
+    per = _num(tc.get("capacity_per_trainee_hours_week"), 20)
+    shortfall = max(ctx.jobs[j]["hours_week"] for j in jids) - ctx.remaining(sid)
+    n = max(1, math.ceil(shortfall / per)) if per > 0 else 1
+    return found[1], n, n * per
+
+
 def readiness(ctx, sid: str, assignments: dict[str, dict]) -> list[dict]:
     """Jobs NOT offered to this shop that it fails on exactly one requirement, grouped.
 
     Envelope failures cannot be trained away, so a job failing the envelope is never a
-    readiness item.
+    readiness item. A capacity item names the trade to train ("Train 2 CNC machinists
+    (+40 h/week CNC milling) → ..."); a trainable operator certification (IPC) names the
+    workers to certify. Company certifications (CWB W47.1, ISO 9001, ...) read "Get ...".
     """
     offered = {j for j, a in assignments.items() if a["shop_id"] == sid}
     groups: dict[tuple[str, str], list[str]] = {}
@@ -573,22 +648,38 @@ def readiness(ctx, sid: str, assignments: dict[str, dict]) -> list[dict]:
         groups.setdefault(next(iter(reqs)), []).append(jid)
     kind_order = {"cert": 0, "capacity": 1, "process": 2}
     shop = ctx.shops[sid]
+    tc = training_costs(ctx)
+    trainable = tc.get("trainable_certs") or DEFAULT_TRAINING_COSTS["trainable_certs"]
+    cohort = int(_num(tc.get("cert_package_trainees"), 4))
     items = []
     for (kind, req), jids in groups.items():
         value = sum_money(ctx.jobs[j]["est_value_cad"] for j in jids)
         more = f"{len(jids)} more job" + ("" if len(jids) == 1 else "s")
+        gain = f"qualify for {more} worth {short_money(value)}"
         extra: dict = {}
         if kind == "cert" and is_lapsed(shop, req):
             # The shop held it and it lapsed (status "expired"): a renewal, not a first
             # certification. Only these items carry the renewal fields (additive).
-            msg = f"Renew {renew_label(req)} → qualify for {more} worth {short_money(value)}"
+            msg = f"Renew {renew_label(req)} → {gain}"
             extra = {"renewal": True, "lapsed_on": (cert_record(shop, req) or {}).get("expires_at")}
         elif kind == "cert":
-            msg = f"Get {cert_label(req)} → qualify for {more} worth {short_money(value)}"
+            found = trades.for_cert(tc, req) if req in trainable else None
+            if found and found[0] != trades.WELDING:
+                msg = f"Certify {trades.workers(found[1], cohort)} to {cert_label(req)} → {gain}"
+            else:
+                msg = f"Get {cert_label(req)} → {gain}"
         elif kind == "capacity":
-            msg = f"Add {process_label(req)} capacity → qualify for {more} worth {short_money(value)}"
+            step = capacity_step(ctx, sid, req, jids)
+            if step:
+                trade, n, hours = step
+                msg = (
+                    f"Train {trades.workers(trade, n)} (+{_fmt_h(hours)} h/week "
+                    f"{process_label(req)}) → {gain}"
+                )
+            else:
+                msg = f"Add {process_label(req)} capacity → {gain}"
         else:
-            msg = f"Add {process_label(req)} → qualify for {more} worth {short_money(value)}"
+            msg = f"Add {process_label(req)} → {gain}"
         items.append(
             {"kind": kind, "requirement": req, "jobs_unlocked": jids, "value_cad": value,
              "message": msg, **extra}
@@ -598,22 +689,31 @@ def readiness(ctx, sid: str, assignments: dict[str, dict]) -> list[dict]:
     return items
 
 
-def training_entries(sid: str, packages: dict[str, dict]) -> list[dict]:
-    """ShopDetail ``training`` entries for every package (suggested or funded) at this shop."""
+def training_entries(sid: str, packages: dict[str, dict], tc: dict | None = None) -> list[dict]:
+    """ShopDetail ``training`` entries for every package (suggested or funded) at this shop.
+
+    The message names the package's trade ("4 welders", "2 CNC machinist apprentices",
+    "2 electronics assemblers"). ``tc`` is training_costs.json (default: welding only)."""
+    tc = tc or DEFAULT_TRAINING_COSTS
     out = []
     for p in packages.values():
         if p["shop_id"] != sid:
             continue
+        found = trades.for_package(tc, p)
+        tkey, trade = found if found else (None, None)
         if p.get("cert_unlock"):
-            what = f"{p['trainees']} welders"
+            what = trades.workers(trade, p["trainees"])
             if p["status"] == "funded":
                 msg = f"{what} in training for {cert_label(p['cert_unlock'])}"
             else:
                 msg = f"Suggested: certify {what} to {cert_label(p['cert_unlock'])}"
         else:
             proc = next(iter(p["capacity_unlock"]))
-            what = f"{p['trainees']} {process_label(proc)} apprentices"
-            msg = f"{what} in training" if p["status"] == "funded" else f"Suggested: sponsor {what}"
+            if p.get("category") in TRAIN_CATEGORIES:
+                what, verb = trades.workers(trade, p["trainees"]), "train"
+            else:
+                what, verb = _apprentices(tkey, trade, proc, p["trainees"]), "sponsor"
+            msg = f"{what} in training" if p["status"] == "funded" else f"Suggested: {verb} {what}"
         out.append(
             {
                 "package_id": p["id"],

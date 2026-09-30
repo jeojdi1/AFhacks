@@ -45,7 +45,7 @@ The full ≤ 5:00 video script, with exact clicks and voiceover, is in [docs/dem
 1. **Parts list** (`/program`): load Northgate's parts list: 40 parts, $42.7M of work, 5 controlled.
 2. **Where the work goes**: **36 of 40 jobs matched** to 22 Canadian shops, $36.1M of work, 90% to small businesses; **4 welding jobs stuck**. Controlled parts go only to Controlled Goods-registered shops.
 3. **Credit earned** (`/scorecard`): **$57.5M of $500M (11.5%)**; small-business work counts double.
-4. **Fix the welder gap** (`/gaps`): four welder training seats at Tallowfield. **Fund training**: "**$96K training → $480K credit (5x) + 3 jobs unblocked (+$9.1M credit)**"; the meter moves **11.5% → 13.4%**.
+4. **Fix the skills gap** (`/gaps`): four welder training seats at Tallowfield. **Fund training**: "**$96K training → $480K credit (5x) + 3 jobs unblocked (+$9.1M credit)**"; the meter moves **11.5% → 13.4%**.
 5. **The shop's side** (`/shops/syn-012`, then the phone): before funding, "Get CWB W47.1 → qualify for 3 more jobs worth $5.1M"; on the phone the shop accepts one offer, declines one with a reason, asks Northgate to fund W47.1, and after funding sees 3 new offers and 4 welders in training.
 
 | Where the work goes | Fund training |

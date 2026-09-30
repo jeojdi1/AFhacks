@@ -4,7 +4,8 @@
 // only reads the offer (value, hours, credit) and the job (qty, unit price, CCV).
 
 import type { CertType, Job, Offer } from "@/lib/api/types"
-import { fmtMoney } from "@/lib/format"
+import { CERT_LABEL, fmtMoney } from "@/lib/format"
+import { isWeldingTrade, tradeForCert } from "@/lib/trades"
 import { addBusinessDays, parseAppDate } from "@/lib/app/today"
 import type { Award, AwardDocument, AwardStatus } from "./types"
 import type { VaultItem } from "@/lib/vault/types"
@@ -53,6 +54,17 @@ function qualityDetail(job: Job | null, certs: CertLike[]): string {
         : cwb && HELD.has(cwb)
           ? `Welding certification (CWB W47.1): ${cwb} (from the shop's profile)`
           : "Welding certification (CWB W47.1): not on the profile yet — needed before first article (assumption)"
+    )
+  }
+  // Every other trade's certificate in funded training (IPC for electronics or harness work),
+  // worded like the engine: "Electronics assembly certification (IPC-A-610): electronics
+  // assemblers in training — qualification expected before first article (assumption)".
+  for (const ct of job?.required_certs ?? []) {
+    if (ct === "CWB_W47.1" || st(ct) !== "pending_training") continue
+    const trade = tradeForCert(ct)
+    if (!trade || isWeldingTrade(trade)) continue
+    parts.push(
+      `${trade.label} certification (${CERT_LABEL[ct] ?? ct}): ${trade.workers} in training — qualification expected before first article (assumption)`
     )
   }
   if (!parts.length) parts.push("No quality certificate on the shop's profile yet; Northgate reviews the quality plan at kickoff (assumption)")

@@ -13,6 +13,7 @@ import {
   CircleCheck,
   Clock,
   Factory,
+  GraduationCap,
   Inbox,
   Send,
   Smartphone,
@@ -40,6 +41,7 @@ import { StartDemo, useRouted } from "./start-demo"
 import { useShopPrefs } from "@/lib/app/preferences"
 import { packageLine, packageVerdict, workPackage } from "@/lib/app/sizing"
 import { t } from "@/lib/app/strings"
+import { isWeldingTrade, tradeForPackage } from "@/lib/trades"
 
 export const SHOP_ID = "syn-012"
 
@@ -102,6 +104,10 @@ export function ShopDesk() {
   const readiness = b.detail?.readiness?.[0] ?? null
   const training = b.detail?.training?.find((t) => t.status === "funded") ?? null
   const funded = !!training
+  // Every trade: the welding words stay for the demo's TP-01; any other package names its trade.
+  const trainingTrade = training ? tradeForPackage(training) : null
+  const trainingWelding = !training || isWeldingTrade(trainingTrade)
+  const trainingWorkers = trainingWelding ? "welders" : trainingTrade ? trainingTrade.workers : "trainees"
   // "Ask Northgate to fund this" (phone Grow tab) → POST /shops/{id}/funding-requests.
   const fundingRequest = React.useMemo(() => {
     if (!readiness) return null
@@ -122,7 +128,7 @@ export function ShopDesk() {
       }),
     [b.certs, b.jobsById, b.assignments]
   )
-  // On file = held or in training. A pending_training certificate is NOT held (welders are
+  // On file = held or in training. A pending_training certificate is NOT held (workers are
   // still training, paid by Northgate): count it separately and never flag it for renewal.
   // A self-declared date on a certificate the shop does not hold does not put it on file.
   const onFile = renewals.filter((r) => certIsHeld(r.status) || certInTraining(r.status))
@@ -202,7 +208,8 @@ export function ShopDesk() {
                 </InfoTip>
                 {newCount ? (
                   <span className="font-medium text-assigned">
-                    {newCount} new {newCount === 1 ? "offer" : "offers"} after Northgate paid for welder training.
+                    {newCount} new {newCount === 1 ? "offer" : "offers"} after Northgate paid for{" "}
+                    {trainingWelding ? "welder training" : "the training"}.
                   </span>
                 ) : null}
               </p>
@@ -291,15 +298,26 @@ export function ShopDesk() {
           {training ? (
             <div className="flex flex-col gap-2 rounded-xl bg-funded-soft px-3 py-3 text-funded" data-testid="shop-training">
               <div className="flex items-center gap-3">
-                <WelderArt className="h-16 w-32 shrink-0" />
+                {trainingWelding ? (
+                  <WelderArt className="h-16 w-32 shrink-0" />
+                ) : (
+                  <GraduationCap className="size-12 shrink-0" aria-hidden />
+                )}
                 <div className="flex min-w-0 flex-col gap-1.5">
                   <p className="flex items-baseline gap-2">
                     <strong className="text-4xl leading-none font-semibold tabular-nums">{training.trainees}</strong>
-                    <span className="text-base font-semibold">welders in training</span>
-                    <InfoTip label="About the welder training" className="self-center">
-                      Northgate pays for the training directly. The stuck welding jobs start once the welders qualify. Shieldworks
-                      never shows trainees&apos; names.
-                    </InfoTip>
+                    <span className="text-base font-semibold">{trainingWorkers} in training</span>
+                    {trainingWelding ? (
+                      <InfoTip label="About the welder training" className="self-center">
+                        Northgate pays for the training directly. The stuck welding jobs start once the welders qualify. Shieldworks
+                        never shows trainees&apos; names.
+                      </InfoTip>
+                    ) : (
+                      <InfoTip label="About the training" className="self-center">
+                        Northgate pays for the training directly. The stuck jobs start once the trainees qualify. Shieldworks never
+                        shows trainees&apos; names.
+                      </InfoTip>
+                    )}
                   </p>
                   <SeatDots count={training.trainees} />
                 </div>

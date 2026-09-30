@@ -21,7 +21,7 @@ interface FlowNode {
 
 /**
  * How Shieldworks works, in four boxes (docs/ux-simplification.md §7.1). HTML + CSS only.
- * Northgate → Shieldworks → Small Canadian shops → Welder training, with a green return arrow
+ * Northgate → Shieldworks → Small Canadian shops → Worker training, with a green return arrow
  * from training back to the shops ("unsticks work"). Neutral slate; brand only on Shieldworks.
  * Stacks vertically below 640 px. One role="img" with the §1 sentence as its label.
  */
@@ -149,7 +149,7 @@ function Node({ node: n, compact }: { node: FlowNode; compact: boolean }) {
   )
 }
 
-/** U-shaped green arrow from under "Welder training" back up to "Small Canadian shops". */
+/** U-shaped green arrow from under "Worker training" back up to "Small Canadian shops". */
 function ReturnArrow({ compact }: { compact: boolean }) {
   // Node centres sit a quarter of the way in from each end of the 3-column span (two equal nodes + a 2rem gap).
   const inset = "calc((100% - 2rem) / 4)"

@@ -72,6 +72,9 @@ const CERT_GROUPS: { key: string; match: (type: string) => boolean }[] = [
   { key: "AS9100", match: (x) => x === "AS9100" },
   { key: "NADCAP", match: (x) => x.startsWith("NADCAP") },
   { key: "CWB_W47.1", match: (x) => x === "CWB_W47.1" },
+  // IPC operator certificates (electronics and harness work): counted only when a shop declares
+  // one or an offer needs one, so shops without them show the same numbers as before.
+  { key: "IPC", match: (x) => x.startsWith("IPC_") },
 ]
 const CERT_RANK: Record<string, number> = { verified: 3, declared: 2, pending_training: 1, unknown: 0 }
 

@@ -13,7 +13,7 @@ export default function SignInPage() {
         <h1 className="text-[1.75rem] leading-tight font-semibold tracking-tight sm:text-[2rem]">Who are you today?</h1>
         <p className="max-w-3xl text-base leading-relaxed text-slate-700 sm:text-lg">
           Shieldworks has a desk for each side of a defence contract: the defence company that owes Canada business, the small
-          shop that does the work, the college that trains the welders, and the trainee.
+          shop that does the work, the college that trains its workers, and the trainee.
         </p>
       </header>
       <SignInCards />

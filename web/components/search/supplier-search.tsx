@@ -513,7 +513,7 @@ export function SupplierSearch({ dnd }: { dnd: Record<string, DndHistory> }) {
               type="search"
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="e.g. certified welding near London, or welding with past defence contracts"
+              placeholder="e.g. certified welding near London, or electronics box builds with past defence contracts"
               className="h-12 min-w-0 flex-1 rounded-lg border border-input bg-background px-3 text-base outline-none focus-visible:ring-3 focus-visible:ring-ring"
               autoComplete="off"
             />

@@ -27,7 +27,8 @@ import type {
   Snapshot,
   TrainingPackage,
 } from "@/lib/api/types"
-import { CERT_LABEL, fmtMoney } from "@/lib/format"
+import { CERT_LABEL, PROCESS_LABEL, fmtMoney } from "@/lib/format"
+import { isWeldingTrade, tradeForPackage, workersText } from "@/lib/trades"
 import { demoIds, fx } from "./fixture-source"
 import { c } from "@/lib/ui/copy"
 import { STATIC_SITE } from "@/lib/base-path"
@@ -908,14 +909,29 @@ async function loadLive(): Promise<FlowData> {
 // ---------------------------------------------------------------------------
 // Shop detail (fixtures)
 
+/**
+ * The engine's training message (engine/gaps.py training_entries), for fixtures mode: the
+ * package's trade names the workers ("4 welders", "2 CNC machinist apprentices",
+ * "2 electronics assemblers"); an unmapped package says "trainees".
+ */
 function trainingMessage(p: TrainingPackage): string {
   const cert = p.cert_unlock ? (CERT_LABEL[p.cert_unlock] ?? p.cert_unlock) : null
   const n = p.trainees
-  const who = cert?.startsWith("CWB") ? (n === 1 ? "welder" : "welders") : n === 1 ? "trainee" : "trainees"
-  if (p.status === "funded") {
-    return cert ? `${n} ${who} in training for ${cert}` : `${n} ${who} in training`
+  const trade = tradeForPackage(p)
+  const trainees = n === 1 ? "1 trainee" : `${n} trainees`
+  if (cert) {
+    const who = trade ? workersText(trade, n) : trainees
+    return p.status === "funded" ? `${who} in training for ${cert}` : `Suggested: certify ${who} to ${cert}`
   }
-  return cert ? `Suggested: certify ${n} ${who} to ${cert}` : `Suggested: train ${n} ${who}`
+  const proc = Object.keys(p.capacity_unlock ?? {})[0]
+  const trainOnly = p.category === "education_costs" || p.category === "skills_program_contribution"
+  if (trainOnly || !proc) {
+    const who = trade ? workersText(trade, n) : trainees
+    return p.status === "funded" ? `${who} in training` : `Suggested: train ${who}`
+  }
+  const base = !trade || isWeldingTrade(trade) ? (PROCESS_LABEL[proc] ?? proc.replace(/_/g, " ")).toLowerCase() : trade.worker
+  const who = `${n} ${base} apprentice${n === 1 ? "" : "s"}`
+  return p.status === "funded" ? `${who} in training` : `Suggested: sponsor ${who}`
 }
 
 function deriveShopDetail(id: string, shops: Shop[], flow: FlowData): ShopDetailResponse {

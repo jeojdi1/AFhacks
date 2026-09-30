@@ -27,8 +27,8 @@ extendStrings("en", {
   "sim.failed": "Simulation stopped",
   "sim.failedBody": "The engine didn't accept the next simulated answer. Turn it on again to retry.",
   "sim.startedOver": "Northgate started over. Simulation is off until offers are sent again.",
-  "sim.waiting": "{count} more shops are waiting for Northgate to fund the welder training.",
-  "sim.waiting_one": "One more shop is waiting for Northgate to fund the welder training.",
+  "sim.waiting": "{count} more shops are waiting for Northgate to fund their training.",
+  "sim.waiting_one": "One more shop is waiting for Northgate to fund its training.",
 })
 
 /** Small "Simulated" chip (icon + text) for feed rows written by the simulator. */

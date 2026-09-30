@@ -10,6 +10,7 @@
 import { COUNTING_CERT_STATUSES, type CertStatus } from "@/lib/api/types"
 import { CERT_LABEL, MATERIAL_LABEL, PROCESS_LABEL, label } from "@/lib/format"
 import { certPlain } from "@/lib/ui/plain"
+import { tradeForCert, workersText } from "@/lib/trades"
 import type { CapacityCheckin, CertWithDates, Job, ProcessTag, Shop } from "./types"
 
 export type FitResult = "pass" | "fail" | "warn"
@@ -156,8 +157,9 @@ export function fitChecklist(
     const c = certBy.get(ct)
     const st: CertStatus = c?.status ?? "unknown"
     const ok = counts(st)
-    // pending_training counts for matching (CLAUDE.md §1.1 decision 4), but the welders are not
-    // qualified yet: flag it, never show it as held.
+    // pending_training counts for matching (CLAUDE.md §1.1 decision 4), but the workers are not
+    // qualified yet: flag it, never show it as held. The cert's trade names them ("Welders",
+    // "Electronics assemblers").
     const training = st === "pending_training"
     items.push({
       key: `cert:${ct}`,
@@ -165,7 +167,9 @@ export function fitChecklist(
       result: training ? "warn" : ok ? "pass" : "fail",
       status: st,
       label: certName(ct),
-      detail: training ? "Welders in training (paid by Northgate): start after they qualify" : `Required · yours is ${statusWord[st]}`,
+      detail: training
+        ? `${upperFirst(workersText(tradeForCert(ct)))} in training (paid by Northgate): start after they qualify`
+        : `Required · yours is ${statusWord[st]}`,
     })
   }
 
@@ -264,11 +268,20 @@ const lowerFirst = (x: string) => (x && !/^[A-Z0-9]{2}/.test(x) ? x.charAt(0).to
 const upperFirst = (x: string) => (x ? x.charAt(0).toUpperCase() + x.slice(1) : x)
 const CERT_BY_LABEL = new Map(Object.entries(CERT_LABEL).map(([k, v]) => [v.toLowerCase(), k]))
 
+/** Suffix plainReason puts after a pending_training certificate's workers ("…: welders in training"). */
+export const IN_TRAINING = "in training"
+
+/** True if a plainReason() line is about workers still in training (for the clock icon). */
+export function isInTrainingReason(text: string): boolean {
+  return text.endsWith(` ${IN_TRAINING}`) || text.includes(` ${IN_TRAINING},`) || text.includes(` ${IN_TRAINING} and `)
+}
+
 /**
  * An engine "why you" reason in plain words for the phone (docs/ux-simplification.md §2):
  *   "SME: 2x direct credit"            → "Small business: your work counts double (2×) for Northgate"
  *   "Welding + sheet metal + CWB W47.1" → "Welding, sheet metal and welding certification (CWB W47.1)"
- * A certificate the shop only has as pending_training says "welders in training", never held.
+ * A certificate the shop only has as pending_training says "welders in training" (or its own
+ * trade's workers, e.g. "electronics assemblers in training"), never held.
  */
 export function plainReason(r: string, certs: CertWithDates[] = [], prime = "Northgate", reader: "shop" | "prime" = "shop"): string {
   // The defence company reads the same reasons about the shop, addressed to itself.
@@ -284,7 +297,7 @@ export function plainReason(r: string, certs: CertWithDates[] = [], prime = "Nor
     const p = certPlain(ct)
     const short = certShortName(ct)
     const name = p.first !== p.label && p.label !== short ? `${lowerFirst(p.label)} (${short})` : short
-    return status.get(ct) === "pending_training" ? `${name}: welders in training` : name
+    return status.get(ct) === "pending_training" ? `${name}: ${workersText(tradeForCert(ct))} ${IN_TRAINING}` : name
   })
   const joined = parts.length > 1 ? `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}` : parts[0]
   return upperFirst(joined)

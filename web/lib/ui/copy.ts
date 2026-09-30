@@ -17,7 +17,7 @@ const BASE: Record<string, string> = {
   // -------------------------------------------------------------------------
   // §8.1 Global
   "app.sentence":
-    "Big defence companies owe Canada business equal to their contracts. Shieldworks sends that work to small Canadian shops, and when shops are short of qualified welders, the defence company pays to train them.",
+    "Big defence companies owe Canada business equal to their contracts. Shieldworks sends that work to small Canadian shops, and when shops are short of qualified workers, the defence company pays to train them.",
   "app.tagline": "Defence work for small Canadian shops",
   "app.creditExplainer":
     "Credit isn't cash. It's how the government counts Northgate's Canadian business toward the $500M it owes. Small-business work counts double. Training counts 5×.",
@@ -26,7 +26,7 @@ const BASE: Record<string, string> = {
   "nav.step1": "Parts list",
   "nav.step2": "Where the work goes",
   "nav.step3": "Credit earned",
-  "nav.step4": "Fix the welder gap",
+  "nav.step4": "Fix the skills gap",
   "nav.step5": "The shop's side",
   "nav.directory": "Shops directory",
   "nav.phone": "Phone app",
@@ -95,8 +95,8 @@ const BASE: Record<string, string> = {
   "landing.p2.title": "Shieldworks finds small shops that can make the parts.",
   "landing.p2.body":
     "It reads the parts list, checks each shop's machines and certificates, and offers each job to one qualified shop. No bidding.",
-  "landing.p3.title": "Short of qualified welders? The defence company pays to train them.",
-  "landing.p3.body": "Training counts 5× toward what it owes, and the stuck work goes ahead.",
+  "landing.p3.title": "Short of qualified workers? The defence company pays to train them.",
+  "landing.p3.body": "Welders, CNC machinists, electronics assemblers: training counts 5× toward what it owes, and the stuck work goes ahead.",
   "landing.link.shop": "Skip to the shop's side →",
   "landing.link.dir": "Browse 108 shops →",
   "landing.link.phone": "Open the phone app →",
@@ -108,7 +108,7 @@ const BASE: Record<string, string> = {
   "landing.flow.n3.title": "Small Canadian shops",
   "landing.flow.n3.body": "{assigned} jobs · {shops} shops",
   "landing.flow.n3.bodyEmpty": "qualified local shops",
-  "landing.flow.n4.title": "Welder training",
+  "landing.flow.n4.title": "Worker training",
   "landing.flow.n4.body": "4 seats, paid by Northgate → 3 stuck jobs go ahead",
   "landing.flow.return": "unsticks work",
 
@@ -136,7 +136,7 @@ const BASE: Record<string, string> = {
   "program.stat.matched": "Jobs matched",
   "program.stat.matched.sub": "to {shops} small Canadian shops",
   "program.stat.stuck": "Jobs stuck",
-  "program.stat.stuck.sub": "no qualified welders free · See the fix →",
+  "program.stat.stuck.sub": "no qualified workers free · See the fix →",
   "program.stat.value": "Work kept in Canada",
   "program.stat.value.sub": "{smePct} to small businesses (counts double)",
   "program.stat.controlled": "Controlled parts",
@@ -207,7 +207,7 @@ const BASE: Record<string, string> = {
 
   // -------------------------------------------------------------------------
   // §8.5 Gaps and Fund
-  "gaps.h1": "Fix the welder gap",
+  "gaps.h1": "Fix the skills gap",
   "gaps.b":
     "**{n} welding jobs ({value}) are stuck.** The certified welding shops on Shieldworks are full, and the others don't have the certification. Real shops found in public data can't be sent work until they claim their profile. **Training 4 welders at {shop} unsticks {k} of them.**",
   "gaps.b.look": "The training card: what Northgate pays, and what it gets back.",
@@ -245,6 +245,26 @@ const BASE: Record<string, string> = {
   "gaps.stat.unstuck": "Unstuck by training",
   "gaps.empty.title": "Nothing is stuck yet: nothing has been matched.",
   "gaps.empty.body": "Load Northgate's parts list and match it to shops, and any stuck jobs appear here.",
+  // Every trade, not just welders: the welding keys above stay word for word for the demo;
+  // these fill in for other trades (CNC machinists, electronics assemblers, …) or none.
+  "gaps.b.trade":
+    "**{n} {jobsNoun} ({value}) {isAre} stuck.** No qualified shop on Shieldworks has the certification or the free hours. Real shops found in public data can't be sent work until they claim their profile. **Training {who} at {shop} unsticks {k} of them.**",
+  "gaps.b.funded.none.trade": "Northgate funded {training}. **Every stuck job can now go ahead.**",
+  "gaps.hero.title.trade": "{seats} {worker} training seats at {shopShort} ({town})",
+  "gaps.eq.pay.sub.plain": "{seats} seats × {perSeat}",
+  "gaps.rules.body.type":
+    "Eligible training type: {type} (ITB model terms §7.5.1). Training credit is capped at 25% of what's owed. ITB is run by the Defence Investment Agency since July 16, 2026.",
+  "gaps.rules.type.personal_certification": "{worker} certification for Canadian citizens or permanent residents",
+  "gaps.rules.type.apprentice_sponsorship": "sponsoring {worker} apprentices in a recognized apprenticeship program",
+  "gaps.rules.type.education_costs": "tuition and course fees in Canada for {workers}",
+  "gaps.rules.type.skills_program_contribution": "a skills program run by a registered charity or nonprofit",
+  "gaps.list.title.trade": "{n} stuck {jobsNoun}",
+  "gaps.list.title.funded.trade": "Stuck jobs: {fixed} fixed, {left} still stuck",
+  "gaps.list.publicShops": "Qualified shops in public data haven't joined yet — see them",
+  "gaps.why.process.generic": "{n} don't do {proc}",
+  "gaps.reason.full.generic": "every qualified {proc} shop is full ({need} hrs/wk needed)",
+  "gaps.reason.full.trade": "every qualified {proc} shop is full ({need} hrs/wk needed): short of {workers}",
+  "gaps.reason.capacity.trade": "every qualified shop is full: short of {workers}",
 
   "fund.caption":
     "{jobsValue} of work that was stuck can now go ahead. Credit isn't cash: small-business work counts double, and training counts 5×.",
@@ -282,6 +302,13 @@ const BASE: Record<string, string> = {
   "shop.stat.reach.sub": "{k} more jobs",
   "shop.stat.training": "Welders in training",
   "shop.stat.training.sub": "paid by Northgate",
+  // Every trade: the welding keys above stay for the demo; these cover other trades or none.
+  "shop.b.funded.trade":
+    "**Northgate paid to train {who} for {shopShort}.** The {k} jobs that were stuck ({jobsValue}) are now offered to {shopShort}. They start once the trainees qualify.",
+  "shop.b.funded.look.trade": "{k} new offers, marked New, and {who} in training.",
+  "shop.ready.fundRequested.sub.trade": "The shop asked Northgate to pay for the training.",
+  "shop.stat.training.trade": "{Workers} in training",
+  "shop.stat.training.generic": "In training",
   "shop.certs.title": "Certificates",
   "shop.certs.counter": "{held} of {needed} needed in place",
   "shop.certs.more": "{n} more not held · show",
@@ -470,7 +497,7 @@ const BASE: Record<string, string> = {
 
   // -------------------------------------------------------------------------
   // Gaps & Fund (Agent D): keys §8 does not list, merged from copy-d.ts
-  "gaps.meta.title": "Fix the welder gap · Shieldworks",
+  "gaps.meta.title": "Fix the skills gap · Shieldworks",
   "gaps.meta.description":
     "Why 4 welding jobs are stuck, and what $96K of welder training paid by the defence company fixes.",
 
@@ -547,7 +574,7 @@ const BASE: Record<string, string> = {
   "shop.b.empty.look": "Job offers from Northgate, and what one step would unlock.",
   "shop.b.eyebrow.other": "A synthetic demo shop · not part of the 5-step story",
   "shop.back": "Shops directory",
-  "shop.back.step4": "Step 4: Fix the welder gap",
+  "shop.back.step4": "Step 4: Fix the skills gap",
   "shop.ready.eyebrow": "What one step would unlock",
   "shop.ready.jobs": "{k} jobs · {value}",
   "shop.ready.showJobs": "Show the {k} jobs",
@@ -556,6 +583,7 @@ const BASE: Record<string, string> = {
   "shop.ready.none": "Nothing is one step away right now: this shop already qualifies for everything it is close to.",
   "shop.ready.notRouted": "What one step would unlock appears once Northgate's parts list is matched.",
   "shop.ready.trainingFunded": "Northgate paid for {seats} welder training seats. The welders start once they qualify.",
+  "shop.ready.trainingFunded.trade": "Northgate paid for {seats} {worker} training seats. The trainees start once they qualify.",
   "shop.inbox.total": "{n} offers · {open} waiting for your reply",
   "shop.inbox.fictional": "(fictional)",
   "shop.inbox.hours": "{h} hours a week",
@@ -596,6 +624,11 @@ const BASE: Record<string, string> = {
   "shop.training.unlocks": "Unlocks",
   "shop.training.suggested": "Suggested: {seats} welder training seats for {cert}",
   "shop.training.funded": "{seats} welders in training for {cert}",
+  // Every trade: other trades (or none) instead of the welding keys above.
+  "shop.training.title.trade": "{Worker} training",
+  "shop.training.title.generic": "Worker training",
+  "shop.training.suggested.trade": "Suggested: {seats} {worker} training seats for {cert}",
+  "shop.training.funded.trade": "{who} in training for {cert}",
   "shop.caps.show": "Show the shop's machines and capabilities",
   "shop.caps.hide": "Hide the shop's machines and capabilities",
   "shop.error": "Could not load shop “{id}”",

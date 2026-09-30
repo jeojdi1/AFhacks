@@ -43,6 +43,7 @@ import { PortalPage, Panel, BigAction } from "./portal-page"
 import { InfoTip, JobDots, PromiseRing, ReplyTile, WeldArt } from "./desk-art"
 import { StartDemo, useRouted } from "./start-demo"
 import { useWithParams } from "@/lib/ui/use-with-params"
+import { commonJobTrade, isWelding } from "@/lib/ui/trade-copy"
 import { AwardsDeskList } from "@/components/mobile/prime/awards"
 
 const OBLIGATION_FALLBACK = 500_000_000
@@ -273,6 +274,10 @@ export function PrimeDesk() {
   )
 
   const stuckValue = blocked.reduce((s, b) => s + (b.value_cad || 0), 0)
+  // Every trade: "welders" only when the stuck jobs are welding jobs (the demo); else their trade.
+  const stuckTrade = commonJobTrade(blocked)
+  const stuckWelding = isWelding(stuckTrade)
+  const stuckWorkers = stuckWelding ? "welders" : stuckTrade ? stuckTrade.workers : "qualified workers"
   const shops = new Set(assignments.map((a) => a.shop_id)).size
   const smeShops = new Set(assignments.filter((a) => a.is_sme).map((a) => a.shop_id)).size
 
@@ -306,7 +311,7 @@ export function PrimeDesk() {
         <Panel
           title="Stuck jobs"
           icon={TriangleAlert}
-          action={routed ? { label: "Fix the welder gap", href: "/gaps" } : null}
+          action={routed ? { label: "Fix the skills gap", href: "/gaps" } : null}
           testId="panel-stuck"
         >
           {routed ? (
@@ -325,7 +330,7 @@ export function PrimeDesk() {
                   </p>
                   {blocked.length ? (
                     <p className="text-[0.95rem] text-slate-700">
-                      {fmtMoney(stuckValue, { compact: true })} of work · no welders free
+                      {fmtMoney(stuckValue, { compact: true })} of work · no {stuckWorkers} free
                     </p>
                   ) : null}
                 </div>
@@ -336,7 +341,7 @@ export function PrimeDesk() {
                   {assignments.length} of {jobs.length || assignments.length + blocked.length} matched · {shops} Canadian shops (
                   {smeShops} small {smeShops === 1 ? "business" : "businesses"})
                   <InfoTip label="How jobs are matched">
-                    No bidding: each job goes to one qualified shop. A job is stuck when no qualified shop has welders free.
+                    No bidding: each job goes to one qualified shop. A job is stuck when no qualified shop has the certified workers or the free hours.
                   </InfoTip>
                 </p>
               </div>
@@ -548,13 +553,13 @@ export function PrimeDesk() {
           <BigAction
             href="/gaps"
             icon={Wrench}
-            label="Fix the welder gap"
+            label="Fix the skills gap"
             hint={
               routed && blocked.length
                 ? demo.fundedIds.length
                   ? `${blocked.length === 1 ? "1 stuck job" : `${blocked.length} stuck jobs`} · the only certified shop is full`
-                  : `${blocked.length === 1 ? "1 stuck job" : `${blocked.length} stuck jobs`} · pay to train welders`
-                : "Pay to train welders when shops are short"
+                  : `${blocked.length === 1 ? "1 stuck job" : `${blocked.length} stuck jobs`} · pay to train ${stuckWorkers}`
+                : "Pay to train workers when shops are short"
             }
             primary={routed && demo.fundedIds.length === 0}
           />

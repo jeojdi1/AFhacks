@@ -19,7 +19,8 @@ import { fmtTime } from "@/lib/app/today";
 import { cd } from "@/lib/ui/copy-d";
 import { useWithParams } from "@/lib/ui/use-with-params";
 import { BRAND_BUTTON, capacityUnlockText, isWelderPackage, multiplierLabel, plainEngineText, requirementLabel } from "./labels";
-import { sc } from "./story-copy";
+import { hasCopy, sc } from "./story-copy";
+import { tradeForPackage, tradeOrGeneric } from "@/lib/trades";
 
 /**
  * Who may fund (QA Q6). "prime": the defence company, or the signed-out demo: the Fund button.
@@ -46,6 +47,17 @@ export interface SuggestionCardProps {
 }
 
 const EXAMPLE_SUFFIX = /\s*\(example, not affiliated\)\s*$/i;
+
+/**
+ * "Rules behind this" for a package that is not the W47.1 welder package: the eligible training
+ * type from its category, in the trade's words ("sponsoring CNC machinist apprentices …").
+ */
+function rulesBody(pkg: TrainingPackage): string {
+  const trade = tradeOrGeneric(pkg);
+  const key = `gaps.rules.type.${pkg.category}`;
+  const type = hasCopy(key) ? cd(key, { worker: trade.worker, workers: trade.workers }) : label(CATEGORY_LABEL, pkg.category).toLowerCase();
+  return cd("gaps.rules.body.type", { type });
+}
 
 /** "Conestoga College (example, not affiliated)" → "Conestoga College". */
 function partnerName(pkg: TrainingPackage): string {
@@ -187,11 +199,15 @@ function HeroCard({ pkg, funded, pending, disabled, error, onFund, jobsCreditCad
   const seats = pkg.trainees;
   const perSeat = seats > 0 ? pkg.est_cost_cad / seats : 0;
   const welder = isWelderPackage(pkg);
+  // Every trade: a non-welding package names its own workers ("2 CNC machinist training seats").
+  const trade = welder ? null : tradeForPackage(pkg);
   const shopShort = shortShopName(pkg.shop_name);
   const jobsValue = fmtMoney(pkg.unblocks_value_cad, { compact: true });
   const title = welder
     ? cd("gaps.hero.title", { seats, shopShort, town: pkg.shop_city })
-    : packageTitle(pkg);
+    : trade
+      ? cd("gaps.hero.title.trade", { seats, worker: trade.worker, shopShort, town: pkg.shop_city })
+      : packageTitle(pkg);
   const partner = partnerName(pkg);
 
   return (
@@ -218,7 +234,7 @@ function HeroCard({ pkg, funded, pending, disabled, error, onFund, jobsCreditCad
         {title}
       </h2>
       <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-snug text-zinc-600">
-        {welder ? <span>{packageTitle(pkg)}.</span> : null}
+        {welder || trade ? <span>{packageTitle(pkg)}.</span> : null}
         {welder ? <span>{cd("gaps.hero.sub2")}</span> : null}
         <Link
           href={wp(`/shops/${pkg.shop_id}`)}
@@ -235,7 +251,7 @@ function HeroCard({ pkg, funded, pending, disabled, error, onFund, jobsCreditCad
         <EqTile
           tone="pay"
           title={cd("gaps.eq.pay", { cost: fmtMoney(pkg.est_cost_cad, { compact: true }) })}
-          sub={cd("gaps.eq.pay.sub", { seats, perSeat: fmtMoney(perSeat, { compact: true }) })}
+          sub={cd(welder ? "gaps.eq.pay.sub" : "gaps.eq.pay.sub.plain", { seats, perSeat: fmtMoney(perSeat, { compact: true }) })}
           extra={
             <AssumptionTag
               note={cd("gaps.hero.perSeat.tip", { cost: fmtMoney(pkg.est_cost_cad), seats })}
@@ -283,7 +299,7 @@ function HeroCard({ pkg, funded, pending, disabled, error, onFund, jobsCreditCad
       {error ? <p className="mt-2 text-sm text-red-700">{error}</p> : null}
 
       <Details summary={cd("gaps.rules.title")} className="mt-2 -ml-1" contentClassName="pl-1 text-sm leading-relaxed text-zinc-600">
-        <p>{cd("gaps.rules.body")}</p>
+        <p>{welder ? cd("gaps.rules.body") : rulesBody(pkg)}</p>
       </Details>
     </article>
   );

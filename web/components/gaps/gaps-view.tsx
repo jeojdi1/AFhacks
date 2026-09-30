@@ -20,6 +20,8 @@ import { EngineUnreachable } from "@/components/shell/engine-unreachable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSession } from "@/lib/auth";
 import { scrollToFund } from "@/lib/ui/steps";
+import { commonJobTrade, commonPackageTrade, isWelding, jobsNoun } from "@/lib/ui/trade-copy";
+import { tradeForPackage, workersText } from "@/lib/trades";
 import { useWithParams } from "@/lib/ui/use-with-params";
 import { BlockedJobCard } from "./blocked-job-card";
 import { FundMoment, MOMENT } from "./fund-moment";
@@ -36,13 +38,25 @@ interface Row {
 
 const PAGE = "mx-auto flex w-full max-w-[1280px] flex-col px-4 py-5 sm:px-6";
 
+/** Supplier search for the stuck jobs' process and certificate (first stuck job; any trade). */
+function publicShopsHref(stuck: BlockedJob[]): string {
+  const first = stuck[0];
+  const params = new URLSearchParams();
+  const proc = first?.process_tags?.[0];
+  const cert = (first?.required_certs ?? []).find((c) => c !== "CPCSC_L1" && c !== "ISO9001");
+  if (proc) params.set("process", proc);
+  if (cert) params.set("cert", cert);
+  const q = params.toString();
+  return q ? `/prime/suppliers?${q}` : "/prime/suppliers";
+}
+
 /** Smaller H1 under the banner (§5.0: the page title stays, the banner leads). */
 function PageTitle() {
   return <h1 className="mb-4 text-xl font-semibold tracking-tight text-foreground">{cd("gaps.h1")}</h1>;
 }
 
 /**
- * /gaps, step 4 "Fix the welder gap" (docs/ux-simplification.md §5.4).
+ * /gaps, step 4 "Fix the skills gap" (docs/ux-simplification.md §5.4).
  * Order before funding: banner → training hero card (Fund button above the fold at 1280×720)
  * → stuck jobs list → "Another option". After funding the Fund moment leads.
  */
@@ -205,12 +219,34 @@ export function GapsView() {
   const loading = !demo.gaps && blockedNow.length === 0 && resolved.size === 0;
   const funded = demo.stage === "funded" || unstuck.length > 0;
 
-  const fundedSeats = (demo.gaps?.suggestions ?? []).filter(isFunded).reduce((s, p) => s + p.trainees, 0);
+  const fundedPkgs = (demo.gaps?.suggestions ?? []).filter(isFunded);
+  const fundedSeats = fundedPkgs.reduce((s, p) => s + p.trainees, 0);
+  // Every trade, not just welders: the demo's welding story keeps its words; any other trade
+  // (or a mix) gets the trade's own nouns, and nothing unmapped says "welders".
+  const heroTrade = tradeForPackage(hero);
+  const stuckTrade = commonJobTrade(stillBlocked.map((r) => r.blocked!));
+  const weldingStory = (hero ? isWelding(heroTrade) : true) && (stillBlocked.length === 0 || isWelding(stuckTrade));
+  const fundedTrade = commonPackageTrade(fundedPkgs);
+  const fundedWelding = fundedPkgs.length > 0 ? isWelding(fundedTrade) : weldingStory;
+  const fundedWhat =
+    fundedSeats > 0
+      ? fundedWelding
+        ? sc("gaps.b.funded.seats", { seats: fundedSeats })
+        : fundedTrade
+          ? sc("gaps.b.funded.seats.trade", { seats: fundedSeats, worker: fundedTrade.worker })
+          : sc("gaps.b.funded.seats.generic", { seats: fundedSeats })
+      : fundedWelding
+        ? sc("gaps.b.funded.training")
+        : fundedTrade
+          ? sc("gaps.b.funded.training.trade", { worker: fundedTrade.worker })
+          : sc("gaps.b.funded.training.generic");
   const summary = funded
     ? stillBlocked.length === 0
-      ? cd("gaps.b.funded.none")
+      ? fundedWelding
+        ? cd("gaps.b.funded.none")
+        : cd("gaps.b.funded.none.trade", { training: fundedWhat })
       : sc("gaps.b.funded.n", {
-          what: fundedSeats > 0 ? sc("gaps.b.funded.seats", { seats: fundedSeats }) : sc("gaps.b.funded.training"),
+          what: fundedWhat,
           k: unstuck.length,
           jobsWord: unstuck.length === 1 ? "job" : "jobs",
           jobsValue: fmtMoney(unstuckValue, { compact: true }),
@@ -219,12 +255,22 @@ export function GapsView() {
         })
     : stillBlocked.length === 0 && !loading
       ? cd("gaps.b.clear")
-      : cd("gaps.b", {
-          n: stillBlocked.length,
-          value: fmtMoney(stillBlockedValue, { compact: true }),
-          shop: hero ? shortShopName(hero.shop_name) : "a nearby shop",
-          k: hero?.blocked_job_ids.length ?? 0,
-        });
+      : weldingStory
+        ? cd("gaps.b", {
+            n: stillBlocked.length,
+            value: fmtMoney(stillBlockedValue, { compact: true }),
+            shop: hero ? shortShopName(hero.shop_name) : "a nearby shop",
+            k: hero?.blocked_job_ids.length ?? 0,
+          })
+        : cd("gaps.b.trade", {
+            n: stillBlocked.length,
+            jobsNoun: jobsNoun(stillBlocked.length, stuckTrade),
+            isAre: stillBlocked.length === 1 ? "is" : "are",
+            value: fmtMoney(stillBlockedValue, { compact: true }),
+            who: hero ? workersText(heroTrade, hero.trainees) : "qualified workers",
+            shop: hero ? shortShopName(hero.shop_name) : "a nearby shop",
+            k: hero?.blocked_job_ids.length ?? 0,
+          });
 
   const heroCard = hero ? (
     <SuggestionCard
@@ -310,10 +356,14 @@ export function GapsView() {
               <div className="lg:col-span-8">
                 <h2 id="stuck-title" className="mb-3 text-lg font-semibold tracking-tight text-foreground">
                   {unstuck.length > 0
-                    ? cd("gaps.list.title.funded", { fixed: unstuck.length, left: stillBlocked.length })
-                    : stillBlocked.length === 1
-                      ? sc("gaps.list.title.one")
-                      : cd("gaps.list.title", { n: stillBlocked.length })}
+                    ? weldingStory
+                      ? cd("gaps.list.title.funded", { fixed: unstuck.length, left: stillBlocked.length })
+                      : cd("gaps.list.title.funded.trade", { fixed: unstuck.length, left: stillBlocked.length })
+                    : !weldingStory
+                      ? cd("gaps.list.title.trade", { n: stillBlocked.length, jobsNoun: jobsNoun(stillBlocked.length, stuckTrade) })
+                      : stillBlocked.length === 1
+                        ? sc("gaps.list.title.one")
+                        : cd("gaps.list.title", { n: stillBlocked.length })}
                 </h2>
                 <div className="flex flex-col gap-2.5">
                   {rows.map((r) => {
@@ -337,11 +387,11 @@ export function GapsView() {
                 {stillBlocked.length > 0 ? (
                   <p className="mt-3 text-sm">
                     <Link
-                      href={wp("/prime/suppliers?cert=CWB_W47.1")}
+                      href={wp(weldingStory ? "/prime/suppliers?cert=CWB_W47.1" : publicShopsHref(stillBlocked.map((r) => r.blocked!)))}
                       className="text-muted-foreground underline underline-offset-4 hover:text-foreground"
                       data-testid="gaps-public-cwb"
                     >
-                      {cd("gaps.list.publicCwb")}
+                      {weldingStory ? cd("gaps.list.publicCwb") : cd("gaps.list.publicShops")}
                     </Link>
                   </p>
                 ) : null}

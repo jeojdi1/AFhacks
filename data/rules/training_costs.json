@@ -78,6 +78,137 @@
     }
   },
   "trainable_certs": [
-    "CWB_W47.1"
-  ]
+    "CWB_W47.1",
+    "IPC_J_STD_001",
+    "IPC_A_610",
+    "IPC_WHMA_A_620"
+  ],
+  "trades": {
+    "_note": "Every trade, not just welders. A gap (a missing certification, or missing capacity for a process) maps to the trade whose `certs` or `processes` list names it. The trade names the workers to train and, in `cost_cad`, the cost per trainee by ITB training category. A trade without `cost_cad` (welding) uses the `costs` block above, so the demo's TP-01 and TP-02 do not change. `categories` overrides the category a gap kind gets (default: recipient_by_gap). Every number is an assumption for the demo, not a quote; confirm eligibility with the Defence Investment Agency.",
+    "welding": {
+      "label": "Welding",
+      "worker": "welder",
+      "workers": "welders",
+      "processes": [
+        "welding"
+      ],
+      "certs": [
+        "CWB_W47.1"
+      ],
+      "credential": "CSA W47.1 welder tickets at a CWB-certified company",
+      "flag": "assumption",
+      "note": "Costs: costs.personal_certification and costs.apprentice_sponsorship above (the original demo numbers)."
+    },
+    "cnc_machining": {
+      "label": "CNC machining",
+      "worker": "CNC machinist",
+      "workers": "CNC machinists",
+      "processes": [
+        "cnc_milling",
+        "five_axis_milling",
+        "cnc_turning"
+      ],
+      "certs": [],
+      "credential": "Ontario General Machinist (429A) apprenticeship, or CNC set-up and programming upskilling",
+      "cost_cad": {
+        "personal_certification": 12000,
+        "apprentice_sponsorship": 20000
+      },
+      "unit": "per trainee",
+      "flag": "assumption",
+      "note": "Apprentice: first-year sponsorship excluding wages, same basis as the welding apprentice. 429A classroom fees are about $400 per level plus $400–$500 books for levels 2–3, and Ontario covers level 1 fees in 2026 (Conestoga, Mohawk). Upskilling an operator to CNC set-up and programming (college courses, exam, wage backfill): our estimate. Assumption.",
+      "source": "https://www.conestogac.on.ca/apprenticeship/general-machinist-apprenticeship ; https://www.mohawkcollege.ca/programs/skilled-trades/general-machinist-429a"
+    },
+    "electronics_assembly": {
+      "label": "Electronics assembly",
+      "worker": "electronics assembler",
+      "workers": "electronics assemblers",
+      "processes": [
+        "electronics_assembly"
+      ],
+      "certs": [
+        "IPC_J_STD_001",
+        "IPC_A_610"
+      ],
+      "credential": "IPC J-STD-001 and IPC-A-610 Certified IPC Specialist (CIS)",
+      "cost_cad": {
+        "personal_certification": 6000,
+        "education_costs": 12000
+      },
+      "categories": {
+        "capacity": "education_costs"
+      },
+      "recipient_example": {
+        "cert": "IPC-licensed training centre (example, not affiliated)"
+      },
+      "unit": "per trainee",
+      "flag": "assumption",
+      "note": "CIS courses run about US$650–$1,500 per standard (3–4 days; ElectroSpec, Verion, Circuit Technology), plus the standard itself (about US$360). All-in per operator for both standards with wage backfill: our estimate. New-entrant seat (tuition and course fees for a new assembler): our estimate. Assumption.",
+      "source": "https://www.electrospectraining.com/ipc-a-610 ; https://www.veriontraining.com/ipc-a-610 ; https://www.circuittechnology.com/Training-ID/276/Training-Event/IPC-610-CIS"
+    },
+    "cable_harness": {
+      "label": "Cable and harness assembly",
+      "worker": "harness assembler",
+      "workers": "harness assemblers",
+      "processes": [
+        "wire_harness"
+      ],
+      "certs": [
+        "IPC_WHMA_A_620"
+      ],
+      "credential": "IPC/WHMA-A-620 Certified IPC Specialist (CIS)",
+      "cost_cad": {
+        "personal_certification": 4000,
+        "education_costs": 10000
+      },
+      "categories": {
+        "capacity": "education_costs"
+      },
+      "recipient_example": {
+        "cert": "IPC-licensed training centre (example, not affiliated)"
+      },
+      "unit": "per trainee",
+      "flag": "assumption",
+      "note": "IPC/WHMA-A-620 CIS courses run about US$650–$1,010 (ElectroSpec, STI); exam credits US$95–$165. All-in per operator with wage backfill: our estimate. New-entrant seat: our estimate. Assumption.",
+      "source": "https://www.electrospectraining.com/ipc-whma-a-620 ; https://stiusa.com/product/online-ipc-whma-a-620-certified-ipc-specialist-cis-certification-recertification-program-all-modules-lecture-based/"
+    },
+    "coatings_plating": {
+      "label": "Coatings and plating",
+      "worker": "coatings and plating operator",
+      "workers": "coatings and plating operators",
+      "processes": [
+        "plating",
+        "anodizing",
+        "painting"
+      ],
+      "certs": [],
+      "credential": "NASF/AESF electroplating and surface finishing course, or AMPP coating application specialist (CAS)",
+      "cost_cad": {
+        "personal_certification": 6000,
+        "education_costs": 10000
+      },
+      "categories": {
+        "capacity": "education_costs"
+      },
+      "unit": "per trainee",
+      "flag": "assumption",
+      "note": "NASF/AESF electroplating classroom course US$1,800–$2,450 for non-members; AMPP CAS exam fees US$100–$200, included with the course. All-in with travel and wage backfill: our estimate. Nadcap accredits the company, so it is never a training package. Assumption.",
+      "source": "https://training.nasf.org/products/electroplating-surface-finishing-cef-classroom-course ; https://www.ampp.org/education/job-function/craftworkers/coating-application-specialist-cas-level-1"
+    },
+    "quality_inspection": {
+      "label": "Quality inspection",
+      "worker": "quality inspector",
+      "workers": "quality inspectors",
+      "processes": [],
+      "certs": [],
+      "credential": "CMM operation (for example PC-DMIS level 1) and first article inspection (AS9102)",
+      "cost_cad": {
+        "personal_certification": 7000
+      },
+      "unit": "per trainee",
+      "flag": "assumption",
+      "note": "Catalog only: no routing requirement maps to inspection yet. PC-DMIS for CMM 101 is a 5-day course at about US$2,625–$2,884 plus a US$225 level 1 exam (Hexagon); AS9102 first article training and wage backfill: our estimate. Assumption.",
+      "source": "https://learning.hexagonmi.com/catalog/?id=12765 ; https://learning.hexagonmi.com/catalog/course.asp?id=42862"
+    }
+  }
 }

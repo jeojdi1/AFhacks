@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { AssumptionTag } from "@/components/muster/assumption-tag"
 import { CERT_LABEL, GLOSSARY, certCountsForMatching, certIsLapsed } from "@/lib/format"
 import { certPlain } from "@/lib/ui/plain"
+import { tradeForCert } from "@/lib/trades"
 import { t } from "@/lib/app/strings"
 import { fmtDay, fmtLongDate, toISODate, addDays } from "@/lib/app/today"
 import { certShortName, fmtCredit, fmtWork, ruleFor } from "@/lib/app/renewals"
@@ -89,12 +90,17 @@ export function CertRow({
 }) {
   const rule = ruleFor(cert.type)
   const held = certRowHeld(cert)
-  // Welders still in training (pending_training): counts for matching, but not held yet. No
+  // Workers still in training (pending_training): counts for matching, but not held yet. No
   // renewal stage, no expiry date to add, and its jobs are waiting on it, not at risk (C3-11).
   const training = cert.status === "pending_training"
   // Lapsed (status "expired"): held before, ran out. Stage "Lapsed", days since, renewal steps.
   const lapsed = certIsLapsed(cert.status)
   const welding = cert.type.startsWith("CWB")
+  // Another trade's operator certificate (IPC): name its workers ("electronics assemblers").
+  const trade = welding ? null : tradeForCert(cert.type)
+  const tradeVars = trade ? { workers: trade.workers, Workers: trade.workers.replace(/^./, (c) => c.toUpperCase()) } : undefined
+  const trainingBodyKey = welding ? "wallet.row.trainingBody" : trade ? "wallet.row.trainingBodyTrade" : "wallet.row.trainingBodyGeneric"
+  const startsKey = welding ? "wallet.row.startsWhenQualified" : trade ? "wallet.row.startsWhenTradeQualified" : "wallet.row.startsWhenTrained"
   const carry = React.useSyncExternalStore(noopSubscribe, readCarryQuery, serverQuery)
   const sid = shopId ?? cert.shop_id
   const dated = held && !!renewal.expires_at
@@ -204,7 +210,7 @@ export function CertRow({
             </dl>
           ) : (
             training ? (
-              <p className="text-[15px] text-muted-foreground">{t(welding ? "wallet.row.trainingBody" : "wallet.row.trainingBodyGeneric")}</p>
+              <p className="text-[15px] text-muted-foreground">{t(trainingBodyKey, tradeVars)}</p>
             ) : lapsed ? (
               <div className="flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-red-950" data-testid="cert-lapsed">
                 <div className="flex items-center gap-1.5 text-[15px] font-semibold">
@@ -265,7 +271,7 @@ export function CertRow({
             <p className="text-sm text-muted-foreground">{t("wallet.row.illustrative")}</p>
           ) : null}
 
-          {/* Jobs waiting on it (welders in training) */}
+          {/* Jobs waiting on it (workers in training) */}
           {training ? (
             <div className="rounded-lg bg-funded-soft/60 px-3 py-2.5" data-testid="cert-training-jobs">
               <div className="text-[15px] font-semibold">{t("wallet.row.neededFor")}</div>
@@ -273,7 +279,7 @@ export function CertRow({
                 <p className="mt-0.5 text-base">
                   <span className="font-semibold">{renewal.jobs_at_risk.join(", ")}</span>
                   {" · "}
-                  {fmtWork(renewal.value_at_risk_cad)} · {t(welding ? "wallet.row.startsWhenQualified" : "wallet.row.startsWhenTrained")}
+                  {fmtWork(renewal.value_at_risk_cad)} · {t(startsKey, tradeVars)}
                 </p>
               ) : (
                 <p className="mt-0.5 text-[15px] text-muted-foreground">

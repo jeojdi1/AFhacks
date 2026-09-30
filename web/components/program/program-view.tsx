@@ -18,6 +18,7 @@ import { Rich } from "@/lib/ui/copy";
 import { cb } from "@/lib/ui/copy-b";
 import { useStoryMode } from "@/lib/ui/story-mode";
 import { useWithParams } from "@/lib/ui/use-with-params";
+import { commonJobTrade, isWelding, jobsNoun } from "@/lib/ui/trade-copy";
 import { sc } from "@/components/gaps/story-copy";
 
 import { JobsTable } from "./jobs-table";
@@ -89,6 +90,9 @@ export function ProgramView() {
 
   const assignedCount = routeStats?.assigned ?? assignments.length;
   const blockedCount = routeStats?.blocked ?? blocked.length;
+  // Every trade: "4 welding jobs are stuck" only when the stuck jobs are welding jobs (or unknown).
+  const blockedTrade = commonJobTrade(blocked);
+  const weldingBlocked = blocked.length === 0 || isWelding(blockedTrade);
   const totalJobs = routeStats?.jobs ?? rows.length;
   const assignedValue = routeStats?.assigned_value_cad ?? assignments.reduce((s, a) => s + a.value_cad, 0);
   const smeShare = routeStats?.sme_share_pct ?? null;
@@ -133,9 +137,15 @@ export function ProgramView() {
             text={
               blockedCount === 0
                 ? sc("program.b2.sme.allMatched", vars)
-                : blockedCount === 1
-                  ? sc("program.b2.sme.one", vars)
-                  : sc("program.b2.sme", vars)
+                : !weldingBlocked
+                  ? sc("program.b2.sme.trade", {
+                      ...vars,
+                      jobsNoun: jobsNoun(blockedCount, blockedTrade),
+                      isAre: blockedCount === 1 ? "is" : "are",
+                    })
+                  : blockedCount === 1
+                    ? sc("program.b2.sme.one", vars)
+                    : sc("program.b2.sme", vars)
             }
           />
         }
@@ -305,7 +315,7 @@ export function ProgramView() {
 }
 
 function StuckSub() {
-  // "no qualified welders free · See the fix →": the link part gets the arrow icon.
+  // "no qualified workers free · See the fix →": the link part gets the arrow icon.
   const [reason, link] = cb("program.stat.stuck.sub").split(" · ");
   return (
     <span className="inline-flex flex-wrap items-center gap-x-1">

@@ -11,13 +11,13 @@ import { StatusBadge } from "@/components/muster/status-badge"
 import { useAppActions } from "@/lib/app/actions-store"
 import { t } from "@/lib/app/strings"
 import { addDays, appToday, fmtLongDate, parseAppDate, toISODate } from "@/lib/app/today"
-import { shortShopName } from "@/lib/app/copy"
+import { otherTrade, seatIcsTitle, shortShopName } from "@/lib/app/copy"
 import { buildIcs, icsDataUrl } from "@/lib/app/ics"
-import { isFunded, packageJobs, seatDemo, seatStages } from "@/lib/app/readiness"
+import { isFunded, packageJobs, seatDemo, seatStagesFor } from "@/lib/app/readiness"
 import { SeatStepper } from "./seat-stepper"
 import { TicketPreview } from "./ticket-preview"
 import { PathToWork } from "./path-to-work"
-import { InfoTip, WelderArt } from "./seat-art"
+import { InfoTip, TradeHeroArt, WelderArt } from "./seat-art"
 
 function Notice({ icon, title, body }: { icon?: React.ReactNode; title: string; body: string }) {
   return (
@@ -40,6 +40,9 @@ export function SeatCard({ packageId, seat }: { packageId: string; seat: number 
   const { fundingRequests, events } = useAppActions()
 
   const pkg = gaps?.suggestions.find((p) => p.id === packageId) ?? fundResults[packageId]?.package ?? null
+  // Every trade, not just welders: a non-welding package (electronics, harness, CNC, coatings)
+  // shows its own picture, certificate and stages; welding and unknown packages stay as they were.
+  const trade = otherTrade(pkg)
   const total = pkg?.trainees ?? null
   // Never clamp: ?seat=9 on a 4-seat plan is a seat that does not exist (the API 404s it too).
   const badSeat = seat === null || (total !== null && seat > total)
@@ -61,7 +64,11 @@ export function SeatCard({ packageId, seat }: { packageId: string; seat: number 
   const header = (
     <section className="overflow-hidden rounded-xl border border-border bg-card shadow-xs">
       <div className="flex justify-center bg-brand/5 px-4 pt-3">
-        <WelderArt className="h-28 w-auto max-w-full" />
+        {trade ? (
+          <TradeHeroArt processes={trade.processes} className="h-28 w-auto max-w-full" />
+        ) : (
+          <WelderArt className="h-28 w-auto max-w-full" />
+        )}
       </div>
       <div className="p-4">
         <h2 className="text-2xl leading-snug font-semibold tracking-tight tabular-nums">
@@ -160,7 +167,7 @@ export function SeatCard({ packageId, seat }: { packageId: string; seat: number 
   const testDate = addDays(base, seatDemo.test_date_weeks_after_funding * 7)
   const ics = buildIcs({
     uid: `muster-${packageId}-seat-${seatNo}-${toISODate(testDate)}@muster.demo`,
-    title: t("seat.icsTitle", { pkg: packageId }),
+    title: seatIcsTitle(packageId, pkg),
     description: t("seat.icsBody"),
     date: testDate,
   })
@@ -178,7 +185,7 @@ export function SeatCard({ packageId, seat }: { packageId: string; seat: number 
             <span>{t("seat.stageNote")}</span>
           </InfoTip>
         </h3>
-        <SeatStepper stages={seatStages} currentId={seatDemo.stage_after_funding} />
+        <SeatStepper stages={seatStagesFor(trade)} currentId={seatDemo.stage_after_funding} />
       </section>
 
       <section className="rounded-xl border border-border bg-card p-4">
@@ -214,9 +221,9 @@ export function SeatCard({ packageId, seat }: { packageId: string; seat: number 
         </a>
       </section>
 
-      <TicketPreview />
+      <TicketPreview trade={trade} />
 
-      <PathToWork jobs={unlocked} value={value} jobsById={jobsById} />
+      <PathToWork jobs={unlocked} value={value} jobsById={jobsById} trade={trade} />
 
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <ShieldCheck className="size-4 shrink-0" aria-hidden />

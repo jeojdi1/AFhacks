@@ -39,6 +39,7 @@ from engine.rules import (
     CERT_LABEL,
     LAPSED,
     NOT_HELD_STATUSES,
+    OPERATOR_CERT_LABEL,
     PROCESS_LABEL,
     cert_label,
     process_label,
@@ -69,11 +70,18 @@ PROCESS_ALIASES = {
     "5axis": "five_axis_milling", "5_axis_milling": "five_axis_milling", "weld": "welding",
     "fabrication": "welding", "heat_treating": "heat_treat", "paint": "painting",
     "harness": "wire_harness", "electronics": "electronics_assembly",
+    "cnc_machining": "cnc_milling", "machinist": "cnc_milling",
+    "cable_harness": "wire_harness", "cable_assembly": "wire_harness", "cabling": "wire_harness",
+    "wiring": "wire_harness", "box_build": "electronics_assembly", "pcba": "electronics_assembly",
+    "electronics_subassembly": "electronics_assembly", "electronic_subassembly": "electronics_assembly",
+    "electronics_subassemblies": "electronics_assembly",
 }
 CERT_ALIASES = {
     "CWB": "CWB_W47.1", "W47.1": "CWB_W47.1", "CWBW47.1": "CWB_W47.1", "CSAW47.1": "CWB_W47.1",
     "CPCSC": "CPCSC_L1", "CPCSCL1": "CPCSC_L1", "ISO": "ISO9001", "ISO9001": "ISO9001",
-    "AS9100D": "AS9100",
+    "AS9100D": "AS9100", "IPC610": "IPC_A_610", "IPCA610": "IPC_A_610", "A610": "IPC_A_610",
+    "JSTD001": "IPC_J_STD_001", "IPCJSTD001": "IPC_J_STD_001", "IPC/WHMAA620": "IPC_WHMA_A_620",
+    "WHMAA620": "IPC_WHMA_A_620", "IPCA620": "IPC_WHMA_A_620", "IPC620": "IPC_WHMA_A_620",
 }
 # Tender categories that fit a shop's processes (sample categories in tenders_defence.json).
 TENDER_CATEGORY = {
@@ -119,12 +127,16 @@ def normalize_process(raw: str) -> str:
 def normalize_cert(raw: str) -> str:
     key = raw.strip()
     upper = key.upper()
-    for ctype in CERT_LABEL:
+    labels = {**CERT_LABEL, **OPERATOR_CERT_LABEL}
+    for ctype in labels:
         if upper == ctype.upper():
             return ctype
     squashed = upper.replace(" ", "").replace("-", "").replace("_", "")
-    for ctype, label in CERT_LABEL.items():
-        if squashed in (ctype.upper().replace("_", ""), label.upper().replace(" ", "")):
+    for ctype, label in labels.items():
+        if squashed in (
+            ctype.upper().replace("_", ""),
+            label.upper().replace(" ", "").replace("-", ""),
+        ):
             return ctype
     if squashed in CERT_ALIASES:
         return CERT_ALIASES[squashed]

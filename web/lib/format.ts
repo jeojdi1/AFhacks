@@ -49,6 +49,11 @@ export function fmtKm(km: number): string {
   return `${Math.round(km).toLocaleString("en-US")} km`;
 }
 
+/** Lower-case a label for use mid-sentence, keeping acronyms: "CNC milling" stays, "Wire harness" → "wire harness". */
+export function lowerLabel(s: string): string {
+  return s.replace(/\b(?![A-Z]{2,}\b)\w+/g, (w) => w.toLowerCase());
+}
+
 export const PROCESS_LABEL: Record<string, string> = {
   cnc_milling: "CNC milling",
   five_axis_milling: "5-axis milling",
@@ -73,6 +78,9 @@ export const CERT_LABEL: Record<string, string> = {
   "NADCAP:CHEM_PROCESSING": "Nadcap chemical processing",
   "NADCAP:COATINGS": "Nadcap coatings",
   "CWB_W47.1": "CWB W47.1",
+  IPC_J_STD_001: "IPC J-STD-001",
+  IPC_A_610: "IPC-A-610",
+  IPC_WHMA_A_620: "IPC/WHMA-A-620",
 };
 
 export const CATEGORY_LABEL: Record<string, string> = {
@@ -111,7 +119,7 @@ export const CERT_STATUS_LABEL: Record<string, string> = {
  *
  * The matching rules count `verified`, `declared` and `pending_training` (CLAUDE.md §1.1
  * decision 4), so a funded package can unblock jobs. But `pending_training` only means
- * Northgate paid for welders to train: the shop does not hold the certificate yet. Every
+ * Northgate paid for workers to train: the shop does not hold the certificate yet. Every
  * screen shows it as "Training under way", never as held, and counts it separately
  * ("1 of 3 in place · 1 in training").
  */
@@ -136,7 +144,7 @@ export function certIsLapsed(status: string | null | undefined): boolean {
   return status === "expired";
 }
 
-/** Welders in training for it, paid by Northgate (status `pending_training`). */
+/** Workers in training for it, paid by Northgate (status `pending_training`). */
 export function certInTraining(status: string | null | undefined): boolean {
   return certDisplay(status) === "in_training";
 }

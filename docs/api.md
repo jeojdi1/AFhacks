@@ -95,6 +95,8 @@ A certification **counts** for the rules if its status is `verified`, `declared`
 
 *(Additive, v0.6.)* **`expired`** means the shop held the certification and it lapsed (`expires_at` is the date it ran out). Like `unknown` it **never counts** (the counting list above is unchanged), so a controlled job cannot go to a shop whose CGP registration lapsed. Where it shows: rule reasons read "lapsed" (`"CGP status is lapsed"`, `"… (status lapsed)"`); `GET /shops/{id}` readiness lists it as a **renewal** (§3); the graph has no `HOLDS_CERT` edge for it and `/search/shops` result chips leave it out (like `unknown`); `/search/jobs` near misses read `"Renew Controlled Goods registration (lapsed)"`. Demo data: synthetic shop `syn-028` (Millrace Machine Works) has a CGP registration that lapsed on 2026-08-31. Its CGP was `unknown` before, and neither status counts, so no routing number moves.
 
+*(Additive, every trade.)* `cert_type` also accepts three **operator certifications** a shop holds through its certified staff: `IPC_J_STD_001` (IPC J-STD-001), `IPC_A_610` (IPC-A-610) and `IPC_WHMA_A_620` (IPC/WHMA-A-620). They are not tracked on every shop profile (shop `certifications` and `cert_summary` list them only when a shop declares one), a job requires one only when its line names the standard (CSV `required_certs`, the LLM, or keyword rules on "IPC-A-610" / "J-STD-001" / "WHMA-A-620"), and a shop declares one with `POST /shops/{id}/certifications/{cert_type}`. The Northgate demo requires none. The tagger and `/search` also read trade words as processes: "box build", "PCBA", "electronics subassembly" → `electronics_assembly`; "cable harness", "cable assembly", "cabling" → `wire_harness`; "CNC machining" → `cnc_milling`. No response shape changes.
+
 ---
 
 ## 2. Shared objects
@@ -230,6 +232,21 @@ Assignments are `direct` (work on the contract): `sme_direct` (2x) if the shop i
 }
 ```
 `category` is the primary category; `categories` lists all that apply. `est_credit_cad = est_cost_cad × 1.0 × multiplier`.
+
+*(Additive, every trade; no new fields.)* Each gap maps to a **trade** in `data/rules/training_costs.json` → `trades`: a cert gap through the trade's `certs`, a capacity gap through its `processes` (`welding`; `cnc_machining` for CNC milling, 5-axis and turning; `electronics_assembly` for IPC J-STD-001 / IPC-A-610 and electronics assembly; `cable_harness` for IPC/WHMA-A-620 and wire harness; `coatings_plating` for plating, anodizing and painting; `quality_inspection` is catalog only). The trade names the workers in `title` and in the shop's `training[].message`, and (for every trade but welding) sets the per-trainee cost and may change `category`:
+
+| Gap | Example `title` | `category` | Cost per trainee (assumption) |
+| --- | --- | --- | --- |
+| cert `CWB_W47.1` (unchanged) | `Certify 4 welders to CWB W47.1 at …` | `personal_certification` | $24,000 |
+| capacity `welding` (unchanged) | `Sponsor 2 welding apprentices at … through an Indigenous-governed training institute` | `apprentice_sponsorship` | $20,000 |
+| cert `IPC_A_610` | `Certify 4 electronics assemblers to IPC-A-610 at …` | `personal_certification` | $6,000 |
+| cert `IPC_WHMA_A_620` | `Certify 4 harness assemblers to IPC/WHMA-A-620 at …` | `personal_certification` | $4,000 |
+| capacity `cnc_milling` / `cnc_turning` / `five_axis_milling` | `Sponsor 2 CNC machinist apprentices at … through an Indigenous-governed training institute` | `apprentice_sponsorship` | $20,000 |
+| capacity `electronics_assembly` | `Train 2 electronics assemblers at … through an Indigenous-governed training institute` | `education_costs` (`categories: ["education_costs"]`) | $12,000 |
+| capacity `wire_harness` | `Train 2 harness assemblers at …` | `education_costs` | $10,000 |
+| capacity `plating` / `anodizing` / `painting` | `Train 2 coatings and plating operators at …` | `education_costs` | $10,000 |
+
+A process in no trade (`heat_treat`, `sheet_metal`, `fasteners`) keeps the original wording (`Sponsor 2 heat treating apprentices`). The multiplier and `recipient_type` still come from `recipient_by_gap` (cert 5x college, capacity 10x Indigenous institution); IPC cert packages use the recipient example "IPC-licensed training centre (example, not affiliated)". A blocked job whose every capable shop is full ends with the trade (`… all are at capacity (…) (shortage of CNC machinists)`), and `summary.top_reason` names the trade's worker for a trainable cert (`IPC-A-610 electronics assembler shortage (certification + capacity)`). The Northgate demo (TP-01, TP-02, every fixture) is unchanged.
 
 ### Snapshot (used by fund)
 ```json
@@ -402,6 +419,8 @@ The shop-side view (H3.5): what this shop is offered, what it is missing, and wh
 ```
 - `readiness` lists jobs this shop fails on **exactly one** requirement, grouped by that requirement (`kind`: `cert | capacity | process`).
 - *(Additive, v0.6.)* A `cert` item whose certification is `expired` at this shop is a **renewal**: `"message": "Renew Controlled Goods registration → qualify for 1 more job worth $1.5M"` plus `"renewal": true` and `"lapsed_on": "2026-08-31"` (the certification's `expires_at`). Renewals come first, then the other items by value. Items that are not renewals have no `renewal` / `lapsed_on` keys (their shape is unchanged). Renewal names: CGP → "Controlled Goods registration" (a lapsed registration means registering again with PSPC's Controlled Goods Program), CPCSC L1 → "CPCSC Level 1 self-assessment", ISO 9001 / AS9100 → "… certificate", CWB W47.1 → "CWB W47.1 certification", Nadcap → "Nadcap … accreditation".
+- *(Additive, every trade; same fields.)* A `capacity` item whose process maps to a trade names the workers to train and the hours they add: `"Train 2 CNC machinists (+40 h/week CNC milling) → qualify for 3 more jobs worth $1.2M"` (trainees = the shortfall of the largest job ÷ 20 h/week per trainee, rounded up; assumption). A trainable operator certification reads `"Certify 4 electronics assemblers to IPC-A-610 → qualify for …"`. Company certifications keep `"Get CWB W47.1 → …"`, and a process in no trade keeps `"Add heat treating capacity → …"`. Every message still has exactly one `→`.
+- `training[].message` names the package's trade: `"Suggested: certify 4 welders to CWB W47.1"`, `"2 CNC machinist apprentices in training"`, `"Suggested: train 2 electronics assemblers"` (capacity packages in `education_costs` / `skills_program_contribution` say "train", others "sponsor … apprentices"). The web derives the trade from `cert_unlock` or the `capacity_unlock` key with the same catalog (`web/lib/trades.ts`).
 - After funding, the unblocked jobs appear in `offers` (2 → 5), the matching readiness item disappears (the next one is `"Get ISO 9001 → qualify for 2 more jobs worth $1.2M"`), and the training entry reads `"status": "funded"`, `"message": "4 welders in training for CWB W47.1"`.
 - Before routing, `offers` is `[]`.
 - A declined job Northgate re-offered to this shop (§6 re-offer) is also listed here, with the assignment's value, credit and multiplier, this shop's own three reasons, `status` from this shop's own answer (`offered | accepted | declined`) and `"reoffered_from": "<shop that declined>"`. The shop that declined keeps it in its list as `declined`. Other offers have no `reoffered_from` key.
@@ -712,7 +731,7 @@ When a shop presses **Accept**, the phone jumps to a formal award page: the pape
 | `nda` | Mutual non-disclosure agreement | sign | always | demo template (assumption) |
 | `cgp` | Controlled Goods declaration | sign | `controlled` jobs only | "Technical data moves only through Northgate's secure channel after this check; Shieldworks never stores drawings" |
 | `cpcsc` | Cyber-security self-check (CPCSC Level 1) attestation | sign | `CPCSC_L1` in `required_certs` | 13 controls, self-assessed, shop-declared |
-| `quality` | Quality certificates | auto (done at accept) | always | the job's required certificates from the shop's profile (plus ISO 9001 when held); CWB W47.1 not yet held → "Welding certification (CWB W47.1): welders in training — qualification expected before first article (assumption)" |
+| `quality` | Quality certificates | auto (done at accept) | always | the job's required certificates from the shop's profile (plus ISO 9001 when held); CWB W47.1 not yet held → "Welding certification (CWB W47.1): welders in training — qualification expected before first article (assumption)"; another trainable cert in training names its trade → "Electronics assembly certification (IPC-A-610): electronics assemblers in training — …" |
 | `fai` | First article inspection plan | upload | always | no file is stored |
 | `ccv` | Canadian content declaration (for Northgate's ITB report) | sign | always | "Canadian content 91% of $921,600 = $838,656 CCV (Simplified ITB rules for demo)" |
 | `insurance` | Certificate of insurance | upload | always | coverage per Northgate's terms (assumption); no file is stored |

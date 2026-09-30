@@ -15,6 +15,7 @@ import { CheckCircle2, ChevronRight, CircleDashed, ClipboardCheck, GraduationCap
 import { cn } from "@/lib/utils"
 import { CERT_LABEL, fmtMoney } from "@/lib/format"
 import { certPlain } from "@/lib/ui/plain"
+import { isWeldingTrade, tradeForPackage } from "@/lib/trades"
 import { useDemo } from "@/lib/data/store"
 import { fx } from "@/lib/data/fixture-source"
 import type { GapsResponse, TrainingPackage } from "@/lib/api/types"
@@ -27,7 +28,7 @@ import { ShopLabelChip } from "@/components/mobile/shell/m-header"
 extendStrings("en", {
   "col.partner": "Regional college (example, not affiliated)",
   "col.partnerChip": "Example, not affiliated",
-  "col.intro": "Northgate, a fictional defence company, pays for welder training at small shops. You run the courses. Northgate earns Canada work credit (ITB) for the training.",
+  "col.intro": "Northgate, a fictional defence company, pays to train qualified workers at small shops: welders, CNC machinists, electronics assemblers and more. You run the courses. Northgate earns Canada work credit (ITB) for the training.",
   "col.plans": "Training plans",
   "col.plansNotRouted": "Northgate hasn't sent its parts list to shops yet, so these plans are examples of what it may fund.",
   "col.status.funded": "Funded",
@@ -36,6 +37,10 @@ extendStrings("en", {
   "col.status.example": "Not suggested yet",
   "col.tp01.title": "{count} welder seats · {cert}",
   "col.tp02.title": "{count} apprentice seats · welding",
+  "col.trade.apprentice": "{count} apprentice seats · {trade}",
+  "col.trade.apprentice_one": "1 apprentice seat · {trade}",
+  "col.trade.seats": "{count} {worker} seats · {what}",
+  "col.trade.seats_one": "1 {worker} seat · {what}",
   "col.tp01.partner": "Regional college (example, not affiliated)",
   "col.tp02.partner": "Indigenous-governed training institute (example, not affiliated)",
   "col.atShop": "At {shop}",
@@ -55,7 +60,7 @@ extendStrings("en", {
   "col.evidenceNote": "This checklist is a demo assumption. The Defence Investment Agency sets the evidence it accepts.",
   "col.ev.enrolment": "Enrolment confirmation for each seat",
   "col.ev.attendance": "Attendance records",
-  "col.ev.completion": "Completion or test result (for example a welding certification (CWB W47.1) test pass)",
+  "col.ev.completion": "Completion or test result (for example a welding certification (CWB W47.1) test pass, or an IPC operator certificate)",
   "col.ev.invoices": "Invoices paid by Northgate (training counts on the defence company's cash)",
   "col.ev.eligibility": "Citizenship or permanent-resident eligibility for personal certification",
   "col.ev.eligibilitySrc": "ITB model terms §7.5.1: personal certification counts only for Canadian citizens or permanent residents.",
@@ -91,12 +96,26 @@ function examplePlans(): TrainingPackage[] {
   return fx<GapsResponse>("GET", "/programs/northgate/gaps")?.suggestions ?? []
 }
 
+/** The plan's trade when it is not welding (welding keeps the original TP-01 / TP-02 wording). */
+function otherTradeOf(p: TrainingPackage) {
+  const trade = tradeForPackage(p)
+  return trade && !isWeldingTrade(trade) ? trade : null
+}
+
 function planTitle(p: TrainingPackage): string {
+  const other = otherTradeOf(p)
+  const cert = p.cert_unlock ? certPlain(p.cert_unlock).first || (CERT_LABEL[p.cert_unlock] ?? p.cert_unlock) : null
+  if (other) {
+    // Every trade, not just welders: "2 apprentice seats · CNC machining", "4 electronics assembler seats · …".
+    if (p.category === "apprentice_sponsorship") return t("col.trade.apprentice", { count: p.trainees, trade: other.label.toLowerCase() })
+    return t("col.trade.seats", { count: p.trainees, worker: other.worker, what: cert ?? other.label.toLowerCase() })
+  }
   if (p.category === "apprentice_sponsorship") return t("col.tp02.title", { count: p.trainees })
-  return t("col.tp01.title", { count: p.trainees, cert: p.cert_unlock ? certPlain(p.cert_unlock).first || (CERT_LABEL[p.cert_unlock] ?? p.cert_unlock) : "welding" })
+  return t("col.tp01.title", { count: p.trainees, cert: cert ?? "welding" })
 }
 
 function planPartner(p: TrainingPackage): string {
+  if (otherTradeOf(p) && p.recipient_example) return p.recipient_example
   return p.recipient_type === "indigenous_institution" || p.category === "apprentice_sponsorship" ? t("col.tp02.partner") : t("col.tp01.partner")
 }
 

@@ -12,7 +12,7 @@ import { FundingChip } from "./grow-chips"
 /**
  * Sticky thumb-zone bar: "Ask Northgate to fund this" (touch-lg), then the
  * request chip ("Requested Sep 26 · awaiting Northgate"), then "Funded · 4
- * welders in training" linking to the trainee seat.
+ * welders in training" (or the package's own trade) linking to the trainee seat.
  */
 export function FundingBar({ item, actions }: { item: GrowItem; actions: ShopActions }) {
   const [sending, setSending] = React.useState(false)

@@ -12,6 +12,7 @@ import type {
 } from "@/lib/api/types"
 import rules from "../../../data/rules/readiness_steps.json"
 import { STATIC_SITE } from "@/lib/base-path"
+import { isWeldingTrade, tradeForRequirement, type Trade } from "@/lib/trades"
 import type { FundingRequestRec, ReadinessStep } from "./types"
 
 // ---------------------------------------------------------------------------
@@ -67,12 +68,57 @@ export function safeStep(s: ReadinessStepDef): ReadinessStepDef {
   return { ...s, cost_stated: null, time_stated: null }
 }
 
+/**
+ * Steps for an operator certification of another trade (IPC J-STD-001 / IPC-A-610 /
+ * IPC/WHMA-A-620) that readiness_steps.json does not list: the trade's credential, no cost
+ * and no time (nothing is invented; flag "assumption").
+ */
+function tradeCertDef(requirement: string, trade: Trade): RequirementDef {
+  return {
+    title: trade.credential ?? requirement.replace(/_/g, " "),
+    kind: "operator_cert",
+    summary: `Operators earn this on a course, then the shop holds it through its certified ${trade.workers}. These steps are suggestions, not rules.`,
+    source_url: null,
+    registry_url: null,
+    steps: [
+      {
+        label: `Train and certify your ${trade.workers}`,
+        detail: trade.credential
+          ? `${trade.credential}. A prime-funded training package can pay for the course.`
+          : "A prime-funded training package can pay for the course.",
+        source_url: null,
+        time_stated: null,
+        cost_stated: null,
+        flag: "assumption",
+        fundable: true,
+      },
+      {
+        label: "Declare it on your profile",
+        detail: "Add the certificate and its expiry date so Northgate's match counts it.",
+        source_url: null,
+        time_stated: null,
+        cost_stated: null,
+        flag: "assumption",
+        fundable: false,
+      },
+    ],
+  }
+}
+
 /** Steps for a cert type (NADCAP:* share one entry) or, for a process tag, the generic capacity steps. */
 export function requirementDef(requirement: string, kind?: GapKind | null): RequirementDef | null {
   const key = requirement.startsWith("NADCAP:") ? "NADCAP" : requirement
-  const def = R.requirements[key] ?? (kind === "capacity" || kind === "process" || !requirement.match(/^[A-Z]/) ? R.process_default : null)
+  const trade = tradeForRequirement(requirement)
+  const other = trade && !isWeldingTrade(trade) ? trade : null
+  let def = R.requirements[key] ?? (kind === "capacity" || kind === "process" || !requirement.match(/^[A-Z]/) ? R.process_default : null)
+  if (!def && other && other.certs.includes(requirement)) def = tradeCertDef(requirement, other)
   if (!def) return null
-  return { ...def, steps: def.steps.map((s) => safeStep({ ...s, fundable: Boolean(s.fundable) })) }
+  let steps = def.steps.map((s) => safeStep({ ...s, fundable: Boolean(s.fundable) }))
+  // Capacity for another trade: name the workers and their training on the fundable step.
+  if (def === R.process_default && other && other.credential) {
+    steps = steps.map((s) => (s.fundable ? { ...s, detail: `${s.detail} For ${other.workers}: ${other.credential}.` } : s))
+  }
+  return { ...def, steps }
 }
 
 export function otherFunding(): OtherFunding[] {
@@ -82,6 +128,23 @@ export function otherFunding(): OtherFunding[] {
 export const welderTicketRule = R.welder_ticket
 export const seatStages: SeatStage[] = R.seat_stages
 export const seatDemo = R.seat_demo
+
+/**
+ * Seat stages for a package's trade. Welding (or an unknown trade) keeps the CWB test and
+ * ticket stages from readiness_steps.json; another trade gets the same stages with a test or
+ * course date and a certificate instead of a CWB ticket.
+ */
+export function seatStagesFor(trade: Trade | null | undefined): SeatStage[] {
+  if (!trade || isWeldingTrade(trade)) return seatStages
+  return seatStages.map((s) => {
+    if (s.id === "test_booked") return { ...s, detail: "Your test or course completion date is set." }
+    if (s.id === "passed") return { ...s, detail: "You passed the test for your certificate." }
+    if (s.id === "ticket_issued") {
+      return { ...s, label: "Certificate issued", detail: "Your certificate is issued and your shop can put you on the jobs." }
+    }
+    return s
+  })
+}
 
 // ---------------------------------------------------------------------------
 // Grow items

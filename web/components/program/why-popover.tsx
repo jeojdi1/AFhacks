@@ -22,6 +22,8 @@ import { cb } from "@/lib/ui/copy-b";
 import { certPlain } from "@/lib/ui/plain";
 import { cn } from "@/lib/utils";
 
+import { processWhy } from "@/components/gaps/labels";
+
 import { plainStuckReason, shortShopName, TermText } from "./plain-text";
 
 const MULT_LABEL: Record<number, string> = {
@@ -206,16 +208,21 @@ const FAIL_KEY: Record<string, string> = {
   cpcsc: "why.fail.cpcsc",
 };
 
-/** "26 don't do this welding process · 9 can't fit the part size · …" (zero counts omitted). */
-export function failingInWords(failing: Record<string, number> | undefined): string[] {
+/**
+ * "26 don't do this welding process · 9 can't fit the part size · …" (zero counts omitted).
+ * `process`: the job's first process, so a CNC or electronics job says "don't do CNC milling".
+ */
+export function failingInWords(failing: Record<string, number> | undefined, process?: string | null): string[] {
   return Object.entries(failing ?? {})
     .filter(([, n]) => n > 0)
-    .map(([k, n]) => (FAIL_KEY[k] ? cb(FAIL_KEY[k], { n }) : `${n} ${k}`));
+    .map(([k, n]) =>
+      k === "process" ? processWhy(n, process) : FAIL_KEY[k] ? cb(FAIL_KEY[k], { n }) : `${n} ${k}`,
+    );
 }
 
 export function BlockedWhyPopover({ blocked }: { blocked: BlockedJob }) {
   const b = blocked;
-  const words = failingInWords(b.failing_filters);
+  const words = failingInWords(b.failing_filters, b.process_tags?.[0]);
   return (
     <Popover>
       <PopoverTrigger className={triggerClass} aria-label={cb("why.blocked.aria", { job: b.job_id })}>

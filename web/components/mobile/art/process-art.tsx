@@ -8,7 +8,7 @@ import { Info } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
-type Kind = "weld" | "mill" | "turn" | "sheet" | "coat" | "harness" | "heat" | "fastener" | "part"
+type Kind = "weld" | "mill" | "turn" | "sheet" | "coat" | "harness" | "board" | "heat" | "fastener" | "part"
 
 const TAG_KIND: Record<string, Kind> = {
   welding: "weld",
@@ -20,7 +20,8 @@ const TAG_KIND: Record<string, Kind> = {
   plating: "coat",
   painting: "coat",
   wire_harness: "harness",
-  electronics_assembly: "harness",
+  // Electronics subassemblies and box builds: a circuit board, not a harness.
+  electronics_assembly: "board",
   heat_treat: "heat",
   fasteners: "fastener",
 }
@@ -32,6 +33,7 @@ const KIND_TINT: Record<Kind, string> = {
   sheet: "bg-slate-100 text-slate-700 ring-slate-200",
   coat: "bg-violet-50 text-violet-700 ring-violet-200",
   harness: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  board: "bg-teal-50 text-teal-700 ring-teal-200",
   heat: "bg-orange-50 text-orange-700 ring-orange-200",
   fastener: "bg-zinc-100 text-zinc-700 ring-zinc-200",
   part: "bg-slate-100 text-slate-700 ring-slate-200",
@@ -39,7 +41,7 @@ const KIND_TINT: Record<Kind, string> = {
 
 /** Pick the most telling process from a job's tags. */
 export function processKind(tags: string[] | null | undefined): Kind {
-  const order: Kind[] = ["weld", "harness", "heat", "coat", "sheet", "mill", "turn", "fastener"]
+  const order: Kind[] = ["weld", "harness", "board", "heat", "coat", "sheet", "mill", "turn", "fastener"]
   const kinds = (tags ?? []).map((x) => TAG_KIND[x]).filter(Boolean) as Kind[]
   return order.find((k) => kinds.includes(k)) ?? "part"
 }
@@ -101,6 +103,16 @@ function Glyph({ kind }: { kind: Kind }) {
           <path d="M11 19c8 0 8-8 18-8M11 21c8 0 8 8 18 8M11 20h18" />
         </g>
       )
+    case "board":
+      return (
+        <g {...s}>
+          <rect x="6" y="8" width="28" height="24" rx="2" />
+          <rect x="15" y="15" width="10" height="10" rx="1" />
+          <path d="M15 18h-4M15 22h-4M25 18h4M25 22h4M20 15v-4M20 25v4" />
+          <circle cx="30" cy="12" r="1.5" />
+          <circle cx="10" cy="28" r="1.5" />
+        </g>
+      )
     case "heat":
       return (
         <g {...s}>
@@ -125,6 +137,11 @@ function Glyph({ kind }: { kind: Kind }) {
         </g>
       )
   }
+}
+
+/** The bare process glyph (40 x 40 user units, currentColor) for use inside a larger SVG. */
+export function ProcessGlyph({ tags }: { tags: string[] | null | undefined }) {
+  return <Glyph kind={processKind(tags)} />
 }
 
 /** Process pictogram thumbnail for one job (tinted rounded tile). */
@@ -162,6 +179,25 @@ export function WelderArt({ className }: { className?: string }) {
       <path d="M36 30l4-3M37 34l5 0M35 26l2-4" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="text-amber-500" />
     </svg>
   )
+}
+
+/** A worker in a hard hat: the training card picture for every trade other than welding. */
+export function WorkerArt({ className }: { className?: string }) {
+  return (
+    <svg aria-hidden viewBox="0 0 48 48" className={cn("size-12", className)}>
+      <circle cx="24" cy="24" r="23" className="fill-funded-soft" />
+      <path d="M12 40c0-8 5-12 12-12s12 4 12 12" className="fill-funded/70" />
+      <circle cx="24" cy="20" r="6.5" className="fill-funded/40" />
+      <path d="M15 17c0-6 4-9.5 9-9.5s9 3.5 9 9.5z" className="fill-funded" />
+      <rect x="13" y="16" width="22" height="3" rx="1.5" className="fill-funded" />
+      <path d="M22 8.5v5M26 8.5v5" className="stroke-white/40" strokeWidth={1.5} strokeLinecap="round" />
+    </svg>
+  )
+}
+
+/** Training card picture for a trade: the welder for welding (or unknown), a hard hat otherwise. */
+export function TrainingArt({ trade, className }: { trade?: string | null; className?: string }) {
+  return trade && trade !== "welding" ? <WorkerArt className={className} /> : <WelderArt className={className} />
 }
 
 /** One dot per trainee seat. */

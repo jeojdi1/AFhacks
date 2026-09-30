@@ -139,7 +139,7 @@ interface Row {
   best: CertT
   /** Held now (verified / declared). */
   held: boolean
-  /** Welders in training for it, paid by Northgate (pending_training): shown, never counted as held. */
+  /** Workers in training for it, paid by Northgate (pending_training): shown, never counted as held. */
   training: boolean
   /** Held before and ran out (status "expired"): always listed, with renewal steps. */
   lapsed: boolean

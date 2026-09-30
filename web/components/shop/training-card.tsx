@@ -11,6 +11,8 @@ import { useWithParams } from "@/lib/ui/use-with-params"
 import { growHref } from "@/lib/app/readiness"
 import { TrainingStatusBadge } from "./badges"
 import type { TrainingT } from "./types"
+import { isWeldingTrade, tradeForPackage, workerNoun, workersText } from "@/lib/trades"
+import { capFirst, commonPackageTrade } from "@/lib/ui/trade-copy"
 
 function unlockText(t: TrainingT): string | null {
   const parts: string[] = []
@@ -26,16 +28,31 @@ function unlockText(t: TrainingT): string | null {
 /**
  * The package headline in plain words. The engine's suggested text says "certify 4 welders",
  * which the wording rules forbid (W47.1 is a company certification): say training seats.
+ * Every trade: a non-welding package names its own workers ("4 electronics assemblers in
+ * training for …"); an unmapped one says "qualified workers".
  */
 function headline(t: TrainingT): string {
   if (t.trainees != null && t.cert_unlock) {
     const cert = certPlain(t.cert_unlock).first
     const lc = cert.charAt(0).toLowerCase() + cert.slice(1)
+    const trade = tradeForPackage(t)
+    if (!isWeldingTrade(trade)) {
+      return t.status === "funded"
+        ? ce("shop.training.funded.trade", { who: workersText(trade, t.trainees), cert: lc })
+        : ce("shop.training.suggested.trade", { seats: t.trainees, worker: workerNoun(trade), cert: lc })
+    }
     return t.status === "funded"
       ? ce("shop.training.funded", { seats: t.trainees, cert: lc })
       : ce("shop.training.suggested", { seats: t.trainees, cert: lc })
   }
   return t.message
+}
+
+/** "Welder training" when every package here trains welders; else the one trade, or "Worker training". */
+function cardTitle(training: TrainingT[]): string {
+  const trade = commonPackageTrade(training)
+  if (training.length === 0 || isWeldingTrade(trade)) return ce("shop.training.title")
+  return trade ? ce("shop.training.title.trade", { Worker: capFirst(trade.worker) }) : ce("shop.training.title.generic")
 }
 
 /**
@@ -55,7 +72,7 @@ export function TrainingCard({
   return (
     <section className="rounded-xl border border-zinc-200 bg-white">
       <header className="border-b border-zinc-100 px-5 py-5 sm:px-6">
-        <h2 className="text-lg font-semibold tracking-tight text-zinc-900">{ce("shop.training.title")}</h2>
+        <h2 className="text-lg font-semibold tracking-tight text-zinc-900">{cardTitle(training)}</h2>
         <p className="mt-0.5 text-sm text-zinc-500">{ce("shop.training.sub")}</p>
         <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[13px] text-zinc-600" data-testid="training-caveat">
           <AssumptionTag note="Training cost is an estimate for the demo, not a quote" />
@@ -116,7 +133,7 @@ export function TrainingCard({
                     {!funded && fundingRequested.includes(t.package_id) ? (
                       <p
                         className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-teal-800"
-                        title={ce("shop.ready.fundRequested.sub")}
+                        title={isWeldingTrade(tradeForPackage(t)) ? ce("shop.ready.fundRequested.sub") : ce("shop.ready.fundRequested.sub.trade")}
                         data-testid="shop-training-requested"
                       >
                         <Send className="size-3.5" aria-hidden />

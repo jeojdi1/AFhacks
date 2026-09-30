@@ -52,9 +52,21 @@ CERT_LABEL: dict[str, str] = {
     "NADCAP:COATINGS": "Nadcap coatings",
     "CWB_W47.1": "CWB W47.1",
 }
+# Operator (personal) certifications: a shop holds one through its certified staff (IPC
+# Certified IPC Specialist). Kept apart from the company certifications above, which every
+# shop profile tracks: a job needs one only when the buyer names the standard, and a shop
+# declares it. Trainable (data/rules/training_costs.json → trades).
+OPERATOR_CERT_LABEL: dict[str, str] = {
+    "IPC_J_STD_001": "IPC J-STD-001",
+    "IPC_A_610": "IPC-A-610",
+    "IPC_WHMA_A_620": "IPC/WHMA-A-620",
+}
 # Most specific first: the cert named in reasons and gap texts.
 CERT_REASON_PRIORITY: tuple[str, ...] = (
     "CWB_W47.1",
+    "IPC_J_STD_001",
+    "IPC_A_610",
+    "IPC_WHMA_A_620",
     "NADCAP:HEAT_TREAT",
     "NADCAP:CHEM_PROCESSING",
     "NADCAP:COATINGS",
@@ -81,7 +93,7 @@ def process_label(tag: str) -> str:
 
 
 def cert_label(ctype: str) -> str:
-    return CERT_LABEL.get(ctype, ctype)
+    return CERT_LABEL.get(ctype) or OPERATOR_CERT_LABEL.get(ctype, ctype)
 
 
 def renew_label(ctype: str) -> str:

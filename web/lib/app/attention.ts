@@ -7,7 +7,8 @@
 // drops out; the others keep their order.
 
 import { COUNTING_CERT_STATUSES } from "@/lib/api/types"
-import { CERT_LABEL, PROCESS_LABEL, fmtMoney, label } from "@/lib/format"
+import { tradeForPackage, workerNoun } from "@/lib/trades"
+import { CERT_LABEL, PROCESS_LABEL, fmtMoney, label, lowerLabel } from "@/lib/format"
 import { extendStrings, t } from "./strings"
 import { requirementSegment } from "./readiness"
 import { certShortName, riskLine, renewalVerb } from "./renewals"
@@ -101,6 +102,8 @@ export interface TodayItem extends AttentionItem {
   stage?: RenewalStage
   /** Renewal cards: where the date comes from ("illustrative", "shop-declared"). */
   basis?: DateBasis
+  /** Training cards: the package's trade key ("welding", "electronics_assembly"), picks the picture. */
+  trade?: string | null
 }
 
 export interface AttentionOptions {
@@ -137,7 +140,7 @@ export function certShort(type: string): string {
 /** Label for a readiness requirement (a cert type or a process tag). */
 export function requirementLabel(req: string): string {
   if (CERT_LABEL[req]) return certShort(req)
-  return (PROCESS_LABEL[req] ?? req).toLowerCase()
+  return lowerLabel(PROCESS_LABEL[req] ?? req)
 }
 
 /** reply_by = offered-at + 5 business days (assumption). */
@@ -194,7 +197,7 @@ export interface TodayStats {
   certs_counting: number
   /** Held now (verified or declared). */
   certs_in_place: number
-  /** pending_training: counts for matching (CLAUDE.md §1.1 decision 4) but welders are still in training. */
+  /** pending_training: counts for matching (CLAUDE.md §1.1 decision 4) but workers are still in training. */
   certs_in_training: number
   certs_total: number
   /** Weekly hours funded training adds to the profile capacity once trainees qualify (already in capacity_hours). */
@@ -400,7 +403,13 @@ export function buildAttention(
     if (tr.status !== "funded") continue
     const unlock = Object.entries(tr.capacity_unlock ?? {}).filter(([, h]) => typeof h === "number" && h > 0) as [string, number][]
     const welding = tr.cert_unlock === "CWB_W47.1" || unlock.some(([p]) => p === "welding")
-    const people = t(welding ? "today.training.welders" : "today.training.trainees", { count: tr.trainees })
+    // Every trade, not just welders: "2 CNC machinists in training", "4 electronics assemblers …".
+    const trade = tradeForPackage(tr)
+    const people = welding
+      ? t("today.training.welders", { count: tr.trainees })
+      : trade
+        ? workerNoun(trade, tr.trainees)
+        : t("today.training.trainees", { count: tr.trainees })
     const hours = unlock.reduce((s, [, h]) => s + h, 0)
     const process = unlock.map(([p]) => label(PROCESS_LABEL, p).toLowerCase()).join(" + ")
     out.push({
@@ -419,6 +428,7 @@ export function buildAttention(
       big_label: t("today.training.big"),
       verb: t("today.training.verb"),
       assumption: hours ? t("today.training.assumption") : null,
+      trade: welding ? "welding" : (trade?.key ?? null),
     })
   }
 

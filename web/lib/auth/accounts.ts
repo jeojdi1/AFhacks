@@ -38,7 +38,7 @@ export const ACCOUNTS: readonly DemoAccount[] = [
     short: "Northgate",
     org: "Northgate Land Systems",
     title: "Supplier development",
-    does: "Post a parts list, see which small shops took the work, and fund training when welders are short.",
+    does: "Post a parts list, see which small shops took the work, and fund training when qualified workers are short.",
     home: "/prime",
     label: "Fictional defence company",
   },
