@@ -164,6 +164,12 @@ def test_ipc_readiness_and_training_messages(ipc):
     assert st.assignments["NG-001"]["shop_id"] == pkg["shop_id"]
     after = pipeline.shop_detail(st, pkg["shop_id"])["training"]
     assert after[0]["message"] == "4 electronics assemblers in training for IPC-A-610"
+    # the award paperwork names the trade in training, like the CWB note does for welders
+    from engine import award
+
+    quality = award._quality_detail(st, pkg["shop_id"], st.jobs[0])
+    assert ("Electronics assembly certification (IPC-A-610): electronics assemblers in training — "
+            "qualification expected before first article (assumption)") in quality
 
 
 # --------------------------------------------------------------------------- capacity gaps
