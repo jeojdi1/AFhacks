@@ -73,6 +73,9 @@ export const CERT_LABEL: Record<string, string> = {
   "NADCAP:CHEM_PROCESSING": "Nadcap chemical processing",
   "NADCAP:COATINGS": "Nadcap coatings",
   "CWB_W47.1": "CWB W47.1",
+  IPC_J_STD_001: "IPC J-STD-001",
+  IPC_A_610: "IPC-A-610",
+  IPC_WHMA_A_620: "IPC/WHMA-A-620",
 };
 
 export const CATEGORY_LABEL: Record<string, string> = {

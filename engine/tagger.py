@@ -62,6 +62,10 @@ CERT_TYPES = (
     "NADCAP:CHEM_PROCESSING",
     "NADCAP:COATINGS",
     "CWB_W47.1",
+    # Operator certifications (engine.rules.OPERATOR_CERT_LABEL): IPC Certified IPC Specialist.
+    "IPC_J_STD_001",
+    "IPC_A_610",
+    "IPC_WHMA_A_620",
 )
 
 DEFAULT_CCV_PCT = 0.85
@@ -106,7 +110,22 @@ _PROCESS_LOOKUP = {_squash(p): p for p in PROCESS_TAGS} | {
     "heattreating": "heat_treat",
     "harness": "wire_harness",
     "wireharnesses": "wire_harness",
+    "cableharness": "wire_harness",
+    "cableharnesses": "wire_harness",
+    "cableassembly": "wire_harness",
+    "cableassemblies": "wire_harness",
+    "cabling": "wire_harness",
     "electronics": "electronics_assembly",
+    "electronicssubassembly": "electronics_assembly",
+    "electronicssubassemblies": "electronics_assembly",
+    "electronicsubassembly": "electronics_assembly",
+    "electronicsubassemblies": "electronics_assembly",
+    "boxbuild": "electronics_assembly",
+    "boxbuilds": "electronics_assembly",
+    "pcba": "electronics_assembly",
+    "pcbassembly": "electronics_assembly",
+    "machining": "cnc_milling",
+    "cncmachining": "cnc_milling",
 }
 _MATERIAL_LOOKUP = {_squash(m): m for m in MATERIALS} | {
     "armorsteel": "armour_steel",
@@ -133,6 +152,14 @@ _CERT_LOOKUP = {_squash(c): c for c in CERT_TYPES} | {
     "nadcapchemprocessing": "NADCAP:CHEM_PROCESSING",
     "nadcapcoating": "NADCAP:COATINGS",
     "controlledgoods": "CGP",
+    "jstd001": "IPC_J_STD_001",
+    "ipcjstd001": "IPC_J_STD_001",
+    "ipca610": "IPC_A_610",
+    "ipc610": "IPC_A_610",
+    "ipcwhmaa620": "IPC_WHMA_A_620",
+    "whmaa620": "IPC_WHMA_A_620",
+    "ipca620": "IPC_WHMA_A_620",
+    "ipc620": "IPC_WHMA_A_620",
 }
 
 
@@ -146,6 +173,10 @@ _CERT_PATTERNS: tuple[tuple[re.Pattern[str], str], ...] = (
     (re.compile(r"^\s*nadcap\b.*heat", re.IGNORECASE), "NADCAP:HEAT_TREAT"),
     (re.compile(r"^\s*nadcap\b.*chem", re.IGNORECASE), "NADCAP:CHEM_PROCESSING"),
     (re.compile(r"^\s*nadcap\b.*coat", re.IGNORECASE), "NADCAP:COATINGS"),
+    (re.compile(r"^\s*(?:IPC\s*[-/ ]?\s*)?J\s*-?\s*STD\s*-?\s*001", re.IGNORECASE), "IPC_J_STD_001"),
+    (re.compile(r"^\s*(?:IPC\s*/\s*)?WHMA\s*-?\s*A\s*-?\s*620|^\s*IPC\s*-?\s*(?:A\s*-?\s*)?620",
+                re.IGNORECASE), "IPC_WHMA_A_620"),
+    (re.compile(r"^\s*IPC\s*-?\s*(?:A\s*-?\s*)?610", re.IGNORECASE), "IPC_A_610"),
 )
 
 
@@ -530,7 +561,7 @@ _I = re.IGNORECASE
 _PROCESS_RULES: tuple[tuple[str, re.Pattern[str], re.Pattern[str] | None], ...] = (
     ("five_axis_milling", re.compile(r"\b(?:5|five)[\s-]?axis", _I), None),
     ("welding", re.compile(r"weld|\bCWB\b", _I), None),
-    ("wire_harness", re.compile(r"harness|wiring|cable\s+assembl", _I), None),
+    ("wire_harness", re.compile(r"harness|wiring|\bcabling\b|cable\s+assembl", _I), None),
     ("anodizing", re.compile(r"anodi[sz]", _I), None),
     ("plating", re.compile(r"\bplat(?:ed|ing)\b|zinc|nickel|cadmium", _I), None),
     ("heat_treat", re.compile(r"heat[\s-]?treat|harden|carburi[sz]|\bquench", _I), None),
@@ -548,7 +579,13 @@ _PROCESS_RULES: tuple[tuple[str, re.Pattern[str], re.Pattern[str] | None], ...] 
     ("fasteners", re.compile(r"fastener|\bbolts?\b|\bscrews?\b|\bstuds?\b|\bnuts?\b|rivet", _I), None),
     (
         "electronics_assembly",
-        re.compile(r"\bpcbs?\b|circuit|electronic", _I),
+        # Electronics subassemblies, PCBAs and box builds (enclosure + boards + harness
+        # integration) are electronics assembly work.
+        re.compile(
+            r"\bpcbas?\b|\bpcbs?\b|circuit|electronic|box[\s-]?builds?\b|\bSMT\b|"
+            r"surface[\s-]mount|through[\s-]hole",
+            _I,
+        ),
         re.compile(r"chassis|computer|display", _I),
     ),
     (
@@ -578,6 +615,10 @@ _CERT_RULES: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("AS9100", re.compile(r"AS\s?9100", _I)),
     ("ISO9001", re.compile(r"ISO\s?9001", _I)),
     ("CPCSC_L1", re.compile(r"CPCSC", _I)),
+    # IPC operator certifications, only when the line names the standard.
+    ("IPC_J_STD_001", re.compile(r"J[\s-]?STD[\s-]?001", _I)),
+    ("IPC_A_610", re.compile(r"IPC[\s-]?A[\s-]?610", _I)),
+    ("IPC_WHMA_A_620", re.compile(r"WHMA[\s-]?A[\s-]?620|IPC[\s-]?A[\s-]?620", _I)),
 )
 _NADCAP_RE = re.compile(r"nadcap", _I)
 _NADCAP_BY_PROCESS = (
@@ -710,8 +751,12 @@ _LLM_SYSTEM = (
     "technical data (Canada's Controlled Goods Program). Use only the allowed enum values. "
     "Include a certification only if the description asks for it or it is implied by a "
     "named standard (e.g. CWB W47.1 structural welding, Nadcap heat treat); CGP is "
-    "represented by controlled=true, not in required_certs. Tolerance: 'precision' for "
-    "tight / ±0.01-0.02 mm work, 'ultra' for ±0.00x mm, otherwise 'standard'."
+    "represented by controlled=true, not in required_certs. Electronics subassemblies, "
+    "circuit board assemblies (PCBA) and box builds are electronics_assembly; cable assemblies "
+    "and harnesses are wire_harness. IPC J-STD-001, IPC-A-610 and IPC/WHMA-A-620 are operator "
+    "certifications: include one only when the description names that standard. "
+    "Tolerance: 'precision' for tight / ±0.01-0.02 mm work, 'ultra' for ±0.00x mm, "
+    "otherwise 'standard'."
 )
 
 

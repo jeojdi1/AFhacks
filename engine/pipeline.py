@@ -480,7 +480,9 @@ def shop_detail(state: Any, shop_id: str) -> dict:
         "certifications": copy.deepcopy(shop.get("certifications") or []),
         "offers": offers,
         "readiness": gaps_mod.readiness(ctx, shop_id, state.assignments) if state.jobs else [],
-        "training": gaps_mod.training_entries(shop_id, state.packages),
+        "training": gaps_mod.training_entries(
+            shop_id, state.packages, gaps_mod.training_costs(ctx)
+        ),
     }
 
 

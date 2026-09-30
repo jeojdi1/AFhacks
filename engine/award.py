@@ -30,8 +30,8 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, ConfigDict
 
-from engine import cache, shopside
-from engine.pipeline import effective_shop
+from engine import cache, shopside, trades
+from engine.pipeline import config, effective_shop
 from engine.rules import cert_label
 from engine.state import DEFAULT_PROGRAM_ID, STATE_LOCK, State, load_state, save_state
 
@@ -132,6 +132,12 @@ def _target(state: Any, shop_id: str, job_id: str) -> tuple[dict, dict, dict, di
 # --------------------------------------------------------------------------- documents
 
 
+def _trade_for_cert(state: Any, ctype: str) -> dict | None:
+    """The trade whose workers a funded package is training for ``ctype`` (IPC, ...)."""
+    found = trades.for_cert(config(state).get("training_costs"), ctype)
+    return found[1] if found else None
+
+
 def _quality_detail(state: Any, shop_id: str, job: dict) -> str:
     try:
         eff = effective_shop(state, shop_id)
@@ -145,6 +151,12 @@ def _quality_detail(state: Any, shop_id: str, job: dict) -> str:
         status = c.get("status") or "unknown"
         if ctype == "CWB_W47.1" and status not in HELD:
             lines.append(CWB_TRAINING_NOTE)
+        elif status == "pending_training" and (trade := _trade_for_cert(state, ctype)):
+            lines.append(
+                f"{trade.get('label') or 'Training'} certification ({cert_label(ctype)}): "
+                f"{trades.workers(trade)} in training — qualification expected before first "
+                "article (assumption)"
+            )
         elif status in HELD:
             lines.append(f"{cert_label(ctype)}: {status} on the shop's profile")
         else:

@@ -20,6 +20,9 @@ export type PlainKey =
   | "CGP"
   | "CONTROLLED"
   | "CWB_W47.1"
+  | "IPC_J_STD_001"
+  | "IPC_A_610"
+  | "IPC_WHMA_A_620"
   | "CPCSC_L1"
   | "AS9100"
   | "ISO9001"
@@ -102,6 +105,21 @@ export const PLAIN: Record<PlainKey, Plain> = {
     first: "Welding certification (CWB W47.1)",
     label: "welding certification",
     tip: "Canadian Welding Bureau company certification for structural welding. The shop is certified, it needs a qualified supervisor and approved procedures, and each welder passes a test for their own ticket.",
+  },
+  IPC_J_STD_001: {
+    first: "Soldering certification (IPC J-STD-001)",
+    label: "soldering certification",
+    tip: "IPC standard for soldered electrical and electronic assemblies. Operators earn it on a course (Certified IPC Specialist); the shop holds it through its certified staff.",
+  },
+  IPC_A_610: {
+    first: "Electronics workmanship certification (IPC-A-610)",
+    label: "electronics workmanship certification",
+    tip: "IPC standard for what a good electronics assembly looks like. Operators and inspectors earn it on a course (Certified IPC Specialist).",
+  },
+  IPC_WHMA_A_620: {
+    first: "Cable and harness certification (IPC/WHMA-A-620)",
+    label: "cable and harness certification",
+    tip: "IPC/WHMA standard for cable and wire harness assemblies. Operators earn it on a course (Certified IPC Specialist).",
   },
   CPCSC_L1: {
     first: "Cyber-security self-check (CPCSC L1)",

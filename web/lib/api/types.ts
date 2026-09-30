@@ -39,6 +39,11 @@ export const CERT_TYPES = [
   "NADCAP:CHEM_PROCESSING",
   "NADCAP:COATINGS",
   "CWB_W47.1",
+  // Operator certifications (additive, every trade; docs/api.md §1): a shop holds one
+  // through its certified staff and declares it. Not tracked on every profile.
+  "IPC_J_STD_001",
+  "IPC_A_610",
+  "IPC_WHMA_A_620",
 ] as const;
 export type CertType = (typeof CERT_TYPES)[number];
 
